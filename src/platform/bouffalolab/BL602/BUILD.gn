@@ -47,6 +47,9 @@ static_library("BL602") {
     "SystemPlatformConfig.h",
     "wifi_mgmr_portable.c",
     "wifi_mgmr_portable.h",
+    "../common/FactoryDataProvider.cpp",
+    "../common/FactoryDataProvider.h",
+    "${chip_root}/src/credentials/DeviceAttestationCredsProvider.h"
   ]
 
   deps = [
