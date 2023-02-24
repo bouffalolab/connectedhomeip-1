@@ -56,6 +56,11 @@
 #include "Rpc.h"
 #endif
 
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined (CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
+#include <matter_factory_data.h>
+#include <platform/bouffalolab/common/FactoryDataProvider.h>
+#endif
+
 #if CONFIG_ENABLE_CHIP_SHELL || PW_RPC_ENABLED
 #include "uart.h"
 #endif
@@ -72,6 +77,12 @@ using namespace ::chip::DeviceLayer;
 namespace {
 chip::app::Clusters::NetworkCommissioning::Instance
     sWiFiNetworkCommissioningInstance(0 /* Endpoint Id */, &(NetworkCommissioning::BLWiFiDriver::GetInstance()));
+}
+#endif
+
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined (CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
+namespace {
+    FactoryDataProvider sFactoryDataProvider;
 }
 #endif
 
@@ -129,16 +140,27 @@ void PlatformManagerImpl::PlatformInit(void)
 #elif CHIP_DEVICE_CONFIG_ENABLE_WIFI
 
     ret = sWiFiNetworkCommissioningInstance.Init();
-    if (CHIP_NO_ERROR != ret)
+    if (ret != CHIP_NO_ERROR)
     {
         ChipLogError(NotSpecified, "sWiFiNetworkCommissioningInstance.Init() failed");
     }
 #endif
 
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-
     // Initialize device attestation config
+#ifdef CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
+    if (CHIP_NO_ERROR == sFactoryDataProvider.Init()) {
+        SetDeviceInstanceInfoProvider(&sFactoryDataProvider);
+        SetDeviceAttestationCredentialsProvider(&sFactoryDataProvider);
+        SetCommissionableDataProvider(&sFactoryDataProvider);
+    }
+    else {
+        ChipLogError(NotSpecified, "sFactoryDataProvider.Init() failed");
+    }
+#else
     SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
+#endif
+
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
 
 #if CHIP_DEVICE_CONFIG_ENABLE_EXTENDED_DISCOVERY
     chip::app::DnssdServer::Instance().SetExtendedDiscoveryTimeoutSecs(EXT_DISCOVERY_TIMEOUT_SECS);

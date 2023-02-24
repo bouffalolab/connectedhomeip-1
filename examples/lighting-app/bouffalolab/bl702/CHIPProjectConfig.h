@@ -135,3 +135,8 @@
 #define CHIP_CONFIG_MAX_DEVICE_ADMINS 4 // 3 fabrics + 1 for rotation slack
 
 #define CHIP_BLE_DEVICE_NAME "MatterLight"
+
+#define CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE 0
+// uncomment out the following macro to use factory test data 
+// when CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE sets to 1
+#define CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST

@@ -23,36 +23,9 @@
 
 #include <system/SystemError.h>
 
-typedef struct {
-    uint8_t *mValuePtr;
-    uint32_t mLength;
-} FactoryCredentialElement_t;
-
-typedef struct {
-    FactoryCredentialElement_t dac_cert;
-    FactoryCredentialElement_t dac_priv_key;
-    FactoryCredentialElement_t pai_cert;
-    FactoryCredentialElement_t cd_cert;
-    uint32_t passcode;
-} FactoryCredentialData_t;
-
-typedef struct {
-    FactoryCredentialElement_t spake2_it;
-    FactoryCredentialElement_t spake2_salt;
-    FactoryCredentialElement_t spake2_verifier;
-} FactorySpake2pData_t;
-
-typedef struct FactoryData
-{
-    FactoryCredentialData_t     mCreden;
-    FactorySpake2pData_t        mSpake2p;
-} FactoryData_t;;
-
 namespace chip {
 namespace DeviceLayer {
 
-
-template <class FlashFactoryData>
 class FactoryDataProvider : public chip::Credentials::DeviceAttestationCredentialsProvider,
                             public CommissionableDataProvider,
                             public DeviceInstanceInfoProvider
@@ -92,7 +65,12 @@ public:
 
 private:
 
-    FactoryData_t mFactoryData;
+#if !CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    uint8_t mSpake2pSalt[32];
+    uint32_t mSpake2pSaltLen;
+    uint8_t mSpake2pVerifier[100];
+    uint32_t mSpake2pVerifierLen;
+#endif
 };
 
 } // namespace DeviceLayer
