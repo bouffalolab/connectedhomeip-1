@@ -57,7 +57,6 @@
 #endif
 
 #if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined (CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
-#include <matter_factory_data.h>
 #include <platform/bouffalolab/common/FactoryDataProvider.h>
 #endif
 
@@ -147,7 +146,7 @@ void PlatformManagerImpl::PlatformInit(void)
 #endif
 
     // Initialize device attestation config
-#ifdef CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined (CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
     if (CHIP_NO_ERROR == sFactoryDataProvider.Init()) {
         SetDeviceInstanceInfoProvider(&sFactoryDataProvider);
         SetDeviceAttestationCredentialsProvider(&sFactoryDataProvider);
