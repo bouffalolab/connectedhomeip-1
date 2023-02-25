@@ -31,6 +31,15 @@ extern "C" {
 namespace chip {
 namespace DeviceLayer {
 
+CHIP_ERROR LoadKeypairFromRaw(ByteSpan privateKey, ByteSpan publicKey, Crypto::P256Keypair & keypair)
+{
+    Crypto::P256SerializedKeypair serializedKeypair;
+    ReturnErrorOnFailure(serializedKeypair.SetLength(privateKey.size() + publicKey.size()));
+    memcpy(serializedKeypair.Bytes(), publicKey.data(), publicKey.size());
+    memcpy(serializedKeypair.Bytes() + publicKey.size(), privateKey.data(), privateKey.size());
+    return keypair.Deserialize(serializedKeypair);
+}
+
 CHIP_ERROR FactoryDataProvider::Init()
 {
 #if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
@@ -53,16 +62,14 @@ CHIP_ERROR FactoryDataProvider::GetCertificationDeclaration(MutableByteSpan & ou
 
     if ((len = mfd_getCd(&p)) && p) {
 
-        memcpy(outBuffer.data(), p, len);
-        outBuffer = MutableByteSpan(outBuffer.data(), sizeof(Pai_Cert_Array));
-
-        return CHIP_NO_ERROR;
+        return CopySpanToMutableSpan(ByteSpan(p, len), outBuffer);
     }
 
     outBuffer.reduce_size(0);
     return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
 #else
-    static const unsigned char Chip_Test_CD_130D_f001_der[] = {
+
+    static const unsigned char Chip_Test_CD_130D_f001_der[539] = {
       0x30, 0x81, 0xe9, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01,
       0x07, 0x02, 0xa0, 0x81, 0xdb, 0x30, 0x81, 0xd8, 0x02, 0x01, 0x03, 0x31,
       0x0d, 0x30, 0x0b, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04,
@@ -85,8 +92,7 @@ CHIP_ERROR FactoryDataProvider::GetCertificationDeclaration(MutableByteSpan & ou
       0xf2, 0x9f, 0x3b, 0xdd, 0xd8, 0x15, 0x51, 0x07
     };
 
-    memcpy(outBuffer.data(), Chip_Test_CD_130D_f001_der, sizeof(Chip_Test_CD_130D_f001_der));
-    outBuffer = MutableByteSpan(outBuffer.data(), sizeof(Chip_Test_CD_130D_f001_der));
+    ReturnErrorOnFailure(CopySpanToMutableSpan(ByteSpan(Chip_Test_CD_130D_f001_der), outBuffer));
 
     return CHIP_NO_ERROR;
 #endif
@@ -108,10 +114,7 @@ CHIP_ERROR FactoryDataProvider::GetDeviceAttestationCert(MutableByteSpan & outBu
 
     if ((len = mfd_getDacCert(&p)) && p) {
 
-        memcpy(outBuffer.data(), p, len);
-        outBuffer = MutableByteSpan(outBuffer.data(), sizeof(Pai_Cert_Array));
-
-        return CHIP_NO_ERROR;
+        return CopySpanToMutableSpan(ByteSpan(p, len), outBuffer);
     }
 
     outBuffer.reduce_size(0);
@@ -159,8 +162,7 @@ CHIP_ERROR FactoryDataProvider::GetDeviceAttestationCert(MutableByteSpan & outBu
         0x1f, 0x64, 0xff, 0x51, 0x43, 0x83, 0xb4, 0xa9, 0x19, 0x6f, 0x96, 0xcf
     };
 
-    memcpy(outBuffer.data(), Dac_Cert_Array, sizeof(Dac_Cert_Array));
-    outBuffer = MutableByteSpan(outBuffer.data(), sizeof(Dac_Cert_Array));
+    ReturnErrorOnFailure(CopySpanToMutableSpan(ByteSpan(Dac_Cert_Array), outBuffer));
 
     return CHIP_NO_ERROR;
 #endif
@@ -176,10 +178,7 @@ CHIP_ERROR FactoryDataProvider::GetProductAttestationIntermediateCert(MutableByt
 
     if ((len = mfd_getPaiCert(&p)) && p) {
 
-        memcpy(outBuffer.data(), p, len);
-        outBuffer = MutableByteSpan(outBuffer.data(), sizeof(Pai_Cert_Array));
-
-        return CHIP_NO_ERROR;
+        return CopySpanToMutableSpan(ByteSpan(p, len), outBuffer);
     }
 
     outBuffer.reduce_size(0);
@@ -224,8 +223,7 @@ CHIP_ERROR FactoryDataProvider::GetProductAttestationIntermediateCert(MutableByt
         0x6c, 0xc9, 0xc5, 0x70, 0xb8, 0x1e, 0xd8
     };
 
-    memcpy(outBuffer.data(), Pai_Cert_Array, sizeof(Pai_Cert_Array));
-    outBuffer = MutableByteSpan(outBuffer.data(), sizeof(Pai_Cert_Array));
+    ReturnErrorOnFailure(CopySpanToMutableSpan(ByteSpan(Pai_Cert_Array), outBuffer));
 
     return CHIP_NO_ERROR;
 #endif
@@ -238,8 +236,6 @@ CHIP_ERROR FactoryDataProvider::SignWithDeviceAttestationKey(const ByteSpan & me
     Crypto::P256ECDSASignature signature;
     Crypto::P256Keypair keypair;
     chip::Crypto::P256PublicKey dacPublicKey;
-    Crypto::P256SerializedKeypair serializedKeypair;
-    uint8_t dac_cert_array[Credentials::kMaxDERCertLength];
 
     if (outSignBuffer.size() < signature.Capacity()) {
         return CHIP_ERROR_BUFFER_TOO_SMALL;
@@ -264,26 +260,29 @@ CHIP_ERROR FactoryDataProvider::SignWithDeviceAttestationKey(const ByteSpan & me
         0x92, 0xe5, 0xd8, 0x3c, 0x56, 0x9d, 0x67, 0x7a, 0x29, 0xc7, 0xe9, 0xa7, 0x8f, 0x67, 0xc5, 
         0x5f, 0xf2
     };
-
+    // static uint8_t Dac_PublicKey_Array[] = {
+    //     0x04, 0xd8, 0x19, 0x93, 0xac, 0xf1, 0xc8, 0x63, 0xbb, 0x04, 0x2b, 0x8c, 0x2e, 0x4d, 0xe4, 
+    //     0x08, 0x39, 0x4f, 0xf9, 0x3e, 0xa3, 0x89, 0x19, 0x96, 0x8c, 0x22, 0xa1, 0x0f, 0xeb, 0x4c, 
+    //     0x20, 0x2a, 0x8a, 0x12, 0xff, 0xe4, 0xe6, 0x09, 0x4f, 0x13, 0x4b, 0xa8, 0x35, 0x53, 0x2f, 
+    //     0xa4, 0x9d, 0x8e, 0x79, 0x8c, 0x07, 0x01, 0x5c, 0x73, 0xff, 0x0d, 0x1c, 0x34, 0xfe, 0x14, 
+    //     0x7f, 0xbe, 0xc6, 0x70, 0xf8
+    // };
+    uint8_t dac_cert_array[Credentials::kMaxDERCertLength];
     uint8_t dac_cert_private_key_array[sizeof(Dac_PrivateKey_Array)];
     MutableByteSpan dacCert(dac_cert_array, Credentials::kMaxDERCertLength), dacPrivateKey(dac_cert_private_key_array, sizeof(dac_cert_private_key_array));
 
+    ReturnErrorOnFailure(CopySpanToMutableSpan(ByteSpan(Dac_PrivateKey_Array), dacPrivateKey));
     ReturnErrorOnFailure(GetDeviceAttestationCert(dacCert));
 
-    memcpy(dac_cert_private_key_array, Dac_PrivateKey_Array, sizeof(Dac_PrivateKey_Array));
-    dacPrivateKey = MutableByteSpan(dacPrivateKey.data(), sizeof(Dac_PrivateKey_Array));
 #endif
 
     ReturnErrorOnFailure(chip::Crypto::ExtractPubkeyFromX509Cert(dacCert, dacPublicKey));
 
-    ReturnErrorOnFailure(serializedKeypair.SetLength(dacPrivateKey.size() + dacPublicKey.Length()));
-    memcpy(serializedKeypair.Bytes(), dacPublicKey.ConstBytes(), dacPublicKey.Length());
-    memcpy(serializedKeypair.Bytes() + dacPublicKey.Length(), dacPrivateKey.data(), dacPrivateKey.size());
-    ReturnErrorOnFailure(keypair.Deserialize(serializedKeypair));
-
+    ReturnErrorOnFailure(
+        LoadKeypairFromRaw(dacPrivateKey, ByteSpan(dacPublicKey.Bytes(), dacPublicKey.Length()), keypair));
     ReturnErrorOnFailure(keypair.ECDSA_sign_msg(messageToSign.data(), messageToSign.size(), signature));
 
-    outSignBuffer = MutableByteSpan(signature.Bytes(), signature.Length());
+    ReturnErrorOnFailure(CopySpanToMutableSpan(ByteSpan(signature.Bytes(), signature.Length()), outSignBuffer));
 
     return CHIP_NO_ERROR;
 }
