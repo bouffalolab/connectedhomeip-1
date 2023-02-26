@@ -309,8 +309,7 @@ CHIP_ERROR FactoryDataProvider::SetSetupDiscriminator(uint16_t setupDiscriminato
 CHIP_ERROR FactoryDataProvider::GetSpake2pIterationCount(uint32_t & iterationCount)
 {
 #if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
-    // VerifyOrReturnValue(mfd_getPasscode(&setupDiscriminator), CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
-    // setupDiscriminator = 0xfff & setupDiscriminator;
+    VerifyOrReturnValue(mfd_getSapke2It(&iterationCount), CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     iterationCount = 1000;
 #endif
@@ -320,8 +319,11 @@ CHIP_ERROR FactoryDataProvider::GetSpake2pIterationCount(uint32_t & iterationCou
 
 CHIP_ERROR FactoryDataProvider::GetSpake2pSalt(MutableByteSpan & saltBuf)
 {
-#if 0
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    uint8_t len;
 
+    VerifyOrReturnValue((len = mfd_getSapke2Salt(saltBuf.data())) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
+    saltBuf.reduce_size(len);
 #else
     static const char spake2pSalt[] = "U1BBS0UyUCBLZXkgU2FsdA==";
     uint32_t aSpake2pSaltLen;
@@ -338,8 +340,12 @@ CHIP_ERROR FactoryDataProvider::GetSpake2pSalt(MutableByteSpan & saltBuf)
 
 CHIP_ERROR FactoryDataProvider::GetSpake2pVerifier(MutableByteSpan & verifierBuf, size_t & verifierLen)
 {
-#if 0
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    uint8_t len;
 
+    VerifyOrReturnValue((len = mfd_getSapke2Verifier(verifierBuf.data())) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
+    verifierLen = len;
+    verifierBuf.reduce_size(len);
 #else
     static const char spake2pVerifier[] = "jdf0KbjmAwujViR8WckvvklJzE0UL+uIOiIjTtb3a5kE/WdbVWhmDFSSjLqFhiiCILxXQ4NVO3YBWTdkERnTlXbFmx+T/32FMRpZLPz8yqFXyALytJW7ZJfArBz0/CP9hA==";
     uint32_t aSpake2pVerifierLen;
@@ -373,8 +379,8 @@ CHIP_ERROR FactoryDataProvider::SetSetupPasscode(uint32_t setupPasscode)
 
 CHIP_ERROR FactoryDataProvider::GetVendorName(char * buf, size_t bufSize)
 {
-#if 0
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue((bufSize = mfd_getVendorName(buf, bufSize)) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     static const char vendorName[] = "Bouffalo Lab";
     strncpy(buf, vendorName, bufSize);
@@ -385,8 +391,8 @@ CHIP_ERROR FactoryDataProvider::GetVendorName(char * buf, size_t bufSize)
 
 CHIP_ERROR FactoryDataProvider::GetVendorId(uint16_t & vendorId)
 {
-#if 0
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue(mfd_getVendorId(&vendorId), CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     vendorId = 0x130D;
 #endif
@@ -396,8 +402,8 @@ CHIP_ERROR FactoryDataProvider::GetVendorId(uint16_t & vendorId)
 
 CHIP_ERROR FactoryDataProvider::GetProductName(char * buf, size_t bufSize)
 {
-#if 0
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue((bufSize = mfd_getVendorName(buf, bufSize)) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     strncpy(buf, CHIP_BLE_DEVICE_NAME, bufSize);
 #endif
@@ -407,8 +413,8 @@ CHIP_ERROR FactoryDataProvider::GetProductName(char * buf, size_t bufSize)
 
 CHIP_ERROR FactoryDataProvider::GetProductId(uint16_t & productId)
 {
-#if 0
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue(mfd_getProductId(&productId), CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     productId = 0xf001;
 #endif
@@ -417,29 +423,32 @@ CHIP_ERROR FactoryDataProvider::GetProductId(uint16_t & productId)
 
 CHIP_ERROR FactoryDataProvider::GetPartNumber(char * buf, size_t bufSize)
 {
-#if 0
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue((bufSize = mfd_getPartNumber(buf, bufSize)) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #endif
     return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
 }
 
 CHIP_ERROR FactoryDataProvider::GetProductURL(char * buf, size_t bufSize)
 {
-#if 0
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue((bufSize = mfd_getProductUrl(buf, bufSize)) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #endif
     return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
 }
 
 CHIP_ERROR FactoryDataProvider::GetProductLabel(char * buf, size_t bufSize)
 {
-#if 0
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue((bufSize = mfd_getProductLabel(buf, bufSize)) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #endif
     return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
 }
 
 CHIP_ERROR FactoryDataProvider::GetSerialNumber(char * buf, size_t bufSize)
 {
-#if 0
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue((bufSize = mfd_getSerialNumber(buf, bufSize)) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     strncpy(buf, CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER, bufSize);
 #endif
@@ -449,8 +458,6 @@ CHIP_ERROR FactoryDataProvider::GetSerialNumber(char * buf, size_t bufSize)
 
 CHIP_ERROR FactoryDataProvider::GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & day)
 {
-
-
 #define OS_YEAR     ((((int)(__DATE__ [7] - '0') * 10 + (int)(__DATE__ [8] - '0')) * 10 \
                         + (int)(__DATE__ [9] - '0')) * 10 + (int)(__DATE__ [10] - '0'))
 
@@ -468,23 +475,23 @@ CHIP_ERROR FactoryDataProvider::GetManufacturingDate(uint16_t & year, uint8_t & 
 #define OS_DAY      ((__DATE__ [4] == ' ' ? 0 : __DATE__ [4] - '0') * 10 \
                                 + (__DATE__ [5] - '0'))
 
-
-    if (0) {
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    if (mfd_getManufacturingDate(&year, &month, &day)) {
+        return CHIP_NO_ERROR;
     }
-    else {
-        year = (uint16_t)OS_YEAR;
-        month = (uint8_t)OS_MONTH;
-        day = (uint8_t)OS_DAY;
-    }
+#endif
+
+    year = (uint16_t)OS_YEAR;
+    month = (uint8_t)OS_MONTH;
+    day = (uint8_t)OS_DAY;
 
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR FactoryDataProvider::GetHardwareVersion(uint16_t & hardwareVersion)
 {
-#if 0
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue(mfd_getHardwareVersion(&hardwareVersion), CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     hardwareVersion = CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION;
 #endif
@@ -494,8 +501,8 @@ CHIP_ERROR FactoryDataProvider::GetHardwareVersion(uint16_t & hardwareVersion)
 
 CHIP_ERROR FactoryDataProvider::GetHardwareVersionString(char * buf, size_t bufSize)
 {
-#if 0
-
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    VerifyOrReturnValue((bufSize = mfd_getHardwareVersionString(buf, bufSize)) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 #else
     strncpy(buf, CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION_STRING, bufSize);
 #endif
@@ -504,8 +511,12 @@ CHIP_ERROR FactoryDataProvider::GetHardwareVersionString(char * buf, size_t bufS
 
 CHIP_ERROR FactoryDataProvider::GetRotatingDeviceIdUniqueId(MutableByteSpan & uniqueIdSpan)
 {
-#if 0
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
+    uint32_t len;
 
+    VerifyOrReturnValue((len = mfd_getRotatingDeviceIdUniqueId(uniqueIdSpan.data(), uniqueIdSpan.size())) > 0, CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
+
+    uniqueIdSpan.reduce_size(len);
 #else
     constexpr uint8_t uniqueId[] = CHIP_DEVICE_CONFIG_ROTATING_DEVICE_ID_UNIQUE_ID;
 
@@ -513,6 +524,25 @@ CHIP_ERROR FactoryDataProvider::GetRotatingDeviceIdUniqueId(MutableByteSpan & un
 #endif
 
     return CHIP_NO_ERROR;
+}
+
+extern "C" bool spake2pUtils_test(uint32_t aIt, uint8_t *aSalt, uint32_t aSaltLen, uint8_t *aSaltVerifier, uint32_t *pSaltVerifierLen, uint32_t pincode)
+{
+    chip::Crypto::Spake2pVerifier verifier;
+    ByteSpan salt(aSalt, aSaltLen);
+    chip::MutableByteSpan serializedVerifierSpan(aSaltVerifier, *pSaltVerifierLen);
+
+    VerifyOrReturnValue(aIt >= chip::Crypto::kSpake2p_Min_PBKDF_Iterations && aIt <= chip::Crypto::kSpake2p_Max_PBKDF_Iterations, false);
+    VerifyOrReturnValue(aSalt && aSaltLen >= chip::Crypto::kSpake2p_Min_PBKDF_Salt_Length && aSaltLen <= chip::Crypto::kSpake2p_Max_PBKDF_Salt_Length, false);
+    VerifyOrReturnValue(aSaltVerifier && *pSaltVerifierLen >= chip::Crypto::kSpake2p_VerifierSerialized_Length, false);
+
+    VerifyOrReturnValue(CHIP_NO_ERROR == verifier.Generate(aIt, salt, pincode), false);
+
+    VerifyOrReturnValue(CHIP_NO_ERROR == verifier.Serialize(serializedVerifierSpan), false);
+
+    *pSaltVerifierLen = serializedVerifierSpan.size();
+    
+    return true;
 }
 
 } // namespace DeviceLayer
