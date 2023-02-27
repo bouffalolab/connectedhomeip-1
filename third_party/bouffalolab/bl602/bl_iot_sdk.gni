@@ -941,12 +941,14 @@ template("bl_iot_sdk") {
   source_set("${sdk_target_name}_factory_data") {
     sources = [
       "${bl_iot_sdk_root}/components/network/matter/factory_data/matter_factory_data.c",
+      "${bl_iot_sdk_root}/components/network/matter/factory_data/efuse_slot.c",
     ]
 
     configs += [
       ":${sdk_target_name}_config",
       ":${sdk_target_name}_config_utils",
       ":${sdk_target_name}_config_sys",
+      ":${sdk_target_name}_config_BSP_Driver",
       ":${sdk_target_name}_config_hosal",
       ":${sdk_target_name}_config_freertos",
       ":${sdk_target_name}_config_stage",
