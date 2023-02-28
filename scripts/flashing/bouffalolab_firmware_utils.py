@@ -86,6 +86,22 @@ BOUFFALO_OPTIONS = {
                 'type': pathlib.Path
             }
         },
+        'pk': {
+            'help': 'public key to sign and encrypt firmware. Available for OTA image building.',
+            'default': None,
+            'argparse': {
+                'metavar': 'path',
+                'type': pathlib.Path
+            }
+        },
+        'sk': {
+            'help': 'private key to sign and encrypt firmware. Available for OTA image building.',
+            'default': None,
+            'argparse': {
+                'metavar': 'path',
+                'type': pathlib.Path
+            }
+        }
     },
 }
 
@@ -151,6 +167,11 @@ class Flasher(firmware_utils.Flasher):
         dts_path = None
         xtal_value = None
 
+        is_for_ota_image_building = False
+        is_for_programming = False
+        has_private_key = False
+        has_public_key = False
+
         command_args = {}
         for (key, value) in dict(vars(self.option)).items():
 
@@ -183,10 +204,32 @@ class Flasher(firmware_utils.Flasher):
                 xtal_value = value
             elif key == "dts":
                 dts_path = value
+            elif "port" == key:
+                if value:
+                    is_for_programming = True
+            elif "build" == key:
+                if value:
+                    is_for_ota_image_building = True
+            elif "pk" == key:
+                if value:
+                    has_public_key = True
+            elif "sk" == key:
+                if value:
+                    has_private_key = True
 
             arguments.append(arg)
 
             print(key, value)
+
+        if is_for_ota_image_building and is_for_programming:
+            print("ota imge build can't work with image programming")
+            return self
+
+        if is_for_ota_image_building:
+            if (has_private_key is not has_public_key) and (has_private_key or has_public_key):
+                print("For ota image signature, key pair must be used together")
+                return self
+
 
         print(dts_path, xtal_value)
         if not dts_path and xtal_value:
