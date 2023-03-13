@@ -56,7 +56,7 @@
 #include "Rpc.h"
 #endif
 
-#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined (CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined(CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
 #include <platform/bouffalolab/common/FactoryDataProvider.h>
 #endif
 
@@ -79,9 +79,9 @@ chip::app::Clusters::NetworkCommissioning::Instance
 }
 #endif
 
-#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined (CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined(CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
 namespace {
-    FactoryDataProvider sFactoryDataProvider;
+FactoryDataProvider sFactoryDataProvider;
 }
 #endif
 
@@ -146,13 +146,15 @@ void PlatformManagerImpl::PlatformInit(void)
 #endif
 
     // Initialize device attestation config
-#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined (CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
-    if (CHIP_NO_ERROR == sFactoryDataProvider.Init()) {
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || defined(CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST)
+    if (CHIP_NO_ERROR == sFactoryDataProvider.Init())
+    {
         SetDeviceInstanceInfoProvider(&sFactoryDataProvider);
         SetDeviceAttestationCredentialsProvider(&sFactoryDataProvider);
         SetCommissionableDataProvider(&sFactoryDataProvider);
     }
-    else {
+    else
+    {
         ChipLogError(NotSpecified, "sFactoryDataProvider.Init() failed");
     }
 #else
@@ -192,13 +194,6 @@ void PlatformManagerImpl::PlatformInit(void)
 
     PrintOnboardingCodes(chip::RendezvousInformationFlag(chip::RendezvousInformationFlag::kBLE));
     PlatformMgr().AddEventHandler(AppTask::ChipEventHandler, 0);
-
-#ifdef OTA_ENABLED
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    OTAConfig::Init();
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-#endif // OTA_ENABLED
-
 #if PW_RPC_ENABLED
     chip::rpc::Init();
 #endif

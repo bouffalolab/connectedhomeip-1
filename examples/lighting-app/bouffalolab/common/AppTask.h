@@ -99,6 +99,8 @@ public:
     static void IdentifyStartHandler(Identify *);
     static void IdentifyStopHandler(Identify *);
     static void IdentifyHandleOp(app_event_t event);
+    static constexpr uint32_t kInitOTARequestorDelaySec = 5;
+    static void InitOTARequestorHandler(System::Layer * systemLayer, void * appState);
 
 private:
     friend AppTask & GetAppTask(void);

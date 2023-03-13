@@ -225,7 +225,7 @@ void AppTask::AppTaskMain(void * pvParameter)
 
             if ((APP_EVENT_LIGHTING_MASK & appEvent) && isStateReady)
             {
-                LightingUpdate((app_event_t)(APP_EVENT_LIGHTING_MASK & appEvent));
+                LightingUpdate((app_event_t) (APP_EVENT_LIGHTING_MASK & appEvent));
             }
 
             if (APP_EVENT_IDENTIFY_MASK & appEvent)
@@ -243,6 +243,16 @@ void AppTask::AppTaskMain(void * pvParameter)
             PlatformMgr().UnlockChipStack();
         }
     }
+}
+
+void AppTask::InitOTARequestorHandler(System::Layer * systemLayer, void * appState)
+{
+    ChipLogProgress(NotSpecified, "InitOTARequestorHandler\r\n");
+#ifdef OTA_ENABLED
+    // chip::DeviceLayer::PlatformMgr().LockChipStack();
+    OTAConfig::Init();
+    // chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+#endif // OTA_ENABLED
 }
 
 void AppTask::ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
@@ -300,6 +310,8 @@ void AppTask::ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
         {
             GetAppTask().PostEvent(APP_EVENT_SYS_PROVISIONED);
             GetAppTask().mIsConnected = true;
+            chip::DeviceLayer::SystemLayer().StartTimer(chip::System::Clock::Seconds32(kInitOTARequestorDelaySec),
+                                                        InitOTARequestorHandler, nullptr);
         }
         break;
 

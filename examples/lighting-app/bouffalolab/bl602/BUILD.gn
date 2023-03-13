@@ -39,7 +39,7 @@ declare_args() {
   chip_print_memory_usage = true
 
   # OTA periodic query timeout in seconds
-  ota_periodic_query_timeout = 86400
+  ota_periodic_query_timeout = 10
 
   enable_heap_monitoring = false
 
