@@ -611,6 +611,7 @@ template("bl_iot_sdk") {
     ]
     public_configs = [
       ":${sdk_target_name}_config",
+      ":${sdk_target_name}_config_hosal",
       ":${sdk_target_name}_ble_config",
     ]
 
@@ -940,7 +941,7 @@ template("bl_iot_sdk") {
 
   source_set("${sdk_target_name}_factory_data") {
 
-    libs = [ "${bl_iot_sdk_root}/components/network/matter/matter_factory_data/libmatter_factory_data.a" ]
+    libs = [ "${bl_iot_sdk_root}/components/network/matter/matter_factory_data/lib/libmatter_factory_data.a" ]
 
     configs += [
       ":${sdk_target_name}_config",
