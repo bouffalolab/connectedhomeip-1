@@ -172,12 +172,6 @@ void PlatformManagerImpl::PlatformInit(void)
     PrintOnboardingCodes(chip::RendezvousInformationFlag(chip::RendezvousInformationFlag::kBLE));
     PlatformMgr().AddEventHandler(AppTask::ChipEventHandler, 0);
 
-#ifdef OTA_ENABLED
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    OTAConfig::Init();
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-#endif // OTA_ENABLED
-
 #if PW_RPC_ENABLED
     chip::rpc::Init();
 #endif
