@@ -140,3 +140,7 @@
 // uncomment out the following macro to use factory test data
 // when CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE sets to 1
 // #define CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
+
+#define CHIP_CERT_TEST
+
+#define CHIP_CERT_TEST_DUT_ID 1
