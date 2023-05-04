@@ -96,6 +96,8 @@ bouffalolab_executable("lighting_app") {
 
   defines += [ "BOARD_BTN_BOOT_PIN" ]
 
+  defines += [ "CFG_USE_BP5758D" ]
+
   if ("BL704L" == board) {
     defines += [ "XT_ZB6_DevKit" ]
   } else if ("BL706-NIGHT-LIGHT" == board) {
@@ -112,6 +114,7 @@ bouffalolab_executable("lighting_app") {
     "${examples_plat_common_dir}/plat/demo_pwm.c",
     "${examples_plat_common_dir}/plat/main.cpp",
     "${examples_plat_common_dir}/plat/uart.c",
+    "${examples_plat_common_dir}/plat/BP5758D.c",
   ]
 
   deps = [

@@ -19,9 +19,14 @@
 #include <bl_gpio.h>
 #include <bl_sys.h>
 #include <board.h>
+#if defined(CFG_USE_BP5758D)
+#include "BP5758D.h"
+#else
+
 #include <demo_pwm.h>
 #include <hosal_gpio.h>
 
+#endif
 #include "LEDWidget.h"
 
 void LEDWidget::Init()
@@ -68,10 +73,15 @@ bool LEDWidget::GetOnoff(void)
 void DimmableLEDWidget::Init()
 {
     mOnoff = light_v = 0;
+#if defined(CFG_USE_BP5758D)
+    BP5758D_Config_Init();
+#else
 
 #ifdef MAX_PWM_CHANNEL
     demo_hosal_pwm_init();
     demo_hosal_pwm_start();
+#endif
+
 #endif
 }
 
@@ -83,29 +93,46 @@ void DimmableLEDWidget::Toggle(void)
 void DimmableLEDWidget::SetOnoff(bool state)
 {
     mOnoff = state;
-#ifdef MAX_PWM_CHANNEL
+#if defined(MAX_PWM_CHANNEL) || defined(CFG_USE_BP5758D)
     if (mOnoff)
     {
         if (light_v)
         {
+#if defined(CFG_USE_BP5758D)
+            BP5758D_Set_level(light_v);
+#else
             set_level(light_v);
+#endif
         }
         else
         {
+#if defined(CFG_USE_BP5758D)
+            BP5758D_Set_level(254);
+#else
             set_level(254);
+#endif
         }
     }
     else
     {
+#if defined(CFG_USE_BP5758D)
+        BP5758D_Set_level(0);
+#else
         set_level(0);
+#endif
     }
 #endif
 }
 
 void DimmableLEDWidget::SetLevel(uint8_t level)
 {
-#ifdef MAX_PWM_CHANNEL
+
+#if defined(CFG_USE_BP5758D)
+    BP5758D_Set_level(level);
+#else
+#if defined(MAX_PWM_CHANNEL)
     set_level(level);
+#endif
 #endif
     light_v = level;
     mOnoff  = light_v > 0;
@@ -114,9 +141,15 @@ void DimmableLEDWidget::SetLevel(uint8_t level)
 void ColorLEDWidget::Init()
 {
     mOnoff = light_v = light_s = light_h = 0;
+#if defined(CFG_USE_BP5758D)
+    BP5758D_Config_Init();
+#else
+
 #ifdef MAX_PWM_CHANNEL
     demo_hosal_pwm_init();
     demo_hosal_pwm_start();
+#endif
+
 #endif
 }
 
@@ -127,22 +160,34 @@ void ColorLEDWidget::Toggle(void)
 
 void ColorLEDWidget::SetOnoff(bool state)
 {
-#ifdef MAX_PWM_CHANNEL
+#if defined(MAX_PWM_CHANNEL) || defined(CFG_USE_BP5758D)
     mOnoff = state;
     if (mOnoff)
     {
         if (0 == light_v)
         {
+#if defined(CFG_USE_BP5758D)
+            BP5758D_Set_Color(254, light_h, light_s);
+#else
             set_color(254, light_h, light_s);
+#endif
         }
         else
         {
+#if defined(CFG_USE_BP5758D)
+            BP5758D_Set_Color(light_v, light_h, light_s);
+#else
             set_color(light_v, light_h, light_s);
+#endif
         }
     }
     else
     {
+#if defined(CFG_USE_BP5758D)
+        BP5758D_Set_Color(0, light_h, light_s);
+#else
         set_color(0, light_h, light_s);
+#endif
     }
 #endif
 }
@@ -154,8 +199,14 @@ void ColorLEDWidget::SetLevel(uint8_t level)
 
 void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
 {
+#if defined(CFG_USE_BP5758D)
+    BP5758D_Set_Color(level, hue, sat);
+#else
+
 #ifdef MAX_PWM_CHANNEL
     set_color(level, hue, sat);
+#endif
+
 #endif
     light_v = level;
     light_h = hue;
