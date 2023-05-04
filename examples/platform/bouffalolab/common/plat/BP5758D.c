@@ -226,7 +226,7 @@ void BP5758D_Set_level(uint8_t currLevel)
     // green
     led_cfg.out[2].out_en = 1;
     led_cfg.out[2].curr_range = 60;
-    led_cfg.out[2].gray_level = led_cfg.out[1].gray_level * currLevel / 254;
+    led_cfg.out[2].gray_level = led_cfg.out[2].gray_level * currLevel / 254;
 
     status = BP5758D_ApplyConfig(&led_cfg);
     printf("BP5758D_Set_level: %d\r\n", status);
