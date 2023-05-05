@@ -121,7 +121,7 @@ void BP5758D_Config_Init(void)
         led_cfg.out[i].gray_level = 0;
     }
     
-    status = BP5758D_Init(12, 11);
+    status = BP5758D_Init(22, 29);
     printf("BP5758D_Init: %d\r\n", status);
     status = BP5758D_ApplyConfig(&led_cfg);
     printf("BP5758D_ApplyConfig: %d\r\n", status);
