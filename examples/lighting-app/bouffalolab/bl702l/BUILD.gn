@@ -94,18 +94,11 @@ bouffalolab_executable("lighting_app") {
 
   defines += [ "CFG_USE_PSRAM=1" ]
 
-  defines += [ "BOARD_BTN_BOOT_PIN" ]
+  #defines += [ "BOARD_BTN_BOOT_PIN" ]
 
   defines += [ "CFG_USE_BP5758D" ]
-
-  #if ("BL704L" == board) {
-  #  defines += [ "XT_ZB6_DevKit" ]
-  #} else if ("BL706-NIGHT-LIGHT" == board) {
-  #  defines += [ "BL706_NIGHT_LIGHT" ]
- #} else if ("BL702-IoT-DVK" == board || "BL706-IoT-DVK" == board) {
-  #  defines += [ "BL706_IOT_DVK" ]
-  #}
   defines += [ "BL706_NIGHT_LIGHT" ]
+  
   sources = [
     "${example_common_dir}/AppTask.cpp",
     "${example_common_dir}/ZclCallbacks.cpp",
