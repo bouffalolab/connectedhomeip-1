@@ -123,6 +123,10 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+#define MBEDTLS_AES_ALT 1
+#define MBEDTLS_ECP_ALT 1
+#define MBEDTLS_USE_HW 1
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */
