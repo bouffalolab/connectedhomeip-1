@@ -5,6 +5,28 @@
 
 #define I2C_SLAVE_ADDR_NORMAL      (0xB0 >> 1)
 #define I2C_SLAVE_ADDR_SLEEP       (0x80 >> 1)
+
+const uint16_t gamma_lut[] = {
+     0,   0,   0,   0,   0,   0,   1,   1,   1,   1,   2,   2,   2,   3,   3,   4,
+     4,   5,   5,   6,   6,   7,   8,   8,   9,  10,  11,  12,  12,  13,  14,  15,
+    16,  17,  18,  19,  21,  22,  23,  24,  25,  27,  28,  29,  31,  32,  34,  35,
+    37,  38,  40,  41,  43,  45,  46,  48,  50,  52,  53,  55,  57,  59,  61,  63,
+    65,  67,  69,  71,  73,  75,  78,  80,  82,  84,  87,  89,  92,  94,  96,  99,
+   101, 104, 107, 109, 112, 115, 117, 120, 123, 126, 128, 131, 134, 137, 140, 143,
+   146, 149, 152, 155, 159, 162, 165, 168, 172, 175, 178, 182, 185, 188, 192, 195,
+   199, 202, 206, 210, 213, 217, 221, 225, 228, 232, 236, 240, 244, 248, 252, 256,
+   260, 264, 268, 272, 276, 280, 285, 289, 293, 298, 302, 306, 311, 315, 320, 324,
+   329, 333, 338, 343, 347, 352, 357, 362, 366, 371, 376, 381, 386, 391, 396, 401,
+   406, 411, 416, 421, 426, 432, 437, 442, 448, 453, 458, 464, 469, 475, 480, 486,
+   491, 497, 502, 508, 514, 519, 525, 531, 537, 543, 549, 554, 560, 566, 572, 578,
+   585, 591, 597, 603, 609, 615, 622, 628, 634, 641, 647, 653, 660, 666, 673, 679,
+   686, 693, 699, 706, 713, 719, 726, 733, 740, 747, 754, 760, 767, 774, 781, 789,
+   796, 803, 810, 817, 824, 832, 839, 846, 853, 861, 868, 876, 883, 891, 898, 906,
+   913, 921, 929, 936, 944, 952, 960, 967, 975, 983, 991, 999,1007,1015,1023,
+};
+static uint16_t current_r=0;
+static uint16_t current_g=0;
+static uint16_t current_b=0;
 static BP5758D_Config_t led_cfg;
 
 static int BP5758D_Init(int scl_pin, int sda_pin)
@@ -39,7 +61,7 @@ static int BP5758D_SendData(uint8_t addr, uint8_t *data, uint16_t len)
         .clk = 100000,
     };
     
-#if 1
+#if 0
     printf("Byte0: %02X\r\n", addr<<1);
     for(int i=0; i<len; i++){
         printf("Byte%d: %02X\r\n", i+1, data[i]);
@@ -184,24 +206,28 @@ void BP5758D_Set_Color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
         blue  = rgb_max - rgb_adj;
         break;
     }
+    printf("BP5758D_Set_Color: R %ld, G %ld, B %ld\r\n", red,green,blue);
+    current_r=red;
+    current_g=green;
+    current_b=blue;
     // red
     led_cfg.out[0].out_en = 1;
     led_cfg.out[0].curr_range = 60;
-    led_cfg.out[0].gray_level = red * 1023 / 254;
+    led_cfg.out[0].gray_level = gamma_lut[red];
 
     // blue
     led_cfg.out[1].out_en = 1;
     led_cfg.out[1].curr_range = 60;
-    led_cfg.out[1].gray_level = blue * 1023 / 254;
+    led_cfg.out[1].gray_level = gamma_lut[blue];
 
     // green
     led_cfg.out[2].out_en = 1;
     led_cfg.out[2].curr_range = 60;
-    led_cfg.out[2].gray_level = green * 1023 / 254;
+    led_cfg.out[2].gray_level = gamma_lut[green];
 
     status = BP5758D_ApplyConfig(&led_cfg);
     printf("BP5758D_Set_Color: %d\r\n", status);
-    printf("BP5758D_Set_Color: R %d, G %d, B %d\r\n", led_cfg.out[0].gray_level,led_cfg.out[2].gray_level,led_cfg.out[1].gray_level);
+   
 }
 
 
@@ -217,17 +243,17 @@ void BP5758D_Set_level(uint8_t currLevel)
     // red
     led_cfg.out[0].out_en = 1;
     led_cfg.out[0].curr_range = 60;
-    led_cfg.out[0].gray_level = led_cfg.out[0].gray_level * currLevel / 254;
+    led_cfg.out[0].gray_level = gamma_lut[(current_r * currLevel / 254)];
 
     // blue
     led_cfg.out[1].out_en = 1;
     led_cfg.out[1].curr_range = 60;
-    led_cfg.out[1].gray_level = led_cfg.out[1].gray_level * currLevel / 254;
+    led_cfg.out[1].gray_level = gamma_lut[(current_b * currLevel / 254)];
 
     // green
     led_cfg.out[2].out_en = 1;
     led_cfg.out[2].curr_range = 60;
-    led_cfg.out[2].gray_level = led_cfg.out[2].gray_level * currLevel / 254;
+    led_cfg.out[2].gray_level =  gamma_lut[(current_g * currLevel / 254)];
 
     status = BP5758D_ApplyConfig(&led_cfg);
     printf("BP5758D_Set_level: %d\r\n", status);
