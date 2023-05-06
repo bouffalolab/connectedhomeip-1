@@ -54,7 +54,7 @@ else
 fi
 
 VID=FFF1
-PID=8005
+PID=8001
  
 cert_valid_from="2021-06-28 14:23:43"
 cert_lifetime=4294967295
@@ -63,7 +63,7 @@ cert_lifetime=4294967295
 #   - PAA Subject includes VID
 #   - PAI Subject includes PID
 {
-    dac_ids=(0000 0001)
+    dac_ids=(0000 0001 0002 0003 0005)
 
     #paa_key_file="../../credentials/test/attestation/Chip-Test-PAA-FFF1-Key"
     #paa_cert_file="../../credentials/test/attestation/Chip-Test-PAA-FFF1-Cert"
