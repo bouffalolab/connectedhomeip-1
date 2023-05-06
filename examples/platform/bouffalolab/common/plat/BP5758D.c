@@ -39,7 +39,7 @@ static int BP5758D_SendData(uint8_t addr, uint8_t *data, uint16_t len)
         .clk = 100000,
     };
     
-#if 0
+#if 1
     printf("Byte0: %02X\r\n", addr<<1);
     for(int i=0; i<len; i++){
         printf("Byte%d: %02X\r\n", i+1, data[i]);
@@ -100,8 +100,8 @@ static int BP5758D_ApplyConfig(BP5758D_Config_t *cfg)
             data[i + 1] = 0x40 | (cfg->out[i].curr_range - 30);
         }
         
-        data[i * 2 + 6] = cfg->out[i].gray_level & 0x1F;
-        data[i * 2 + 7] = cfg->out[i].gray_level >> 5;
+        data[i * 2 + 6] = (cfg->out[i].gray_level & 0x1F)|0xa0;
+        data[i * 2 + 7] = (cfg->out[i].gray_level >> 5)|0xa0;
     }
     
     if(BP5758D_SendData(I2C_SLAVE_ADDR_NORMAL, data, sizeof(data)) != 0){
@@ -201,6 +201,7 @@ void BP5758D_Set_Color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
 
     status = BP5758D_ApplyConfig(&led_cfg);
     printf("BP5758D_Set_Color: %d\r\n", status);
+    printf("BP5758D_Set_Color: R %d, G %d, B %d\r\n", led_cfg.out[0].gray_level,led_cfg.out[2].gray_level,led_cfg.out[1].gray_level);
 }
 
 
