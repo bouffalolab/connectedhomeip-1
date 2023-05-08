@@ -167,7 +167,14 @@ void ColorLEDWidget::SetOnoff(bool state)
         if (0 == light_v)
         {
 #if defined(CFG_USE_BP5758D)
-            BP5758D_Set_Color(254, light_h, light_s);
+            if (mColor_Mode == 2)
+            {
+                BP5758D_Set_Temperature(254, light_t);
+            }
+            else
+            {
+                BP5758D_Set_Color(254, light_h, light_s);
+            }
 #else
             set_color(254, light_h, light_s);
 #endif
@@ -175,7 +182,14 @@ void ColorLEDWidget::SetOnoff(bool state)
         else
         {
 #if defined(CFG_USE_BP5758D)
-            BP5758D_Set_Color(light_v, light_h, light_s);
+            if (mColor_Mode == 2)
+            {
+                BP5758D_Set_Temperature(light_v, light_t);
+            }
+            else
+            {
+                BP5758D_Set_Color(light_v, light_h, light_s);
+            }
 #else
             set_color(light_v, light_h, light_s);
 #endif
@@ -184,17 +198,32 @@ void ColorLEDWidget::SetOnoff(bool state)
     else
     {
 #if defined(CFG_USE_BP5758D)
-        BP5758D_Set_Color(0, light_h, light_s);
+        if (mColor_Mode == 2)
+        {
+            BP5758D_Set_Temperature(0, light_t);
+        }
+        else
+        {
+            BP5758D_Set_Color(0, light_h, light_s);
+        }
 #else
-        set_color(0, light_h, light_s);
+        set_color(light_v, light_h, light_s);
 #endif
     }
 #endif
 }
 
-void ColorLEDWidget::SetLevel(uint8_t level)
+void ColorLEDWidget::SetLevel(uint8_t level, uint8_t color_mode)
 {
-    SetColor(level, light_h, light_s);
+    if (color_mode == 2)
+    {
+        SetTemperature(level, light_t);
+    }
+    else
+    {
+        SetColor(level, light_h, light_s);
+    }
+    mColor_Mode = color_mode;
 }
 
 void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
@@ -208,8 +237,19 @@ void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
 #endif
 
 #endif
-    light_v = level;
-    light_h = hue;
-    light_s = sat;
-    mOnoff  = light_v > 0;
+    light_v     = level;
+    light_h     = hue;
+    light_s     = sat;
+    mOnoff      = light_v > 0;
+    mColor_Mode = 0;
+}
+void ColorLEDWidget::SetTemperature(uint8_t level, uint16_t temperature)
+{
+#ifdef CFG_USE_BP5758D
+    BP5758D_Set_Temperature(level, temperature);
+#endif
+    light_v     = level;
+    light_t     = temperature;
+    mOnoff      = light_v > 0;
+    mColor_Mode = 2;
 }

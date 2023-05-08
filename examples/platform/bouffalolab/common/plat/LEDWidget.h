@@ -49,9 +49,11 @@ public:
     void Init(void);
     void Toggle(void);
     void SetOnoff(bool state);
-    void SetLevel(uint8_t level);
+    void SetLevel(uint8_t level, uint8_t color_mode);
     void SetColor(uint8_t level, uint8_t hue, uint8_t sat);
-
+    void SetTemperature(uint8_t level, uint16_t temperature);
     uint8_t light_h;
     uint8_t light_s;
+    uint8_t light_t;
+    uint8_t mColor_Mode;
 };

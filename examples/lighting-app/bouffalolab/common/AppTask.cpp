@@ -225,7 +225,7 @@ void AppTask::AppTaskMain(void * pvParameter)
 
             if ((APP_EVENT_LIGHTING_MASK & appEvent) && isStateReady)
             {
-                LightingUpdate((app_event_t)(APP_EVENT_LIGHTING_MASK & appEvent));
+                LightingUpdate((app_event_t) (APP_EVENT_LIGHTING_MASK & appEvent));
             }
 
             if (APP_EVENT_IDENTIFY_MASK & appEvent)
@@ -340,6 +340,8 @@ void AppTask::LightingUpdate(app_event_t event)
 {
     uint8_t hue, sat;
     bool onoff;
+    uint16_t temperature;
+    uint8_t colormode;
     DataModel::Nullable<uint8_t> v;
     EndpointId endpoint = GetAppTask().GetEndpointId();
 
@@ -364,10 +366,17 @@ void AppTask::LightingUpdate(app_event_t event)
         {
             break;
         }
-
+        if (EMBER_ZCL_STATUS_SUCCESS != Clusters::ColorControl::Attributes::ColorTemperatureMireds::Get(endpoint, &temperature))
+        {
+            break;
+        }
+        if (EMBER_ZCL_STATUS_SUCCESS != Clusters::ColorControl::Attributes::ColorMode::Get(endpoint, &colormode))
+        {
+            break;
+        }
         if (!onoff)
         {
-            sLightLED.SetLevel(0);
+            sLightLED.SetLevel(0, colormode);
         }
         else
         {
@@ -377,7 +386,22 @@ void AppTask::LightingUpdate(app_event_t event)
                 v.SetNonNull(254);
             }
 #if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
-            sLightLED.SetColor(v.Value(), hue, sat);
+            if (GetAppTask().mIsConnected == false)
+            {
+                sLightLED.SetColor(v.Value(), hue, sat);
+            }
+            else
+            {
+                if (colormode != 2)
+                {
+                    sLightLED.SetColor(v.Value(), hue, sat);
+                }
+                else
+                {
+                    sLightLED.SetTemperature(v.Value(), temperature);
+                }
+            }
+
 #else
             sLightLED.SetLevel(v.Value());
 #endif

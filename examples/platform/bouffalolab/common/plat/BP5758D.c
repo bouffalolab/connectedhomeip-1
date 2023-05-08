@@ -225,6 +225,14 @@ void BP5758D_Set_Color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
     led_cfg.out[2].curr_range = 60;
     led_cfg.out[2].gray_level = gamma_lut[green];
 
+    led_cfg.out[3].out_en = 0;
+    led_cfg.out[3].curr_range = 0;
+    led_cfg.out[3].gray_level = 0;
+
+    led_cfg.out[4].out_en = 0;
+    led_cfg.out[4].curr_range = 0;
+    led_cfg.out[4].gray_level = 0;
+
     status = BP5758D_ApplyConfig(&led_cfg);
     printf("BP5758D_Set_Color: %d\r\n", status);
    
@@ -257,4 +265,42 @@ void BP5758D_Set_level(uint8_t currLevel)
 
     status = BP5758D_ApplyConfig(&led_cfg);
     printf("BP5758D_Set_level: %d\r\n", status);
+}
+void BP5758D_Set_Temperature(uint8_t currLevel,uint16_t temperature)
+{
+    int status;
+    uint32_t hw_temp_delta=LAM_MAX_MIREDS_DEFAULT-LAM_MIN_MIREDS_DEFAULT;
+    uint32_t soft_temp_delta;
+
+    if(temperature>LAM_MAX_MIREDS_DEFAULT)
+    {
+        temperature=LAM_MAX_MIREDS_DEFAULT;
+    }
+    else if(temperature<LAM_MIN_MIREDS_DEFAULT)
+    {
+        temperature=LAM_MIN_MIREDS_DEFAULT;
+    }
+    
+    soft_temp_delta=temperature-LAM_MIN_MIREDS_DEFAULT;
+    soft_temp_delta*=100;
+
+    uint32_t warm = (254*(soft_temp_delta/hw_temp_delta))/100;
+    uint32_t clod  = 254-warm;
+
+    for(int i=0; i<3; i++)
+    {
+        led_cfg.out[i].out_en = 0;
+        led_cfg.out[i].curr_range = 0;
+        led_cfg.out[i].gray_level = 0;
+    }
+    led_cfg.out[3].out_en = 1;
+    led_cfg.out[3].curr_range = 60;
+    led_cfg.out[3].gray_level = gamma_lut[warm*currLevel/254];
+    
+    led_cfg.out[4].out_en = 1;
+    led_cfg.out[4].curr_range = 60;
+    led_cfg.out[4].gray_level = gamma_lut[clod*currLevel/254];
+    
+    status = BP5758D_ApplyConfig(&led_cfg);
+    printf("BP5758D_Set_Temperature: %d\r\n", status);
 }

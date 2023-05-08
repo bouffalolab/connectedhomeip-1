@@ -27,7 +27,9 @@ extern "C" {
 void BP5758D_Config_Init(void);
 void BP5758D_Set_Color(uint8_t currLevel, uint8_t currHue, uint8_t currSat);
 void BP5758D_Set_level(uint8_t currLevel);
-
+void BP5758D_Set_Temperature(uint8_t currLevel,uint16_t temperature);
+#define LAM_MAX_MIREDS_DEFAULT 370
+#define LAM_MIN_MIREDS_DEFAULT 153
 #ifdef __cplusplus
 }
 #endif
