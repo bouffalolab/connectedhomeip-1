@@ -19,8 +19,8 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat);
 
 void set_level(uint8_t currLevel);
 void set_temperature(uint8_t currLevel, uint16_t temperature);
-#define LAM_MAX_MIREDS_DEFAULT 8000
-#define LAM_MIN_MIREDS_DEFAULT 2700
+#define LAM_MAX_MIREDS_DEFAULT 370
+#define LAM_MIN_MIREDS_DEFAULT 153
 #ifdef __cplusplus
 }
 #endif
