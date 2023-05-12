@@ -300,6 +300,10 @@ void AppTask::ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
         {
             GetAppTask().PostEvent(APP_EVENT_SYS_PROVISIONED);
             GetAppTask().mIsConnected = true;
+#ifdef OTA_ENABLED
+            chip::DeviceLayer::SystemLayer().StartTimer(chip::System::Clock::Seconds32(OTAConfig::kInitOTARequestorDelaySec),
+                                                        OTAConfig::InitOTARequestorHandler, nullptr);
+#endif
         }
         break;
 
@@ -318,6 +322,10 @@ void AppTask::ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
         {
             ChipLogProgress(NotSpecified, "Initializing route hook...");
             bl_route_hook_init();
+#ifdef OTA_ENABLED
+            chip::DeviceLayer::SystemLayer().StartTimer(chip::System::Clock::Seconds32(OTAConfig::kInitOTARequestorDelaySec),
+                                                        OTAConfig::InitOTARequestorHandler, nullptr);
+#endif
         }
         break;
 #endif
