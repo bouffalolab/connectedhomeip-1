@@ -622,6 +622,7 @@ template("bl_iot_sdk") {
       "-Wno-incompatible-pointer-types",
       "-Wno-discarded-qualifiers",
       "-Wno-unused-variable",
+      "-Wno-address-of-packed-member",
     ]
   }
 
