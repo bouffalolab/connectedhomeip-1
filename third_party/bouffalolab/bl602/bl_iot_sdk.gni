@@ -666,11 +666,11 @@ template("bl_iot_sdk") {
   config("${sdk_target_name}_config_wifi") {
     defines = [
       "CFG_TXDESC=2",
-      "CFG_STA_MAX=1",
+      "CFG_STA_MAX=5",
       "BL_CHIP_NAME=\"BL602\"",
       "TD_DIAGNOSIS_STA",
       "OS_USING_FREERTOS",
-      "CFG_VIRT_DEV_MAX=1",
+      "CFG_VIRT_DEV_MAX=2",
     ]
     include_dirs = [
       "${bl_iot_sdk_root}/components/os/bl_os_adapter/bl_os_adapter/include",
