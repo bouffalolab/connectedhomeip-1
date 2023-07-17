@@ -12,20 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build_overrides/chip.gni")
-import("//build_overrides/pigweed.gni")
-import("${chip_root}/config/standalone/args.gni")
-import("${chip_root}/src/platform/bouffalolab/BL702/args.gni")
-
-bl_iot_sdk_target = get_label_info(":sdk", "label_no_toolchain")
-
-pw_log_BACKEND = "${chip_root}/src/lib/support/pw_log_chip"
-pw_assert_BACKEND = "$dir_pw_assert_log"
-pw_rpc_CONFIG = "$dir_pw_rpc:disable_global_mutex"
-
-chip_detail_logging = false
-
-pw_build_LINK_DEPS = [
-  "$dir_pw_assert:impl",
-  "$dir_pw_log:impl",
-]
+declare_args() {
+  chip_enable_factory_data = false
+  chip_enable_factory_data_test = false
+}

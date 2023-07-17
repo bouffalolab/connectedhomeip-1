@@ -1,7 +1,6 @@
 /*
  *
  *    Copyright (c) 2021 Project CHIP Authors
- *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,13 +107,6 @@
 #define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_REVISION 1
 
 /**
- * CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
- *
- * Enable support for Chip-over-BLE (CHIPoBLE).
- */
-#define CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE 1
-
-/**
  * CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER
  *
  * Enables the use of a hard-coded default serial number if none
@@ -134,9 +126,3 @@
 #define CHIP_SYSTEM_CRYPTO_HEADER_RESERVE_SIZE 128
 
 #define CHIP_BLE_DEVICE_NAME "MatterLight"
-
-/** Please contact Bouffalo Lab for how to use factory data provider */
-// #define CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE 1
-// uncomment out the following macro to use factory test data
-// when CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE sets to 1
-// #define CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
