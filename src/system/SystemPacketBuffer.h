@@ -150,7 +150,8 @@ public:
      */
     uint16_t AllocSize() const
     {
-#if CHIP_SYSTEM_PACKETBUFFER_FROM_LWIP_STANDARD_POOL || CHIP_SYSTEM_PACKETBUFFER_FROM_CHIP_POOL
+#if (CHIP_SYSTEM_PACKETBUFFER_FROM_LWIP_STANDARD_POOL || CHIP_SYSTEM_PACKETBUFFER_FROM_CHIP_POOL) &&                               \
+    !CHIP_SYSTEM_PACKETBUFFER_FROM_LWIP_RAM_HEAP
         return kMaxSizeWithoutReserve;
 #elif CHIP_SYSTEM_PACKETBUFFER_FROM_CHIP_HEAP
         return this->alloc_size;
@@ -160,6 +161,8 @@ public:
             return LWIP_MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE) - kStructureSize;
         else
             return LWIP_MEM_ALIGN_SIZE(memp_sizes[this->pool]) - kStructureSize;
+#elif CHIP_SYSTEM_PACKETBUFFER_FROM_LWIP_RAM_HEAP
+        return lwip_mem_size(this) - kStructureSize;
 #else
 #error "Unimplemented PacketBuffer storage case"
 #endif
