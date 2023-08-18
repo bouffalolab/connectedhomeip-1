@@ -62,6 +62,7 @@ bl_iot_sdk("sdk") {
     "${chip_root}/src/platform/bouffalolab/BL602",
     "${example_dir}",
     "${example_dir}/include",
+    "${examples_plat_dir}/lwipopts/"
   ]
 
   freertos_config = "${examples_plat_dir}/FreeRTOSConfig.h"

@@ -29,9 +29,6 @@
 #define CHIP_CONFIG_LIFETIIME_PERSISTED_COUNTER_KEY BLConfig::kConfigKey_LifeTimeCounter
 
 // ==================== Security Adaptations ====================
-//#define CHIP_CONFIG_SHA256_CONTEXT_SIZE sizeof(bl_sha_ctx_t)
-#define CHIP_CONFIG_SHA256_CONTEXT_SIZE ((1 + 5 + 18 + 16 + 16) * sizeof(unsigned int))
-
 #define CHIP_CONFIG_AES_IMPLEMENTATION_OPENSSL 0
 #define CHIP_CONFIG_AES_IMPLEMENTATION_AESNI 0
 #define CHIP_CONFIG_AES_IMPLEMENTATION_MBEDTLS 1

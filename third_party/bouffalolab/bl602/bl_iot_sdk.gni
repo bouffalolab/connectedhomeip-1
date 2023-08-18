@@ -40,14 +40,12 @@ template("bl_iot_sdk") {
 
       "CFG_CHIP_BL602",
 
-      "MBEDTLS_CONFIG_FILE=\"bl602-chip-mbedtls-config.h\"",
-
       #dump backtrace
       "CONF_ENABLE_FRAME_PTR=1",
       "CONF_ENABLE_FUNC_BACKTRACE_ELF=out/bl602-light/chip-bl602-lighting-example.out",
     ]
 
-    include_dirs = [ "${chip_root}/third_party/mbedtls/repo/include" ]
+    include_dirs = []
     if (defined(invoker.include_dirs)) {
       include_dirs += invoker.include_dirs
     }
@@ -522,7 +520,7 @@ template("bl_iot_sdk") {
     ]
   }
 
-  config("${sdk_target_name}_ble_config") {
+  config("${sdk_target_name}_config_ble") {
     include_dirs = [
       "${bl_iot_sdk_root}/components/network/ble/blecontroller/ble_inc",
       "${bl_iot_sdk_root}/components/network/ble/blestack/src/include",
@@ -613,7 +611,7 @@ template("bl_iot_sdk") {
     public_configs = [
       ":${sdk_target_name}_config",
       ":${sdk_target_name}_config_hosal",
-      ":${sdk_target_name}_ble_config",
+      ":${sdk_target_name}_config_ble",
     ]
 
     cflags_c = [
@@ -830,7 +828,6 @@ template("bl_iot_sdk") {
 
   config("${sdk_target_name}_config_lwip") {
     include_dirs = [
-      "${bl_iot_sdk_root}/components/network/lwip/lwip-port/config",
       "${bl_iot_sdk_root}/components/network/lwip/src/include",
       "${bl_iot_sdk_root}/components/network/lwip/src/include/lwip/apps",
       "${bl_iot_sdk_root}/components/network/lwip/lwip-port",
@@ -839,19 +836,7 @@ template("bl_iot_sdk") {
     ]
 
     defines = [
-      "LWIP_IPV6=1",
-      "LWIP_IPV4=1",
-      "LWIP_IPV6_DHCP6=1",
-      "LWIP_IPV6_SCOPES=0",
-      "LWIP_AUTOIP=1",
-      "LWIP_IPV6_MLD=1",
-      "LWIP_ND6_RDNSS_MAX_DNS_SERVERS=1",
-      "MEMP_NUM_MLD6_GROUP=10",
-      "PBUF_POOL_SIZE=20",
-      "PBUF_POOL_BUFSIZE=1600",
-      "CONFIG_ENABLE_IPV6_ADDR_CALLBACK",
-      "CONFIG_LWIP_HOOK_IP6_ROUTE_DEFAULT",
-      "CONFIG_LWIP_HOOK_ND6_GET_GW_DEFAULT",
+      "LWIP_IPV6=1"
     ]
   }
 
