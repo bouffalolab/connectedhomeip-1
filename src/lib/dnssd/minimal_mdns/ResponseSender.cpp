@@ -35,7 +35,7 @@ constexpr uint16_t kMdnsStandardPort = 5353;
 //    Messages carried by UDP are restricted to 512 bytes (not counting the IP
 //    or UDP headers).  Longer messages are truncated and the TC bit is set in
 //    the header.
-constexpr uint16_t kPacketSizeBytes = 512;
+constexpr uint16_t kPacketSizeBytes = 1024;
 
 } // namespace
 namespace Internal {
