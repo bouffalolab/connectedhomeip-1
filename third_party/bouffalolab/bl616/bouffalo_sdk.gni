@@ -61,16 +61,26 @@ template("bouffalo_sdk") {
 
     cflags_c = [
       "-fno-jump-tables",
-      "-fstrict-volatile-bitfields",
-
+      "-fno-common",
+      "-fms-extensions",
       "-ffunction-sections",
       "-fdata-sections",
-      "-Wl,--cref",
-      "-Wl,--gc-sections",
-      "-nostartfiles",
-
-      "--specs=nano.specs",
+      "-fmessage-length=0",
+      "-Wall",
+      "-Wchar-subscripts",
+      #"-Wundef",
+      "-Wuninitialized",
+      "-Winit-self",
+      "-Wignored-qualifiers",
+      "-fstrict-volatile-bitfields",
       "-fshort-enums", 
+      "-MMD",
+      "-Wno-error=unused-variable",
+      "-Wno-error=format=",
+      "-Wno-error=unused-function",
+      "-Wno-error=implicit-function-declaration",
+      "-Wno-error=deprecated-declarations",
+      #"-Wno-format",
     ]
     cflags = [ "-Wno-unused-but-set-variable", "-Wno-conversion", "-fstack-usage" ]
 
@@ -844,11 +854,11 @@ template("bouffalo_sdk") {
       "${bouffalolab_iot_sdk_build_root}/bl616",
       "${bouffalo_sdk_root}/components/net/lwip/lwip/system",
       "${bouffalo_sdk_root}/components/net/lwip/lwip/src/include",
+      "${bouffalo_sdk_root}/components/net/lwip/lwip/src/inlcude/lwip",
       "${bouffalo_sdk_root}/components/net/lwip/lwip/src/compat/posix",
       "${bouffalo_sdk_root}/components/net/lwip/lwip/lwip-port",
       "${bouffalo_sdk_root}/components/wireless/wifi6/inc",
     ]
-
     defines = [
       "CONFIG_LWIP",
     ]
@@ -914,7 +924,8 @@ template("bouffalo_sdk") {
       "-Wno-sign-compare",
       "-Wno-format",
       "-Wno-format-nonliteral",
-      "-Wno-format-security"
+      "-Wno-format-security",
+      "-Wno-undef",
     ]
 
     configs += [

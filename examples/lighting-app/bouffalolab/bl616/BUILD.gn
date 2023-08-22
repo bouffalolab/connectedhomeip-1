@@ -156,7 +156,7 @@ bouffalolab_executable("lighting_app") {
       "PW_RPC_DESCRIPTOR_SERVICE=1",
       "PW_RPC_DEVICE_SERVICE=1",
       "PW_RPC_LIGHTING_SERVICE=1",
-
+      "CONFIG_ENABLE_CHIP_SHELL=0",
       #"PW_RPC_TRACING_SERVICE=1",
     ]
 
@@ -216,7 +216,7 @@ bouffalolab_executable("lighting_app") {
   ldscript = "${examples_plat_dir}/bl616/ldscripts/bl616_flash.ld"
 
   ldflags = [ "-T" + rebase_path(ldscript, root_build_dir) ]
-
+  ldflags +=["-Wl,--cref", "-Wl,--gc-sections","-nostartfiles","-fms-extensions","-ffunction-sections",-fdata-sections" ,"--specs=nano.specs"]
   inputs = [ ldscript ]
 
   if (chip_print_memory_usage) {
