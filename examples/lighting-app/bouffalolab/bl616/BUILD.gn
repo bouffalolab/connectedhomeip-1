@@ -213,10 +213,19 @@ bouffalolab_executable("lighting_app") {
   }
 
   cflags_c = [ "-Wno-sign-compare" ]
+  cflags_cc = [ "-nostdlib"]
   ldscript = "${examples_plat_dir}/bl616/ldscripts/bl616_flash.ld"
 
   ldflags = [ "-T" + rebase_path(ldscript, root_build_dir) ]
-  ldflags +=["-Wl,--cref", "-Wl,--gc-sections","-nostartfiles","-fms-extensions","-ffunction-sections",-fdata-sections" ,"--specs=nano.specs"]
+  ldflags +=
+  ["-Wl,--cref",
+   "-Wl,--gc-sections",
+   "-nostartfiles",
+   "-fms-extensions",
+   "-ffunction-sections",
+   "-fdata-sections",
+   "--specs=nano.specs",
+   ]
   inputs = [ ldscript ]
 
   if (chip_print_memory_usage) {

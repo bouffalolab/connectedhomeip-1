@@ -21,13 +21,13 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-#include <easyflash.h>
 #include <bflb_mtd.h>
 #include <bl616dk/board.h>
+#include <easyflash.h>
 #include <plat.h>
-
+void * __dso_handle;
 extern void __libc_init_array(void);
-extern void shell_init_with_task(struct bflb_device_s *shell);
+extern void shell_init_with_task(struct bflb_device_s * shell);
 
 #if CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
 static int btblecontroller_em_config(void)
@@ -35,15 +35,22 @@ static int btblecontroller_em_config(void)
     extern uint8_t __LD_CONFIG_EM_SEL;
     volatile uint32_t em_size;
 
-    em_size = (uint32_t)&__LD_CONFIG_EM_SEL;
+    em_size = (uint32_t) &__LD_CONFIG_EM_SEL;
 
-    if (em_size == 0) {
+    if (em_size == 0)
+    {
         GLB_Set_EM_Sel(GLB_WRAM160KB_EM0KB);
-    } else if (em_size == 32*1024) {
+    }
+    else if (em_size == 32 * 1024)
+    {
         GLB_Set_EM_Sel(GLB_WRAM128KB_EM32KB);
-    } else if (em_size == 64*1024) {
+    }
+    else if (em_size == 64 * 1024)
+    {
         GLB_Set_EM_Sel(GLB_WRAM96KB_EM64KB);
-    } else {
+    }
+    else
+    {
         GLB_Set_EM_Sel(GLB_WRAM96KB_EM64KB);
     }
 
@@ -56,7 +63,7 @@ void platform_port_init(void)
     board_init();
 
 #if CONFIG_ENABLE_CHIP_SHELL
-    struct bflb_device_s *uart0 = bflb_device_get_by_name("uart0");
+    struct bflb_device_s * uart0 = bflb_device_get_by_name("uart0");
     shell_init_with_task(uart0);
 #endif
 

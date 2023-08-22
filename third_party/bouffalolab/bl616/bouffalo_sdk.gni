@@ -83,7 +83,7 @@ template("bouffalo_sdk") {
       #"-Wno-format",
     ]
     cflags = [ "-Wno-unused-but-set-variable", "-Wno-conversion", "-fstack-usage" ]
-
+    cflags_cc = [ "-nostdlib"]
     if (defined(invoker.enable_frame_ptr) && invoker.enable_frame_ptr) {
       cflags += [ "-fno-omit-frame-pointer" ]
     }
