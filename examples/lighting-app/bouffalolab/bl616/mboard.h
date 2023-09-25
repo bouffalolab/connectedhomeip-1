@@ -37,10 +37,22 @@
 #define CHIP_UART_PORT 0
 #define CHIP_UART_RX_BUFFSIZE 256
 
+#define BL616_COLOR_LIGHT
+
+
+#ifdef BL616_COLOR_LIGHT
+
+
+#define MAX_PWM_CHANNEL 3
+
+#else
+
 #define LED_PIN_PWM_CH 2
 #define LED_PIN 14
 
 #define MAX_PWM_CHANNEL 1
+
+#endif
 
 #define CHIP_UART_PIN_RX 7
 #define CHIP_UART_PIN_TX 16

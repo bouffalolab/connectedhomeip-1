@@ -16,8 +16,10 @@
  *    limitations under the License.
  */
 #include <stdio.h>
-
+#ifdef BL616_COLOR_LIGHT
+#else 
 #include <demo_pwm.h>
+#endif
 #include <mboard.h>
 #include "LEDWidget.h"
 
@@ -29,8 +31,9 @@ bool LEDWidget::GetOnoff(void)
 void DimmableLEDWidget::Init()
 {
     mOnoff = light_v = 0;
+#ifdef BL616_COLOR_LIGHT
 
-#ifdef MAX_PWM_CHANNEL
+#else
     demo_pwm_init();
     demo_pwm_start();
 #endif
@@ -49,25 +52,39 @@ void DimmableLEDWidget::SetOnoff(bool state)
     {
         if (light_v)
         {
-            set_level(light_v);
+            #ifdef BL616_COLOR_LIGHT
+
+            #else
+                set_level(light_v);
+            #endif
         }
         else
         {
-            set_level(254);
+            #ifdef BL616_COLOR_LIGHT
+
+            #else
+                set_level(254);
+            #endif
         }
     }
     else
     {
-        set_level(0);
+            #ifdef BL616_COLOR_LIGHT
+
+            #else
+                set_level(0);
+            #endif
     }
 #endif
 }
 
 void DimmableLEDWidget::SetLevel(uint8_t level)
 {
-#ifdef MAX_PWM_CHANNEL
-    set_level(level);
-#endif
+    #ifdef BL616_COLOR_LIGHT
+
+    #else
+        set_level(level);
+    #endif
     light_v = level;
     mOnoff  = light_v > 0;
 }
@@ -75,7 +92,9 @@ void DimmableLEDWidget::SetLevel(uint8_t level)
 void ColorLEDWidget::Init()
 {
     mOnoff = light_v = light_s = light_h = 0;
-#ifdef MAX_PWM_CHANNEL
+#ifdef BL616_COLOR_LIGHT
+
+#else 
     demo_pwm_init();
     demo_pwm_start();
 #endif
@@ -94,32 +113,89 @@ void ColorLEDWidget::SetOnoff(bool state)
     {
         if (0 == light_v)
         {
-            set_color(254, light_h, light_s);
+            #ifdef BL616_COLOR_LIGHT
+                if (mColor_Mode == 2)
+                {
+                    //BP5758D_Set_Temperature(254, light_t);
+                }
+                else
+                {
+                    //BP5758D_Set_Color(254, light_h, light_s);
+                }
+            #else
+                set_color(254, light_h, light_s);
+            #endif
         }
         else
         {
-            set_color(light_v, light_h, light_s);
+            #ifdef BL616_COLOR_LIGHT
+                if (mColor_Mode == 2)
+                {
+                    //BP5758D_Set_Temperature(light_v, light_t);
+                }
+                else
+                {
+                    //BP5758D_Set_Color(light_v, light_h, light_s);
+                }
+            #else
+                set_color(light_v, light_h, light_s);
+            #endif
         }
     }
     else
     {
-        set_color(0, light_h, light_s);
+        #ifdef BL616_COLOR_LIGHT
+            if (mColor_Mode == 2)
+            {
+                //BP5758D_Set_Temperature(0, light_t);
+            }
+            else
+            {
+                //BP5758D_Set_Color(0, light_h, light_s);
+            }
+        #else
+            set_color(0, light_h, light_s);
+        #endif
     }
 #endif
 }
 
-void ColorLEDWidget::SetLevel(uint8_t level)
+void ColorLEDWidget::SetLevel(uint8_t level, uint8_t color_mode)
 {
-    SetColor(level, light_h, light_s);
+    if (color_mode == 2)
+    {
+        SetTemperature(level, light_t);
+    }
+    else
+    {
+        SetColor(level, light_h, light_s);
+    }
+    mColor_Mode = color_mode;
 }
 
 void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
 {
-#ifdef MAX_PWM_CHANNEL
-    set_color(level, hue, sat);
-#endif
+    #ifdef BL616_COLOR_LIGHT
+
+    #else
+        set_color(level, hue, sat);
+    #endif
     light_v = level;
     light_h = hue;
     light_s = sat;
     mOnoff  = light_v > 0;
+    mColor_Mode = 0;
+}
+
+void ColorLEDWidget::SetTemperature(uint8_t level, uint16_t temperature)
+{
+    #ifdef BL616_COLOR_LIGHT
+    
+    #else
+
+    #endif
+    light_v     = level;
+    light_t     = temperature;
+    mOnoff      = light_v > 0;
+    mColor_Mode = 2;
 }

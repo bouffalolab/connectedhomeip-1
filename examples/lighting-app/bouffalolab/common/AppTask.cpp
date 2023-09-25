@@ -73,7 +73,7 @@ using namespace chip::Shell;
 
 namespace {
 
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
+#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT)
 ColorLEDWidget sLightLED;
 #else
 DimmableLEDWidget sLightLED;
@@ -264,7 +264,8 @@ void AppTask::LightingUpdate(app_event_t status)
     bool onoff;
     DataModel::Nullable<uint8_t> v(0);
     EndpointId endpoint = GetAppTask().GetEndpointId();
-
+    uint16_t temperature;
+    uint8_t colormode;
     if (APP_EVENT_LIGHTING_MASK & status)
     {
 
@@ -291,10 +292,17 @@ void AppTask::LightingUpdate(app_event_t status)
                 {
                     break;
                 }
-
+                if (EMBER_ZCL_STATUS_SUCCESS != Clusters::ColorControl::Attributes::ColorTemperatureMireds::Get(endpoint, &temperature))
+                {
+                    break;
+                }
+                if (EMBER_ZCL_STATUS_SUCCESS != Clusters::ColorControl::Attributes::ColorMode::Get(endpoint, &colormode))
+                {
+                    break;
+                }
                 if (!onoff)
                 {
-                    sLightLED.SetLevel(0);
+                    sLightLED.SetLevel(0, colormode);
                 }
                 else
                 {
@@ -302,8 +310,22 @@ void AppTask::LightingUpdate(app_event_t status)
                     {
                         v.SetNonNull(254);
                     }
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
+#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT) 
+                if (ConnectivityMgr().IsWiFiStationConnected()==false)
+                {
                     sLightLED.SetColor(v.Value(), hue, sat);
+                }
+                else
+                {
+                    if (colormode != 2)
+                    {
+                        sLightLED.SetColor(v.Value(), hue, sat);
+                    }
+                    else
+                    {
+                        sLightLED.SetTemperature(v.Value(), temperature);
+                    }
+                }
 #else
                     sLightLED.SetLevel(v.Value());
 #endif
@@ -312,7 +334,7 @@ void AppTask::LightingUpdate(app_event_t status)
         }
         else
         {
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
+#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT)
             /** show yellow to indicate not-provision state for extended color light */
             sLightLED.SetColor(254, 35, 254);
 #else
@@ -364,7 +386,7 @@ void AppTask::TimerEventHandler(app_event_t event)
         }
         else if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime >= APP_BUTTON_PRESS_SHORT)
         {
-#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT)
+#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT)||defined(BL616_COLOR_LIGHT)
             /** change color to indicate to wait factory reset confirm */
             sLightLED.SetColor(254, 0, 210);
 #else
@@ -381,7 +403,7 @@ void AppTask::TimerEventHandler(app_event_t event)
         }
         else
         {
-#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT)
+#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT) ||defined(BL616_COLOR_LIGHT)
             /** change color to indicate to wait factory reset confirm */
             sLightLED.SetColor(254, 0, 210);
 #else

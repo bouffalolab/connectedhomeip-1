@@ -46,7 +46,7 @@ declare_args() {
   ota_auto_reboot_delay_seconds = 5
 
   enable_heap_monitoring = false
-  enable_reset_counter = false
+  enable_reset_counter = true
 
   setupPinCode = 20202021
   setupDiscriminator = 3840
@@ -129,7 +129,7 @@ bouffalolab_executable("lighting_app") {
     "${chip_root}/examples/providers/DeviceInfoProviderImpl.cpp",
     "${example_dir}/common/AppTask.cpp",
     "${example_dir}/common/ZclCallbacks.cpp",
-    "${examples_plat_dir}/common/bouffalo_sdk/demo_pwm.c",
+  #  "${examples_plat_dir}/common/bouffalo_sdk/demo_pwm.c",
     "${examples_plat_dir}/common/bouffalo_sdk/platform_port.c",
 #    "${examples_plat_dir}/common/bouffalo_sdk/uart.c",
     "${examples_plat_dir}/common/plat/LEDWidget.cpp",
