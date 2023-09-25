@@ -91,7 +91,7 @@ void DimmableLEDWidget::SetLevel(uint8_t level)
 
 void ColorLEDWidget::Init()
 {
-    mOnoff = light_v = light_s = light_h = 0;
+    mOnoff = light_v = light_s = light_h = light_t = 0;
 #ifdef BL616_COLOR_LIGHT
 
 #else 

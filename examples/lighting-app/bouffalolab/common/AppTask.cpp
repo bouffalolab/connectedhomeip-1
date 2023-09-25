@@ -155,7 +155,8 @@ void AppTask::AppTaskMain(void * pvParameter)
 {
     app_event_t appEvent;
     bool onoff = false;
-
+    uint16_t temperature;
+    uint8_t colormode;
 #ifndef BL706_ETHERNET
     sLightLED.Init();
 #endif
@@ -264,6 +265,15 @@ void AppTask::AppTaskMain(void * pvParameter)
                 GetAppTask().mTimerIntvl = 35;
                 GetAppTask().mcommission_target=103;
                 GetAppTask().mcommissionTime = System::SystemClock().GetMonotonicMilliseconds64().count();
+            }
+            if(APP_EVENT_COMMISON_COMPLETE&appEvent)
+            {
+                onoff=1;
+                colormode=2;
+                temperature=154;
+                Clusters::OnOff::Attributes::OnOff::Set(GetAppTask().GetEndpointId(), onoff);
+                Clusters::ColorControl::Attributes::ColorMode::Set(GetAppTask().GetEndpointId(),colormode);
+                Clusters::ColorControl::Attributes::ColorTemperatureMireds::Set(GetAppTask().GetEndpointId(),temperature);
             }
             TimerEventHandler(appEvent);
 
