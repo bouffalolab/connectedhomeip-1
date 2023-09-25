@@ -44,6 +44,7 @@ using namespace ::chip::DeviceLayer;
 #define APP_ERROR_START_TIMER_FAILED CHIP_APPLICATION_ERROR(0x05)
 #define APP_ERROR_STOP_TIMER_FAILED CHIP_APPLICATION_ERROR(0x06)
 
+#define APP_EVENT_COMMISON_TIME 180000
 struct Identify;
 
 class AppTask
@@ -59,6 +60,11 @@ public:
         APP_EVENT_BTN_SHORT     = 0x00000020,
         APP_EVENT_FACTORY_RESET = 0x00000040,
         APP_EVENT_BTN_LONG      = 0x00000080,
+        
+        APP_EVENT_COMMISON_START     =  0x00001000,
+        APP_EVENT_COMMISON_TOOGLE      =  0x00002000,
+        APP_EVENT_COMMISON_COMPLETE  =  0x00004000,
+        APP_EVENT_COMMISON_MASK      = APP_EVENT_COMMISON_START|APP_EVENT_COMMISON_TOOGLE|APP_EVENT_COMMISON_COMPLETE,
 
         APP_EVENT_LIGHTING_ONOFF = 0x00010000,
         APP_EVENT_LIGHTING_LEVEL = 0x00020000,
@@ -70,7 +76,7 @@ public:
         APP_EVENT_IDENTIFY_STOP     = 0x04000000,
         APP_EVENT_IDENTIFY_MASK     = APP_EVENT_IDENTIFY_START | APP_EVENT_IDENTIFY_IDENTIFY | APP_EVENT_IDENTIFY_STOP,
 
-        APP_EVENT_ALL_MASK = APP_EVENT_LIGHTING_MASK | APP_EVENT_TIMER | APP_EVENT_BTN_SHORT | APP_EVENT_BTN_LONG | APP_EVENT_IDENTIFY_MASK,
+        APP_EVENT_ALL_MASK = APP_EVENT_LIGHTING_MASK | APP_EVENT_TIMER | APP_EVENT_BTN_SHORT | APP_EVENT_BTN_LONG | APP_EVENT_COMMISON_MASK| APP_EVENT_IDENTIFY_MASK,
     };
 
     void SetEndpointId(EndpointId endpointId)
@@ -124,7 +130,10 @@ private:
     TimerHandle_t sTimer;
     uint32_t mTimerIntvl;
     uint64_t mButtonPressedTime;
-
+    uint16_t  mcommission;
+    uint16_t  mcommission_target;
+    uint64_t mcommissionTime;
+    bool mcommissionToggle;
     static StackType_t appStack[APP_TASK_STACK_SIZE / sizeof(StackType_t)];
     static StaticTask_t appTaskStruct;
     static AppTask sAppTask;

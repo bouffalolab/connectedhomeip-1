@@ -181,6 +181,7 @@ void AppTask::AppTaskMain(void * pvParameter)
         resetCnt++;
         GetAppTask().mButtonPressedTime = 0;
     }
+    printf("reset cnt %ld\r\n ",resetCnt);
     ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
 #endif
 
@@ -232,6 +233,7 @@ void AppTask::AppTaskMain(void * pvParameter)
                 {
                     sLightLED.Toggle();
                 }
+                 GetAppTask().mcommissionTime=0;
             }
 
 #ifdef BOOT_PIN_RESET
@@ -250,7 +252,19 @@ void AppTask::AppTaskMain(void * pvParameter)
             {
                 DeviceLayer::ConfigurationMgr().InitiateFactoryReset();
             }
+            if(APP_EVENT_COMMISON_TOOGLE&appEvent)
+            {
+                GetAppTask().mTimerIntvl = 1000;
+                GetAppTask().mcommissionToggle=true;
 
+            }
+            if(APP_EVENT_COMMISON_START&appEvent)
+            {
+                GetAppTask().mcommission=1023;
+                GetAppTask().mTimerIntvl = 35;
+                GetAppTask().mcommission_target=103;
+                GetAppTask().mcommissionTime = System::SystemClock().GetMonotonicMilliseconds64().count();
+            }
             TimerEventHandler(appEvent);
 
             PlatformMgr().UnlockChipStack();
@@ -412,6 +426,71 @@ void AppTask::TimerEventHandler(app_event_t event)
 #endif
         }
 #endif
+    }
+    if(GetAppTask().mcommissionTime)
+    {
+        if(System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mcommissionTime >APP_EVENT_COMMISON_TIME)
+        {
+            GetAppTask().mTimerIntvl = 1000;
+            GetAppTask().mcommissionTime=0;
+        }
+        else
+        {
+            if(GetAppTask().mcommission_target==103)
+            {
+                GetAppTask().mcommission -=10;
+                if(GetAppTask().mcommission<=103)
+                {
+                    GetAppTask().mcommission =103;
+                    GetAppTask().mcommission_target=1023;
+                }
+
+            }
+            else
+            {
+                GetAppTask().mcommission +=10;
+                if(GetAppTask().mcommission>=1023)
+                {   
+                    GetAppTask().mcommission=1023;
+                    GetAppTask().mcommission_target=103;
+                }
+                    
+            }
+            printf("GetAppTask().mcommission =%d\r\n",GetAppTask().mcommission);
+            
+        }
+
+    }
+    if( GetAppTask().mcommissionToggle==true)
+    {
+        
+        if( GetAppTask().mcommission==0)
+        {
+            printf("cw\r\n");
+        }
+        else if( GetAppTask().mcommission==1)
+        {
+            printf("ww\r\n");
+        }
+         else if( GetAppTask().mcommission==2)
+        {
+            printf("R\r\n");
+        }
+         else if( GetAppTask().mcommission==3)
+        {
+            printf("G\r\n");
+        }
+        else if(GetAppTask().mcommission==4)
+        {
+            printf("B\r\n");
+
+        }
+        else if(GetAppTask().mcommission==5)
+        {
+            GetAppTask().mcommissionToggle=false;
+            GetAppTask().PostEvent(AppTask::APP_EVENT_COMMISON_START);
+        }
+        GetAppTask().mcommission++;
     }
 
     StartTimer();
