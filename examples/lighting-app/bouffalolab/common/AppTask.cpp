@@ -59,6 +59,10 @@ extern "C" {
 }
 #endif
 
+#ifdef BL616_COLOR_LIGHT
+#include "demo_light_effect.h"
+#endif
+
 #include "mboard.h"
 #include "AppTask.h"
 
@@ -234,7 +238,7 @@ void AppTask::AppTaskMain(void * pvParameter)
                 {
                     sLightLED.Toggle();
                 }
-                 GetAppTask().mcommissionTime=0;
+                 
             }
 
 #ifdef BOOT_PIN_RESET
@@ -261,13 +265,17 @@ void AppTask::AppTaskMain(void * pvParameter)
             }
             if(APP_EVENT_COMMISON_START&appEvent)
             {
-                GetAppTask().mcommission=1023;
-                GetAppTask().mTimerIntvl = 35;
-                GetAppTask().mcommission_target=103;
+                GetAppTask().mcommissionToggle=false;
+                GetAppTask().mcommission=0;
+                GetAppTask().mTimerIntvl = 3000;
+                GetAppTask().mcommission_target=0xf;
                 GetAppTask().mcommissionTime = System::SystemClock().GetMonotonicMilliseconds64().count();
             }
             if(APP_EVENT_COMMISON_COMPLETE&appEvent)
             {
+                GetAppTask().mcommissionTime=0;
+                GetAppTask().mTimerIntvl = 1000;
+                set_cold_temperature();
                 onoff=1;
                 colormode=2;
                 temperature=154;
@@ -358,13 +366,7 @@ void AppTask::LightingUpdate(app_event_t status)
         }
         else
         {
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT)
-            /** show yellow to indicate not-provision state for extended color light */
-            sLightLED.SetColor(254, 35, 254);
-#else
-            /** show 30% brightness to indicate not-provision state */
-            sLightLED.SetLevel(25);
-#endif
+
         }
     }
 }
@@ -446,27 +448,15 @@ void AppTask::TimerEventHandler(app_event_t event)
         }
         else
         {
-            if(GetAppTask().mcommission_target==103)
+            set_temperature(GetAppTask().mcommission_target,154);
+            if(GetAppTask().mcommission_target==0xf)
             {
-                GetAppTask().mcommission -=10;
-                if(GetAppTask().mcommission<=103)
-                {
-                    GetAppTask().mcommission =103;
-                    GetAppTask().mcommission_target=1023;
-                }
-
+                GetAppTask().mcommission_target=0xfe;
             }
-            else
+            else if(GetAppTask().mcommission_target==0xfe)
             {
-                GetAppTask().mcommission +=10;
-                if(GetAppTask().mcommission>=1023)
-                {   
-                    GetAppTask().mcommission=1023;
-                    GetAppTask().mcommission_target=103;
-                }
-                    
+                 GetAppTask().mcommission_target=0xf;
             }
-            printf("GetAppTask().mcommission =%d\r\n",GetAppTask().mcommission);
             
         }
 
@@ -476,24 +466,23 @@ void AppTask::TimerEventHandler(app_event_t event)
         
         if( GetAppTask().mcommission==0)
         {
-            printf("cw\r\n");
+            set_cold_temperature();
         }
         else if( GetAppTask().mcommission==1)
         {
-            printf("ww\r\n");
+            set_warm_temperature();
         }
          else if( GetAppTask().mcommission==2)
         {
-            printf("R\r\n");
+           set_color_red();
         }
-         else if( GetAppTask().mcommission==3)
+        else if( GetAppTask().mcommission==3)
         {
-            printf("G\r\n");
+            set_color_green();
         }
         else if(GetAppTask().mcommission==4)
         {
-            printf("B\r\n");
-
+            set_color_blue();
         }
         else if(GetAppTask().mcommission==5)
         {

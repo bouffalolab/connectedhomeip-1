@@ -37,11 +37,10 @@
 #define CHIP_UART_PORT 0
 #define CHIP_UART_RX_BUFFSIZE 256
 
-#define BL616_COLOR_LIGHT
-
-
 #ifdef BL616_COLOR_LIGHT
 
+#define SM2235_SDA  29
+#define SM2235_SCL  28
 
 #define MAX_PWM_CHANNEL 3
 

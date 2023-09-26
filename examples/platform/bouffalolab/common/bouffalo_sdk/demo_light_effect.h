@@ -1,6 +1,6 @@
 #ifndef __DEMO_LIGHT_EFFECT__
 #define __DEMO_LIGHT_EFFECT__
-
+#include <stdio.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -8,13 +8,15 @@ extern "C" {
 #define LAM_MIN_MIREDS_DEFAULT 154
 void demo_color_light_init(void);
 void set_level(uint8_t currLevel);
-void set_color_red(uint8_t currLevel);
-void set_color_green(uint8_t currLevel);
-void set_color_yellow(uint8_t currLevel);
-void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat);
-void set_temperature(uint8_t currLevel, uint16_t temperature);
+void set_color_red(void);
+void set_color_green(void);
+void set_color_blue(void);
 void set_warm_temperature(void);
 void set_cold_temperature(void);
+
+void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat);
+void set_temperature(uint8_t currLevel, uint16_t temperature);
+
 #ifdef __cplusplus
 }
 #endif

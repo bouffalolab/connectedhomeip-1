@@ -17,6 +17,7 @@
  */
 #include <stdio.h>
 #ifdef BL616_COLOR_LIGHT
+#include "demo_light_effect.h"
 #else 
 #include <demo_pwm.h>
 #endif
@@ -32,7 +33,7 @@ void DimmableLEDWidget::Init()
 {
     mOnoff = light_v = 0;
 #ifdef BL616_COLOR_LIGHT
-
+    demo_color_light_init();
 #else
     demo_pwm_init();
     demo_pwm_start();
@@ -93,7 +94,7 @@ void ColorLEDWidget::Init()
 {
     mOnoff = light_v = light_s = light_h = light_t = 0;
 #ifdef BL616_COLOR_LIGHT
-
+    demo_color_light_init();
 #else 
     demo_pwm_init();
     demo_pwm_start();
@@ -116,11 +117,11 @@ void ColorLEDWidget::SetOnoff(bool state)
             #ifdef BL616_COLOR_LIGHT
                 if (mColor_Mode == 2)
                 {
-                    //BP5758D_Set_Temperature(254, light_t);
+                    set_temperature(254, light_t);
                 }
                 else
                 {
-                    //BP5758D_Set_Color(254, light_h, light_s);
+                    set_color(254, light_h, light_s);
                 }
             #else
                 set_color(254, light_h, light_s);
@@ -131,11 +132,11 @@ void ColorLEDWidget::SetOnoff(bool state)
             #ifdef BL616_COLOR_LIGHT
                 if (mColor_Mode == 2)
                 {
-                    //BP5758D_Set_Temperature(light_v, light_t);
+                    set_temperature(light_v, light_t);
                 }
                 else
                 {
-                    //BP5758D_Set_Color(light_v, light_h, light_s);
+                    set_color(light_v, light_h, light_s);
                 }
             #else
                 set_color(light_v, light_h, light_s);
@@ -147,11 +148,11 @@ void ColorLEDWidget::SetOnoff(bool state)
         #ifdef BL616_COLOR_LIGHT
             if (mColor_Mode == 2)
             {
-                //BP5758D_Set_Temperature(0, light_t);
+                set_temperature(0, light_t);
             }
             else
             {
-                //BP5758D_Set_Color(0, light_h, light_s);
+                set_color(0, light_h, light_s);
             }
         #else
             set_color(0, light_h, light_s);
@@ -176,7 +177,7 @@ void ColorLEDWidget::SetLevel(uint8_t level, uint8_t color_mode)
 void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
 {
     #ifdef BL616_COLOR_LIGHT
-
+        set_color(level, hue, sat);
     #else
         set_color(level, hue, sat);
     #endif
@@ -190,7 +191,7 @@ void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
 void ColorLEDWidget::SetTemperature(uint8_t level, uint16_t temperature)
 {
     #ifdef BL616_COLOR_LIGHT
-    
+        set_temperature(level,temperature);
     #else
 
     #endif
