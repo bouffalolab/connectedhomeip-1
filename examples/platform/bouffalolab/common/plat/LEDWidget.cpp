@@ -176,6 +176,7 @@ void ColorLEDWidget::SetLevel(uint8_t level, uint8_t color_mode)
 
 void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
 {
+    printf("%s level= %d,hue =%d  sat %d\r\n",__func__,level,hue,sat);
     #ifdef BL616_COLOR_LIGHT
         set_color(level, hue, sat);
     #else
@@ -190,6 +191,7 @@ void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
 
 void ColorLEDWidget::SetTemperature(uint8_t level, uint16_t temperature)
 {
+    printf("%s level= %d,temperature =%d \r\n",__func__,level,temperature);
     #ifdef BL616_COLOR_LIGHT
         set_temperature(level,temperature);
     #else

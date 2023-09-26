@@ -185,11 +185,19 @@ void AppTask::AppTaskMain(void * pvParameter)
     {
         resetCnt++;
         GetAppTask().mButtonPressedTime = 0;
+        GetAppTask().mRestcutTime=System::SystemClock().GetMonotonicMilliseconds64().count() + 1;
     }
     printf("reset cnt %ld\r\n ",resetCnt);
     ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
 #endif
 
+    saved_value_len = 0;
+    ef_get_env_blob(APP_COLOR_MODE, &colormode, sizeof(colormode), &saved_value_len);
+    if (Server::GetInstance().GetFabricTable().FabricCount())
+    {
+         printf("colormode =%d\r\n",colormode);
+         Clusters::ColorControl::Attributes::ColorMode::Set(GetAppTask().GetEndpointId(),colormode);
+    }
     GetAppTask().sTimer = xTimerCreate("lightTmr", pdMS_TO_TICKS(1000), false, NULL, AppTask::TimerCallback);
     if (GetAppTask().sTimer == NULL)
     {
@@ -210,7 +218,6 @@ void AppTask::AppTaskMain(void * pvParameter)
 
     vTaskSuspend(NULL);
 
-    // ChipLogProgress(NotSpecified, "App Task started, with SRAM heap %d left\r\n", xPortGetFreeHeapSize());
 
     while (true)
     {
@@ -220,12 +227,25 @@ void AppTask::AppTaskMain(void * pvParameter)
         if (eventReceived)
         {
             PlatformMgr().LockChipStack();
-
+            if(APP_EVENT_TIMER& appEvent)
+            {
+                #ifndef BOOT_PIN_RESET
+                if(GetAppTask().mRestcutTime)
+                {
+                    if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mRestcutTime > APP_BUTTON_PRESS_LONG)
+                    {
+                        GetAppTask().mRestcutTime=0;
+                        resetCnt = 0;
+                        ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
+                    }
+                }
+                #endif
+            }
             if (APP_EVENT_LIGHTING_MASK & appEvent)
             {
                 LightingUpdate(appEvent);
             }
-
+        
             if (APP_EVENT_BTN_SHORT & appEvent)
             {
                 if (Server::GetInstance().GetFabricTable().FabricCount())
@@ -332,6 +352,10 @@ void AppTask::LightingUpdate(app_event_t status)
                 {
                     break;
                 }
+
+
+                printf("%s onoff =%d  level= %d,hue =%d  sat %d colormode %d temperature %d\r\n",__func__, onoff,v.Value(),hue,sat,colormode,temperature);
+                ef_set_env_blob(APP_COLOR_MODE, &colormode, sizeof(colormode));
                 if (!onoff)
                 {
                     sLightLED.SetLevel(0, colormode);
@@ -343,21 +367,17 @@ void AppTask::LightingUpdate(app_event_t status)
                         v.SetNonNull(254);
                     }
 #if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT) 
-                if (ConnectivityMgr().IsWiFiStationConnected()==false)
-                {
-                    sLightLED.SetColor(v.Value(), hue, sat);
-                }
-                else
-                {
+
                     if (colormode != 2)
                     {
+                        
                         sLightLED.SetColor(v.Value(), hue, sat);
                     }
                     else
                     {
+                        printf("%s level= %d,temperature =%d \r\n",__func__,v.Value(),temperature);
                         sLightLED.SetTemperature(v.Value(), temperature);
                     }
-                }
 #else
                     sLightLED.SetLevel(v.Value());
 #endif

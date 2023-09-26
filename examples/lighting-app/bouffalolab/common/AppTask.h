@@ -36,6 +36,7 @@ using namespace ::chip::DeviceLayer;
 #define APP_REBOOT_RESET_COUNT 5
 #define APP_REBOOT_RESET_COUNT_KEY "app_reset_cnt"
 
+#define APP_COLOR_MODE "app_color_mode"
 // Application-defined error codes in the CHIP_ERROR space.
 #define APP_ERROR_EVENT_QUEUE_FAILED CHIP_APPLICATION_ERROR(0x01)
 #define APP_ERROR_CREATE_TASK_FAILED CHIP_APPLICATION_ERROR(0x02)
@@ -62,7 +63,7 @@ public:
         APP_EVENT_BTN_LONG      = 0x00000080,
         
         APP_EVENT_COMMISON_START     =  0x00001000,
-        APP_EVENT_COMMISON_TOOGLE      =  0x00002000,
+        APP_EVENT_COMMISON_TOOGLE      = 0x00002000,
         APP_EVENT_COMMISON_COMPLETE  =  0x00004000,
         APP_EVENT_COMMISON_MASK      = APP_EVENT_COMMISON_START|APP_EVENT_COMMISON_TOOGLE|APP_EVENT_COMMISON_COMPLETE,
 
@@ -133,6 +134,7 @@ private:
     uint16_t  mcommission;
     uint16_t  mcommission_target;
     uint64_t mcommissionTime;
+    uint64_t mRestcutTime;
     bool mcommissionToggle;
     static StackType_t appStack[APP_TASK_STACK_SIZE / sizeof(StackType_t)];
     static StaticTask_t appTaskStruct;
