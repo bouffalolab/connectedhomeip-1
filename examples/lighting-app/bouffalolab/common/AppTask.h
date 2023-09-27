@@ -36,7 +36,6 @@ using namespace ::chip::DeviceLayer;
 #define APP_REBOOT_RESET_COUNT 5
 #define APP_REBOOT_RESET_COUNT_KEY "app_reset_cnt"
 
-#define APP_COLOR_MODE "app_color_mode"
 // Application-defined error codes in the CHIP_ERROR space.
 #define APP_ERROR_EVENT_QUEUE_FAILED CHIP_APPLICATION_ERROR(0x01)
 #define APP_ERROR_CREATE_TASK_FAILED CHIP_APPLICATION_ERROR(0x02)

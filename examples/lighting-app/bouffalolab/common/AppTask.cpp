@@ -190,14 +190,6 @@ void AppTask::AppTaskMain(void * pvParameter)
     printf("reset cnt %ld\r\n ",resetCnt);
     ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
 #endif
-
-    saved_value_len = 0;
-    ef_get_env_blob(APP_COLOR_MODE, &colormode, sizeof(colormode), &saved_value_len);
-    if (Server::GetInstance().GetFabricTable().FabricCount())
-    {
-         printf("colormode =%d\r\n",colormode);
-         Clusters::ColorControl::Attributes::ColorMode::Set(GetAppTask().GetEndpointId(),colormode);
-    }
     GetAppTask().sTimer = xTimerCreate("lightTmr", pdMS_TO_TICKS(1000), false, NULL, AppTask::TimerCallback);
     if (GetAppTask().sTimer == NULL)
     {
@@ -355,7 +347,6 @@ void AppTask::LightingUpdate(app_event_t status)
 
 
                 printf("%s onoff =%d  level= %d,hue =%d  sat %d colormode %d temperature %d\r\n",__func__, onoff,v.Value(),hue,sat,colormode,temperature);
-                ef_set_env_blob(APP_COLOR_MODE, &colormode, sizeof(colormode));
                 if (!onoff)
                 {
                     sLightLED.SetLevel(0, colormode);
