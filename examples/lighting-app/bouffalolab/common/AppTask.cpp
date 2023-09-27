@@ -256,21 +256,21 @@ void AppTask::AppTaskMain(void * pvParameter)
             {
                 DeviceLayer::ConfigurationMgr().InitiateFactoryReset();
             }
-            if(APP_EVENT_COMMISON_TOOGLE&appEvent)
+            if(APP_EVENT_COMMISON_TOOGLE==appEvent)
             {
                 GetAppTask().mTimerIntvl = 1000;
                 GetAppTask().mcommissionToggle=true;
 
             }
-            if(APP_EVENT_COMMISON_START&appEvent)
+            if(APP_EVENT_COMMISON_START==appEvent)
             {
                 GetAppTask().mcommissionToggle=false;
                 GetAppTask().mcommission=0;
                 GetAppTask().mTimerIntvl = 3000;
-                GetAppTask().mcommission_target=0xf;
+                GetAppTask().mcommission_target=0x1;
                 GetAppTask().mcommissionTime = System::SystemClock().GetMonotonicMilliseconds64().count();
             }
-            if(APP_EVENT_COMMISON_COMPLETE&appEvent)
+            if(APP_EVENT_COMMISON_COMPLETE==appEvent)
             {
                 GetAppTask().mcommissionTime=0;
                 GetAppTask().mTimerIntvl = 1000;
@@ -445,13 +445,13 @@ void AppTask::TimerEventHandler(app_event_t event)
         else
         {
             set_temperature(GetAppTask().mcommission_target,154);
-            if(GetAppTask().mcommission_target==0xf)
+            if(GetAppTask().mcommission_target==0x1)
             {
                 GetAppTask().mcommission_target=0xfe;
             }
             else if(GetAppTask().mcommission_target==0xfe)
             {
-                 GetAppTask().mcommission_target=0xf;
+                 GetAppTask().mcommission_target=0x1;
             }
             
         }
