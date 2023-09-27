@@ -181,7 +181,7 @@ void demo_color_light_init(void)
 
 void demo_color_set_param(uint32_t p_Rduty, uint32_t p_Gduty, uint32_t p_Bduty, uint32_t p_Cduty, uint32_t p_Wduty)
 {
-    SM2235EGH_Set_Color(pwm_curve[p_Rduty], pwm_curve[p_Gduty], pwm_curve[p_Bduty], pwm_curve[p_Cduty], pwm_curve[p_Wduty]);
+    SM2235EGH_Set_Color(p_Rduty, p_Gduty, p_Bduty, p_Cduty, p_Wduty);
 }
 
 void set_level(uint8_t currLevel)
@@ -416,7 +416,7 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
             {
                 Bduty--;
             }
-            demo_color_set_param(Rduty, Gduty, Bduty, 0, 0);
+            demo_color_set_param(pwm_curve[Rduty], pwm_curve[Gduty], pwm_curve[Bduty], 0, 0);
         }
         else
         {
@@ -477,7 +477,7 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
                 }
             }
 
-            demo_color_set_param(0, 0, 0, Cduty, Wduty);
+            demo_color_set_param(0, 0, 0, pwm_curve[Cduty], pwm_curve[Wduty]);
         }
         else
         {

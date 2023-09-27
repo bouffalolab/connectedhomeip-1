@@ -180,11 +180,11 @@ void AppTask::AppTaskMain(void * pvParameter)
          * +1 makes sure mButtonPressedTime is not zero;
          * a power cycle during factory reset confirm time APP_BUTTON_PRESS_LONG will cancel factoryreset */
         GetAppTask().mButtonPressedTime = System::SystemClock().GetMonotonicMilliseconds64().count() + 1;
+        ChipLogProgress(NotSpecified, "factory reset confirm timeout.");
     }
     else
     {
         resetCnt++;
-        GetAppTask().mButtonPressedTime = 0;
         GetAppTask().mRestcutTime=System::SystemClock().GetMonotonicMilliseconds64().count() + 1;
     }
     printf("reset cnt %ld\r\n ",resetCnt);
@@ -219,20 +219,7 @@ void AppTask::AppTaskMain(void * pvParameter)
         if (eventReceived)
         {
             PlatformMgr().LockChipStack();
-            if(APP_EVENT_TIMER& appEvent)
-            {
-                #ifndef BOOT_PIN_RESET
-                if(GetAppTask().mRestcutTime)
-                {
-                    if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mRestcutTime > APP_BUTTON_PRESS_LONG)
-                    {
-                        GetAppTask().mRestcutTime=0;
-                        resetCnt = 0;
-                        ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
-                    }
-                }
-                #endif
-            }
+
             if (APP_EVENT_LIGHTING_MASK & appEvent)
             {
                 LightingUpdate(appEvent);
@@ -344,8 +331,6 @@ void AppTask::LightingUpdate(app_event_t status)
                 {
                     break;
                 }
-
-
                 printf("%s onoff =%d  level= %d,hue =%d  sat %d colormode %d temperature %d\r\n",__func__, onoff,v.Value(),hue,sat,colormode,temperature);
                 if (!onoff)
                 {
@@ -434,7 +419,7 @@ void AppTask::TimerEventHandler(app_event_t event)
 #else
         if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime > APP_BUTTON_PRESS_LONG)
         {
-            /** factory reset confirm timeout */
+            ChipLogProgress(NotSpecified, "factory reset confirm timeout.");
             GetAppTask().mButtonPressedTime = 0;
             GetAppTask().PostEvent(APP_EVENT_FACTORY_RESET);
         }
@@ -442,10 +427,10 @@ void AppTask::TimerEventHandler(app_event_t event)
         {
 #if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT) ||defined(BL616_COLOR_LIGHT)
             /** change color to indicate to wait factory reset confirm */
-            sLightLED.SetColor(254, 0, 210);
+            //sLightLED.SetColor(254, 0, 210);
 #else
             /** toggle led to indicate to wait factory reset confirm */
-            sLightLED.Toggle();
+            //sLightLED.Toggle();
 #endif
         }
 #endif
@@ -502,7 +487,15 @@ void AppTask::TimerEventHandler(app_event_t event)
         }
         GetAppTask().mcommission++;
     }
-
+        if(GetAppTask().mRestcutTime)
+        {
+            if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mRestcutTime > APP_BUTTON_PRESS_LONG)
+            {
+                GetAppTask().mRestcutTime=0;
+                uint32_t resetCnt      = 0;
+                ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
+            }
+        }
     StartTimer();
 }
 

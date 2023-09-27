@@ -249,10 +249,9 @@ void SM2235EGH_Set_Color(uint32_t p_Rduty, uint32_t p_Gduty, uint32_t p_Bduty, u
     led_cfg.max_curr_rgb = 15;
     led_cfg.max_curr_wy  = 15;
     led_cfg.gray_level_r = p_Rduty;
-    led_cfg.gray_level_b = p_Gduty;
-    led_cfg.gray_level_g = p_Bduty;
+    led_cfg.gray_level_b = p_Bduty;
+    led_cfg.gray_level_g = p_Gduty;
     led_cfg.gray_level_w = p_Cduty;
     led_cfg.gray_level_y = p_Wduty;
     status               = SM2235EGH_ApplyConfig(&led_cfg);
-    // printf("SM2235EGH_Set_Color: %d\r\n", status);
 }
