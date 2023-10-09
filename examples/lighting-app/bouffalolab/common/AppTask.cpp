@@ -169,13 +169,12 @@ void AppTask::AppTaskMain(void * pvParameter)
     ButtonInit();
 #else
     /** Without RESET PIN defined, factory reset will be executed if power cycle count(resetCnt) >= APP_REBOOT_RESET_COUNT */
-    uint32_t resetCnt      = 0;
+    uint32_t resetCnt      = 1;
     size_t saved_value_len = 0;
     ef_get_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt), &saved_value_len);
-
+    printf("reset cnt %ld\r\n ",resetCnt);
     if (resetCnt > APP_REBOOT_RESET_COUNT)
     {
-        resetCnt = 0;
         /** To share with RESET PIN logic, mButtonPressedTime is used to recorded resetCnt increased.
          * +1 makes sure mButtonPressedTime is not zero;
          * a power cycle during factory reset confirm time APP_BUTTON_PRESS_LONG will cancel factoryreset */
@@ -187,7 +186,6 @@ void AppTask::AppTaskMain(void * pvParameter)
         resetCnt++;
         GetAppTask().mRestcutTime=System::SystemClock().GetMonotonicMilliseconds64().count() + 1;
     }
-    printf("reset cnt %ld\r\n ",resetCnt);
     ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
 #endif
     GetAppTask().sTimer = xTimerCreate("lightTmr", pdMS_TO_TICKS(1000), false, NULL, AppTask::TimerCallback);
@@ -487,15 +485,16 @@ void AppTask::TimerEventHandler(app_event_t event)
         }
         GetAppTask().mcommission++;
     }
-        if(GetAppTask().mRestcutTime)
+    if(GetAppTask().mRestcutTime)
+    {
+        if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mRestcutTime > APP_BUTTON_PRESS_LONG)
         {
-            if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mRestcutTime > APP_BUTTON_PRESS_LONG)
-            {
-                GetAppTask().mRestcutTime=0;
-                uint32_t resetCnt      = 0;
-                ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
-            }
+            GetAppTask().mRestcutTime=0;
+            uint32_t resetCnt      = 0;
+            ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
         }
+    }
+    bl61x_get_chip_temp();
     StartTimer();
 }
 

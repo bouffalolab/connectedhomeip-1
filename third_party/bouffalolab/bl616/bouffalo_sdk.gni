@@ -640,7 +640,7 @@ template("bouffalo_sdk") {
     ]
 
     defines = [
-      "CONFIG_LOG_LEVEL=3",
+      "CONFIG_LOG_LEVEL=0",
       "CONFIG_BFLOG",
       "CONFIG_BFLOG_DEBUG",
     ]
@@ -648,7 +648,7 @@ template("bouffalo_sdk") {
 
   source_set("${sdk_target_name}_utils") {
     defines = [
-      "CONFIG_LOG_LEVEL=3",
+      "CONFIG_LOG_LEVEL=0",
       "CONFIG_BFLOG",
       "CONFIG_BFLOG_DEBUG",
     ]

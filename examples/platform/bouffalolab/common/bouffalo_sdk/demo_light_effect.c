@@ -169,6 +169,7 @@ const float pwm_curve[] = {
 
 void demo_color_light_init(void)
 {
+    bl61x_get_chip_temp_init();
     demo_color_light_task();
 }
 
@@ -493,4 +494,36 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
 static void demo_color_light_task(void)
 {
     Light_TimerHdl = xTimerCreate("Light_TimerHandler", pdMS_TO_TICKS(2), pdTRUE, NULL, Light_TimerHandler);
+}
+#include "bflb_adc.h"
+struct bflb_device_s * adc;
+void bl61x_get_chip_temp_init(void)
+{
+
+    adc = bflb_device_get_by_name("adc");
+
+    /* adc clock = XCLK / 2 / 32 */
+    struct bflb_adc_config_s cfg;
+    cfg.clk_div              = ADC_CLK_DIV_32;
+    cfg.scan_conv_mode       = false;
+    cfg.continuous_conv_mode = false;
+    cfg.differential_mode    = false;
+    cfg.resolution           = ADC_RESOLUTION_16B;
+    cfg.vref                 = ADC_VREF_2P0V;
+
+    struct bflb_adc_channel_s chan;
+
+    chan.pos_chan = ADC_CHANNEL_TSEN_P;
+    chan.neg_chan = ADC_CHANNEL_GND;
+
+    bflb_adc_init(adc, &cfg);
+    bflb_adc_channel_config(adc, &chan, 1);
+    bflb_adc_tsen_init(adc, ADC_TSEN_MOD_INTERNAL_DIODE);
+}
+void bl61x_get_chip_temp(void)
+{
+
+    float average_filter = 0.0;
+    average_filter       = bflb_adc_tsen_get_temp(adc);
+    printf("temp = %f\r\n", average_filter);
 }
