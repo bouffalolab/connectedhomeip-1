@@ -213,7 +213,17 @@ void AppTask::AppTaskMain(void * pvParameter)
     {
         appEvent                 = APP_EVENT_NONE;
         BaseType_t eventReceived = xTaskNotifyWait(0, APP_EVENT_ALL_MASK, (uint32_t *) &appEvent, portMAX_DELAY);
-
+#if CHIP_DEVICE_CONFIG_ENABLE_WIFI
+        if(ConnectivityMgr().IsWiFiStationConnected()==true)
+#else 
+        if(ConnectivityMgr().IsThreadAttached()==true)
+#endif
+        {
+            if(Server::GetInstance().GetFabricTable().FabricCount()==0)
+            {
+                DeviceLayer::ConfigurationMgr().InitiateFactoryReset();
+            }
+        }
         if (eventReceived)
         {
             PlatformMgr().LockChipStack();
