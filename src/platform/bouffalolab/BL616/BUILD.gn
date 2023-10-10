@@ -68,7 +68,10 @@ static_library("BL616") {
       "${chip_root}/src/credentials/DeviceAttestationCredsProvider.h",
       "../common/FactoryDataProvider.cpp",
       "../common/FactoryDataProvider.h",
+      "utils_base64.c",
+      "utils_base64.h"
     ]
+    cflags_c = [ "-Wno-sign-compare" ]
   }
 
   sources += common_sources

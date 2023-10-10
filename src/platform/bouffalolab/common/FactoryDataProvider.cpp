@@ -24,7 +24,10 @@
 #else
 #include <platform/CHIPDeviceConfig.h>
 extern "C" {
-#include <utils_base64.h>
+#include "utils_base64.h"
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+#include "bflb_efuse.h"
+#endif
 }
 #endif
 #include <platform/CHIPDeviceConfig.h>
@@ -571,7 +574,19 @@ CHIP_ERROR FactoryDataProvider::GetSerialNumber(char * buf, size_t bufSize)
 
     return CHIP_ERROR_BUFFER_TOO_SMALL;
 #else
-    strncpy(buf, CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER, bufSize);
+    uint8_t chip_id[8];
+    char Test_SN[33];
+    Test_SN[0]='B';
+    Test_SN[1]='L';
+    Test_SN[2]='0';
+    Test_SN[3]='0';
+    Test_SN[4]='1';
+    Test_SN[5]='_';
+    bflb_efuse_get_chipid(chip_id);
+    snprintf(&Test_SN[6], 13, "%02X%02X%02X%02X%02X%02X",
+			chip_id[0], chip_id[1], chip_id[2],
+			chip_id[3], chip_id[4], chip_id[5]);
+    strncpy(buf, Test_SN, bufSize);
 
     return CHIP_NO_ERROR;
 #endif
