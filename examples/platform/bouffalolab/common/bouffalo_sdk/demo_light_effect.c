@@ -239,7 +239,29 @@ int get_curve_value(uint16_t temp)
     }
     return value;
 }
-
+int get_curve_value_forcolor(uint16_t temp)
+{
+    int value = 0;
+    printf("temp %d\r\n", temp);
+    if (temp == 0)
+    {
+        return value;
+    }
+    if (temp <= 10)
+    {
+        value = 1;
+        return value;
+    }
+    while (1)
+    {
+        if ((pwm_curve[value] <= temp) && (pwm_curve[value + 1] >= temp))
+        {
+            break;
+        }
+        value++;
+    }
+    return value;
+}
 void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
 {
     printf("%s\r\n", __func__);
@@ -296,9 +318,28 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
     new_Gduty = (green * 12);
     new_Bduty = (blue * 12);
 #endif
-    new_Rduty = get_curve_value(red);
-    new_Gduty = get_curve_value(green);
-    new_Bduty = get_curve_value(blue);
+    if (currLevel != 0)
+    {
+
+        red   = 1023 * red / (red + green + blue);
+        green = 1023 * green / (red + green + blue);
+        blue  = 1023 * blue / (red + green + blue);
+
+        red   = red * currLevel / 254;
+        green = green * currLevel / 254;
+        blue  = blue * currLevel / 254;
+
+        new_Rduty = get_curve_value_forcolor(red);
+        new_Gduty = get_curve_value_forcolor(green);
+        new_Bduty = get_curve_value_forcolor(blue);
+    }
+    else
+    {
+        new_Rduty = 0;
+        new_Gduty = 0;
+        new_Bduty = 0;
+    }
+
     printf("now_Rduty update=%lx,now_Gduty update =%lx,now_Bduty update     =%lx\r\n", new_Rduty, new_Gduty, new_Bduty);
     if (Light_TimerHdl != NULL)
     {
@@ -418,6 +459,8 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
             {
                 Bduty--;
             }
+            Cduty = 0;
+            Wduty = 0;
             demo_color_set_param(pwm_curve[Rduty], pwm_curve[Gduty], pwm_curve[Bduty], 0, 0);
         }
         else
@@ -478,7 +521,9 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
                     Wduty = 0;
                 }
             }
-
+            Rduty = 0;
+            Gduty = 0;
+            Bduty = 0;
             demo_color_set_param(0, 0, 0, pwm_curve[Cduty], pwm_curve[Wduty]);
         }
         else
