@@ -132,9 +132,9 @@ private:
     uint64_t mButtonPressedTime;
     uint16_t  mcommission;
     uint16_t  mcommission_target;
-    uint64_t mcommissionTime;
+    uint64_t mcommissionTime=0;
     uint64_t mRestcutTime;
-    bool mcommissionToggle;
+    bool mcommissionToggle=false;
     static StackType_t appStack[APP_TASK_STACK_SIZE / sizeof(StackType_t)];
     static StaticTask_t appTaskStruct;
     static AppTask sAppTask;

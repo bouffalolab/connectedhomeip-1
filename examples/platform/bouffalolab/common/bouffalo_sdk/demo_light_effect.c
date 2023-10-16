@@ -169,7 +169,7 @@ const float pwm_curve[] = {
 
 void demo_color_light_init(void)
 {
-    bl61x_get_chip_temp_init();
+    // bl61x_get_chip_temp_init();
     demo_color_light_task();
 }
 
@@ -540,6 +540,7 @@ static void demo_color_light_task(void)
 {
     Light_TimerHdl = xTimerCreate("Light_TimerHandler", pdMS_TO_TICKS(2), pdTRUE, NULL, Light_TimerHandler);
 }
+#if 0
 #include "bflb_adc.h"
 struct bflb_device_s * adc;
 void bl61x_get_chip_temp_init(void)
@@ -565,6 +566,7 @@ void bl61x_get_chip_temp_init(void)
     bflb_adc_channel_config(adc, &chan, 1);
     bflb_adc_tsen_init(adc, ADC_TSEN_MOD_INTERNAL_DIODE);
 }
+
 void bl61x_get_chip_temp(void)
 {
 
@@ -572,3 +574,4 @@ void bl61x_get_chip_temp(void)
     average_filter       = bflb_adc_tsen_get_temp(adc);
     printf("temp = %f\r\n", average_filter);
 }
+#endif

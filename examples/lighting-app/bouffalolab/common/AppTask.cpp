@@ -188,6 +188,7 @@ void AppTask::AppTaskMain(void * pvParameter)
     }
     ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
 #endif
+    GetAppTask().mcommissionTime=0;
     GetAppTask().sTimer = xTimerCreate("lightTmr", pdMS_TO_TICKS(1000), false, NULL, AppTask::TimerCallback);
     if (GetAppTask().sTimer == NULL)
     {
@@ -223,6 +224,14 @@ void AppTask::AppTaskMain(void * pvParameter)
             {
                 DeviceLayer::ConfigurationMgr().InitiateFactoryReset();
             }
+            if((Server::GetInstance().GetFabricTable().FabricCount()>=1)&&(chip::Server::GetInstance().GetFailSafeContext().IsFailSafeArmed()==false))
+            {
+                if(GetAppTask().mcommissionTime!=0)
+                {
+                    appEvent=APP_EVENT_COMMISON_COMPLETE;
+                    eventReceived=true;
+                }
+            }            
         }
         if (eventReceived)
         {
@@ -504,7 +513,7 @@ void AppTask::TimerEventHandler(app_event_t event)
             ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
         }
     }
-    bl61x_get_chip_temp();
+    //bl61x_get_chip_temp();
     StartTimer();
 }
 
