@@ -103,7 +103,10 @@ void ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
         ChipLogProgress(NotSpecified, "BLE adv changed, connection number: %d", ConnectivityMgr().NumBLEConnections());
         if (event->CHIPoBLEAdvertisingChange.Result == kActivity_Started)
         {
-            GetAppTask().PostEvent(AppTask::APP_EVENT_COMMISON_TOOGLE);
+            if(System::SystemClock().GetMonotonicMilliseconds64().count()<APP_BUTTON_PRESS_SHORT)
+            {
+                GetAppTask().PostEvent(AppTask::APP_EVENT_COMMISON_TOOGLE);
+            }
         }
         break;
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
