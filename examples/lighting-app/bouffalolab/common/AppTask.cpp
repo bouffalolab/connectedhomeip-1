@@ -161,6 +161,7 @@ void AppTask::AppTaskMain(void * pvParameter)
     bool onoff = false;
     uint16_t temperature;
     uint8_t colormode;
+    uint8_t level;
 #ifndef BL706_ETHERNET
     sLightLED.Init();
 #endif
@@ -295,7 +296,9 @@ void AppTask::AppTaskMain(void * pvParameter)
                 onoff=1;
                 colormode=2;
                 temperature=154;
+                level=254;
                 Clusters::OnOff::Attributes::OnOff::Set(GetAppTask().GetEndpointId(), onoff);
+                Clusters::LevelControl::Attributes::CurrentLevel::Set(GetAppTask().GetEndpointId(), level);
                 Clusters::ColorControl::Attributes::ColorMode::Set(GetAppTask().GetEndpointId(),colormode);
                 Clusters::ColorControl::Attributes::ColorTemperatureMireds::Set(GetAppTask().GetEndpointId(),temperature);
             }
@@ -363,13 +366,28 @@ void AppTask::LightingUpdate(app_event_t status)
 
                     if (colormode != 2)
                     {
-                        
-                        sLightLED.SetColor(v.Value(), hue, sat);
+                        if(ConnectivityMgr().IsWiFiStationConnected()==false)
+                        {
+                            hw_set_color(v.Value(), hue, sat);
+                        }
+                        else
+                        {
+                            sLightLED.SetColor(v.Value(), hue, sat);
+                        }
+
                     }
                     else
                     {
+                         if(ConnectivityMgr().IsWiFiStationConnected()==false)
+                        {
+                            hw_set_temperature(v.Value(), temperature);
+                        }
+                        else
+                        {
+                            sLightLED.SetTemperature(v.Value(), temperature);
+                        }
                         printf("%s level= %d,temperature =%d \r\n",__func__,v.Value(),temperature);
-                        sLightLED.SetTemperature(v.Value(), temperature);
+                        
                     }
 #else
                     sLightLED.SetLevel(v.Value());
@@ -509,7 +527,7 @@ void AppTask::TimerEventHandler(app_event_t event)
         if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mRestcutTime > APP_BUTTON_PRESS_LONG)
         {
             GetAppTask().mRestcutTime=0;
-            uint32_t resetCnt      = 0;
+            uint32_t resetCnt      = 1;
             ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
         }
     }

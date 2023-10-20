@@ -229,18 +229,8 @@ int SM2235EGH_ApplyConfig(SM2235EGH_Config_t * cfg)
 void SM2235EGH_Config_Init(void)
 {
     int status;
-
-    led_cfg.max_curr_rgb = 3;
-    led_cfg.max_curr_wy  = 9;
-    led_cfg.gray_level_r = 0;
-    led_cfg.gray_level_b = 0;
-    led_cfg.gray_level_g = 0;
-    led_cfg.gray_level_w = 0;
-    led_cfg.gray_level_y = 0;
-    status               = SM2235EGH_Init(SM2235_SCL, SM2235_SDA);
+    status = SM2235EGH_Init(SM2235_SCL, SM2235_SDA);
     printf("SM2235EGH Init: %d\r\n", status);
-    status = SM2235EGH_ApplyConfig(&led_cfg);
-    printf("SM2235EGH_ApplyConfig: %d\r\n", status);
 }
 
 void SM2235EGH_Set_Color(uint32_t p_Rduty, uint32_t p_Gduty, uint32_t p_Bduty, uint32_t p_Cduty, uint32_t p_Wduty)

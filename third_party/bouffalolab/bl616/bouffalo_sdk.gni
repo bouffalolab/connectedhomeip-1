@@ -594,7 +594,8 @@ template("bouffalo_sdk") {
   source_set("${sdk_target_name}_easyflash4") {
     defines = [
       "CONFIG_EASYFLASH4",
-      "BL616"
+      "BL616",
+      "EF_ENV_CACHE_TABLE_SIZE=32",
     ]
 
     include_dirs = [

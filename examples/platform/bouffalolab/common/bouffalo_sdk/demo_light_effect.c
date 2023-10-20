@@ -357,6 +357,89 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
         }
     }
 }
+
+void hw_set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
+{
+    printf("%s\r\n", __func__);
+    uint16_t hue = (uint16_t) currHue * 360 / 254;
+    uint8_t sat  = (uint16_t) currSat * 100 / 254;
+
+    if (sat > 100)
+    {
+        sat = 100;
+    }
+
+    uint16_t i       = hue / 60;
+    uint16_t rgb_max = currLevel;
+    uint16_t rgb_min = rgb_max * (100 - sat) / 100;
+    uint16_t diff    = hue % 60;
+    uint16_t rgb_adj = (rgb_max - rgb_min) * diff / 60;
+    uint32_t red, green, blue;
+
+    switch (i)
+    {
+    case 0:
+        red   = rgb_max;
+        green = rgb_min + rgb_adj;
+        blue  = rgb_min;
+        break;
+    case 1:
+        red   = rgb_max - rgb_adj;
+        green = rgb_max;
+        blue  = rgb_min;
+        break;
+    case 2:
+        red   = rgb_min;
+        green = rgb_max;
+        blue  = rgb_min + rgb_adj;
+        break;
+    case 3:
+        red   = rgb_min;
+        green = rgb_max - rgb_adj;
+        blue  = rgb_max;
+        break;
+    case 4:
+        red   = rgb_min + rgb_adj;
+        green = rgb_min;
+        blue  = rgb_max;
+        break;
+    default:
+        red   = rgb_max;
+        green = rgb_min;
+        blue  = rgb_max - rgb_adj;
+        break;
+    }
+#if 0
+    new_Rduty = (red * 12);
+    new_Gduty = (green * 12);
+    new_Bduty = (blue * 12);
+#endif
+    if (currLevel != 0)
+    {
+
+        red   = 1023 * red / (red + green + blue);
+        green = 1023 * green / (red + green + blue);
+        blue  = 1023 * blue / (red + green + blue);
+
+        red   = red * currLevel / 254;
+        green = green * currLevel / 254;
+        blue  = blue * currLevel / 254;
+
+        Rduty = get_curve_value_forcolor(red);
+        Gduty = get_curve_value_forcolor(green);
+        Bduty = get_curve_value_forcolor(blue);
+    }
+    else
+    {
+        Rduty = 0;
+        Gduty = 0;
+        Bduty = 0;
+    }
+
+    Cduty = 0;
+    Wduty = 0;
+    demo_color_set_param(pwm_curve[Rduty], pwm_curve[Gduty], pwm_curve[Bduty], 0, 0);
+}
 void set_temperature(uint8_t currLevel, uint16_t temperature)
 {
 
@@ -406,6 +489,46 @@ void set_temperature(uint8_t currLevel, uint16_t temperature)
         }
     }
 }
+
+void hw_set_temperature(uint8_t currLevel, uint16_t temperature)
+{
+
+    if ((targettemp != temperature) || (targetlevel != currLevel))
+    {
+        targettemp  = temperature;
+        targetlevel = currLevel;
+        printf("%s\r\n", __func__);
+        uint32_t hw_temp_delta = LAM_MAX_MIREDS_DEFAULT - LAM_MIN_MIREDS_DEFAULT;
+        uint32_t soft_temp_delta;
+
+        if (temperature > LAM_MAX_MIREDS_DEFAULT)
+        {
+            temperature = LAM_MAX_MIREDS_DEFAULT;
+        }
+        else if (temperature < LAM_MIN_MIREDS_DEFAULT)
+        {
+            temperature = LAM_MIN_MIREDS_DEFAULT;
+        }
+
+        soft_temp_delta = temperature - LAM_MIN_MIREDS_DEFAULT;
+        soft_temp_delta *= 100;
+
+        uint32_t warm = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
+        uint32_t clod = 254 - warm;
+
+        warm = warm * currLevel / 254;
+        clod = clod * currLevel / 254;
+
+        Wduty = get_curve_value(warm);
+        Cduty = get_curve_value(clod);
+        printf("now_Cduty update=%lx,now_Wduty update =%lx\r\n", Cduty, Wduty);
+        Rduty = 0;
+        Gduty = 0;
+        Bduty = 0;
+        demo_color_set_param(0, 0, 0, pwm_curve[Cduty], pwm_curve[Wduty]);
+    }
+}
+
 void set_warm_temperature(void)
 {
     Rduty = 0;

@@ -13,7 +13,8 @@ void set_color_green(void);
 void set_color_blue(void);
 void set_warm_temperature(void);
 void set_cold_temperature(void);
-
+void hw_set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat);
+void hw_set_temperature(uint8_t currLevel, uint16_t temperature);
 void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat);
 void set_temperature(uint8_t currLevel, uint16_t temperature);
 void bl61x_get_chip_temp(void);
