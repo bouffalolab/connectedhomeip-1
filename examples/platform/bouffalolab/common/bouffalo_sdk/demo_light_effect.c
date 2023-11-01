@@ -2,11 +2,11 @@
 #include "SM2235EGH.h"
 #include <FreeRTOS.h>
 #include <bflb_gpio.h>
+#include <math.h>
 #include <semphr.h>
 #include <stdio.h>
 #include <task.h>
 #include <timers.h>
-
 static TimerHandle_t Light_TimerHdl = NULL;
 static char Light_Timer_Status      = 0;
 static void demo_color_light_task(void);
@@ -185,7 +185,7 @@ void set_level(uint8_t currLevel)
 
 void set_color_red(void)
 {
-    Rduty = 0xbe7;
+    Rduty = 0xbe8;
     Gduty = 0;
     Bduty = 0;
     Cduty = 0;
@@ -197,7 +197,7 @@ void set_color_red(void)
 void set_color_green(void)
 {
     Rduty = 0;
-    Gduty = 0xbe7;
+    Gduty = 0xbe8;
     Bduty = 0;
     Cduty = 0;
     Wduty = 0;
@@ -208,7 +208,7 @@ void set_color_blue(void)
 {
     Rduty = 0;
     Gduty = 0;
-    Bduty = 0xbe7;
+    Bduty = 0xbe8;
     Cduty = 0;
     Wduty = 0;
     printf("Rduty=%lx,Gduty=%lx,Bduty=%lx\r\n", Rduty, Gduty, Bduty);
@@ -218,7 +218,7 @@ void set_color_blue(void)
 int get_curve_value(uint16_t temp)
 {
     int value = 0;
-    temp      = 1023 * temp / 254;
+    temp      = (float) (1023 * temp / 254);
     printf("temp %d\r\n", temp);
     if (temp == 0)
     {
@@ -227,6 +227,11 @@ int get_curve_value(uint16_t temp)
     if (temp <= 10)
     {
         value = 1;
+        return value;
+    }
+    if (temp == 1023)
+    {
+        value = 0xbe8;
         return value;
     }
     while (1)
@@ -252,6 +257,11 @@ int get_curve_value_forcolor(uint16_t temp)
         value = 1;
         return value;
     }
+    if (temp == 1023)
+    {
+        value = 0xbe8;
+        return value;
+    }
     while (1)
     {
         if ((pwm_curve[value] <= temp) && (pwm_curve[value + 1] >= temp))
@@ -262,72 +272,120 @@ int get_curve_value_forcolor(uint16_t temp)
     }
     return value;
 }
+void HSVtoRGB(uint32_t * ofR, uint32_t * ofG, uint32_t * ofB, uint16_t currLevel, uint16_t currHue, uint16_t currSat)
+{
+    printf("currLevel =%d currHue =%d currSat =%d\r\n", currLevel, currHue, currSat);
+    float fH = (float) (currHue);
+    float fS = (float) (currSat);
+    float fV = (float) (currLevel);
+    printf("currLevel =%f currHue =%f currSat =%f\r\n", fV, fH, fV);
+
+    fH = (float) (fH * 360 / 254);
+    fS = (float) (fS / 254);
+    fV = (float) (fV / 254);
+
+    printf("%f ,%f ,%f\r\n", fH, fS, fV);
+
+    float fC;
+    float fHPrime;
+    float fX;
+    float fM;
+    float fR, fG, fB;
+
+    fC      = fV * fS; // Chroma
+    fHPrime = fmod(fH / 60.0, 6);
+    fX      = fC * (1 - fabs(fmod(fHPrime, 2) - 1));
+    fM      = fV - fC;
+
+    if (0 <= fHPrime && fHPrime < 1)
+    {
+        fR = fC;
+        fG = fX;
+        fB = 0;
+    }
+    else if (1 <= fHPrime && fHPrime < 2)
+    {
+        fR = fX;
+        fG = fC;
+        fB = 0;
+    }
+    else if (2 <= fHPrime && fHPrime < 3)
+    {
+        fR = 0;
+        fG = fC;
+        fB = fX;
+    }
+    else if (3 <= fHPrime && fHPrime < 4)
+    {
+        fR = 0;
+        fG = fX;
+        fB = fC;
+    }
+    else if (4 <= fHPrime && fHPrime < 5)
+    {
+        fR = fX;
+        fG = 0;
+        fB = fC;
+    }
+    else if (5 <= fHPrime && fHPrime < 6)
+    {
+        fR = fC;
+        fG = 0;
+        fB = fX;
+    }
+    else
+    {
+        fR = 0;
+        fG = 0;
+        fB = 0;
+    }
+
+    fR += fM;
+    fG += fM;
+    fB += fM;
+    printf("fR %f ,fG %f ,fB %f\r\n", fR, fG, fB);
+    *ofR = fR * 254;
+    *ofG = fG * 254;
+    *ofB = fB * 254;
+}
 void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
 {
     printf("%s\r\n", __func__);
-    uint16_t hue = (uint16_t) currHue * 360 / 254;
-    uint8_t sat  = (uint16_t) currSat * 100 / 254;
-
-    if (sat > 100)
-    {
-        sat = 100;
-    }
-
-    uint16_t i       = hue / 60;
-    uint16_t rgb_max = currLevel;
-    uint16_t rgb_min = rgb_max * (100 - sat) / 100;
-    uint16_t diff    = hue % 60;
-    uint16_t rgb_adj = (rgb_max - rgb_min) * diff / 60;
     uint32_t red, green, blue;
 
-    switch (i)
+    HSVtoRGB(&red, &green, &blue, currLevel, currHue, currSat);
+
+    if ((currSat = 254) && (currHue == 169)) // blue
     {
-    case 0:
-        red   = rgb_max;
-        green = rgb_min + rgb_adj;
-        blue  = rgb_min;
-        break;
-    case 1:
-        red   = rgb_max - rgb_adj;
-        green = rgb_max;
-        blue  = rgb_min;
-        break;
-    case 2:
-        red   = rgb_min;
-        green = rgb_max;
-        blue  = rgb_min + rgb_adj;
-        break;
-    case 3:
-        red   = rgb_min;
-        green = rgb_max - rgb_adj;
-        blue  = rgb_max;
-        break;
-    case 4:
-        red   = rgb_min + rgb_adj;
-        green = rgb_min;
-        blue  = rgb_max;
-        break;
-    default:
-        red   = rgb_max;
-        green = rgb_min;
-        blue  = rgb_max - rgb_adj;
-        break;
+        red   = 0;
+        green = 0;
+        blue  = currLevel;
     }
-#if 0
-    new_Rduty = (red * 12);
-    new_Gduty = (green * 12);
-    new_Bduty = (blue * 12);
-#endif
+    if ((currSat = 254) && (currHue == 84)) // green
+    {
+        red   = 0;
+        green = currLevel;
+        blue  = 0;
+    }
+
+    printf("R %ld G %ld B %ld \r\n", red, green, blue);
     if (currLevel != 0)
     {
 
-        red   = 1023 * red / (red + green + blue);
-        green = 1023 * green / (red + green + blue);
-        blue  = 1023 * blue / (red + green + blue);
+        float RGB_total = (float) (red + green + blue);
+        float ofR       = (float) (red);
+        float ofG       = (float) (green);
+        float ofB       = (float) (blue);
 
-        red   = red * currLevel / 254;
-        green = green * currLevel / 254;
-        blue  = blue * currLevel / 254;
+        ofR = red * currLevel / (254 * RGB_total);
+        ofG = green * currLevel / (254 * RGB_total);
+        ofB = blue * currLevel / (254 * RGB_total);
+        printf("R %f G %f B %f \r\n", ofR, ofG, ofB);
+
+        red   = ofR * 1023;
+        green = ofG * 1023;
+        blue  = ofB * 1023;
+        printf("R %ld G %ld B %ld  \r\n", red, green, blue);
 
         new_Rduty = get_curve_value_forcolor(red);
         new_Gduty = get_curve_value_forcolor(green);
@@ -361,70 +419,40 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
 void hw_set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
 {
     printf("%s\r\n", __func__);
-    uint16_t hue = (uint16_t) currHue * 360 / 254;
-    uint8_t sat  = (uint16_t) currSat * 100 / 254;
 
-    if (sat > 100)
-    {
-        sat = 100;
-    }
-
-    uint16_t i       = hue / 60;
-    uint16_t rgb_max = currLevel;
-    uint16_t rgb_min = rgb_max * (100 - sat) / 100;
-    uint16_t diff    = hue % 60;
-    uint16_t rgb_adj = (rgb_max - rgb_min) * diff / 60;
     uint32_t red, green, blue;
+    HSVtoRGB(&red, &green, &blue, currLevel, currHue, currSat);
 
-    switch (i)
+    if ((currSat = 254) && (currHue == 169)) // blue
     {
-    case 0:
-        red   = rgb_max;
-        green = rgb_min + rgb_adj;
-        blue  = rgb_min;
-        break;
-    case 1:
-        red   = rgb_max - rgb_adj;
-        green = rgb_max;
-        blue  = rgb_min;
-        break;
-    case 2:
-        red   = rgb_min;
-        green = rgb_max;
-        blue  = rgb_min + rgb_adj;
-        break;
-    case 3:
-        red   = rgb_min;
-        green = rgb_max - rgb_adj;
-        blue  = rgb_max;
-        break;
-    case 4:
-        red   = rgb_min + rgb_adj;
-        green = rgb_min;
-        blue  = rgb_max;
-        break;
-    default:
-        red   = rgb_max;
-        green = rgb_min;
-        blue  = rgb_max - rgb_adj;
-        break;
+        red   = 0;
+        green = 0;
+        blue  = currLevel;
     }
-#if 0
-    new_Rduty = (red * 12);
-    new_Gduty = (green * 12);
-    new_Bduty = (blue * 12);
-#endif
+    if ((currSat = 254) && (currHue == 84)) // green
+    {
+        red   = 0;
+        green = currLevel;
+        blue  = 0;
+    }
+    printf("R %ld G %ld B %ld \r\n", red, green, blue);
     if (currLevel != 0)
     {
 
-        red   = 1023 * red / (red + green + blue);
-        green = 1023 * green / (red + green + blue);
-        blue  = 1023 * blue / (red + green + blue);
+        float RGB_total = (float) (red + green + blue);
+        float ofR       = (float) (red);
+        float ofG       = (float) (green);
+        float ofB       = (float) (blue);
 
-        red   = red * currLevel / 254;
-        green = green * currLevel / 254;
-        blue  = blue * currLevel / 254;
+        ofR = red * currLevel / (254 * RGB_total);
+        ofG = green * currLevel / (254 * RGB_total);
+        ofB = blue * currLevel / (254 * RGB_total);
+        printf("R %f G %f B %f \r\n", ofR, ofG, ofB);
 
+        red   = ofR * 1023;
+        green = ofG * 1023;
+        blue  = ofB * 1023;
+        printf("R %ld G %ld B %ld  \r\n", red, green, blue);
         Rduty = get_curve_value_forcolor(red);
         Gduty = get_curve_value_forcolor(green);
         Bduty = get_curve_value_forcolor(blue);
@@ -466,8 +494,8 @@ void set_temperature(uint8_t currLevel, uint16_t temperature)
         uint32_t warm = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
         uint32_t clod = 254 - warm;
 
-        warm = warm * currLevel / 254;
-        clod = clod * currLevel / 254;
+        warm = (float) (warm * currLevel / 254);
+        clod = (float) (clod * currLevel / 254);
 
         new_Wduty = get_curve_value(warm);
         new_Cduty = get_curve_value(clod);
@@ -516,8 +544,8 @@ void hw_set_temperature(uint8_t currLevel, uint16_t temperature)
         uint32_t warm = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
         uint32_t clod = 254 - warm;
 
-        warm = warm * currLevel / 254;
-        clod = clod * currLevel / 254;
+        warm = (float) (warm * currLevel / 254);
+        clod = (float) (clod * currLevel / 254);
 
         Wduty = get_curve_value(warm);
         Cduty = get_curve_value(clod);
@@ -535,7 +563,7 @@ void set_warm_temperature(void)
     Gduty = 0;
     Bduty = 0;
     Cduty = 0;
-    Wduty = 0xbe7;
+    Wduty = 0xbe8;
     SM2235EGH_Set_Color(0, 0, 0, 0, 1023);
 }
 
@@ -544,7 +572,7 @@ void set_cold_temperature(void)
     Rduty = 0;
     Gduty = 0;
     Bduty = 0;
-    Cduty = 0xbe7;
+    Cduty = 0xbe8;
     Wduty = 0;
     SM2235EGH_Set_Color(0, 0, 0, 1023, 0);
 }
@@ -556,6 +584,12 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
     {
         if ((new_Rduty != Rduty) || (new_Gduty != Gduty) || (new_Bduty != Bduty))
         {
+            if ((Cduty != 0) || (Wduty != 0))
+            {
+                Rduty = new_Rduty;
+                Gduty = new_Gduty;
+                Bduty = new_Bduty;
+            }
             if (new_Rduty > Rduty)
             {
                 Rduty++;
@@ -599,25 +633,31 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
     {
         if ((new_Cduty != Cduty) || (new_Wduty != Wduty))
         {
+
             if ((Cduty == 0) && (Wduty == 0))
             {
-                if (new_Wduty >= 0xbe7)
+                if (new_Wduty >= 0xbe8)
                 {
-                    Wduty = 0xbe7;
+                    Wduty = 0xbe8;
                 }
                 else
                 {
                     Wduty = new_Wduty;
                 }
 
-                if (new_Cduty >= 0xbe7)
+                if (new_Cduty >= 0xbe8)
                 {
-                    Cduty = 0xbe7;
+                    Cduty = 0xbe8;
                 }
                 else
                 {
                     Cduty = new_Cduty;
                 }
+            }
+            if ((Rduty != 0) || (Gduty != 0) || (Bduty != 0))
+            {
+                Cduty = new_Cduty;
+                Wduty = new_Wduty;
             }
             if (new_Cduty > Cduty)
             {
@@ -638,7 +678,7 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
             }
             if (targetlevel == 0)
             {
-                if ((Cduty <= 0xbe7) && (Wduty <= 0xbe7))
+                if ((Cduty <= 0xbe8) && (Wduty <= 0xbe8))
                 {
                     Cduty = 0;
                     Wduty = 0;

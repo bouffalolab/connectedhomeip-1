@@ -285,7 +285,8 @@ void AppTask::AppTaskMain(void * pvParameter)
                 GetAppTask().mcommissionToggle=false;
                 GetAppTask().mcommission=0;
                 GetAppTask().mTimerIntvl = 3000;
-                GetAppTask().mcommission_target=0x1;
+                GetAppTask().mcommission_target=0xfe;
+                hw_set_temperature(0,154);
                 GetAppTask().mcommissionTime = System::SystemClock().GetMonotonicMilliseconds64().count();
             }
             if(APP_EVENT_COMMISON_COMPLETE==appEvent)
@@ -480,13 +481,13 @@ void AppTask::TimerEventHandler(app_event_t event)
         else
         {
             set_temperature(GetAppTask().mcommission_target,154);
-            if(GetAppTask().mcommission_target==0x1)
+            if(GetAppTask().mcommission_target==0xf)
             {
                 GetAppTask().mcommission_target=0xfe;
             }
             else if(GetAppTask().mcommission_target==0xfe)
             {
-                 GetAppTask().mcommission_target=0x1;
+                 GetAppTask().mcommission_target=0xf;
             }
             
         }

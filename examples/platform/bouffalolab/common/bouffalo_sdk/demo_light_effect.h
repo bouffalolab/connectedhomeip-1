@@ -4,8 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define LAM_MAX_MIREDS_DEFAULT 370
-#define LAM_MIN_MIREDS_DEFAULT 153
+#define LAM_MAX_MIREDS_DEFAULT 364
+#define LAM_MIN_MIREDS_DEFAULT 154
 void demo_color_light_init(void);
 void set_level(uint8_t currLevel);
 void set_color_red(void);
