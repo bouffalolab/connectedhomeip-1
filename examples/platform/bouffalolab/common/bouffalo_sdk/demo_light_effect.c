@@ -24,6 +24,7 @@ static uint32_t Cduty = 0;
 static uint32_t Wduty = 0;
 static uint16_t targettemp;
 static uint8_t targetlevel;
+static uint8_t lastlevel=0;
 // gamma = 2.00 steps = 3048 range = 0-1023
 const float pwm_curve[] = {
     0,    10,   10,   10,   10,   10,   10,   10,   10,   10,   10,   10,   10,  10,  10,  10,  10,  10,  10,  10,   10,   10,
@@ -218,7 +219,7 @@ void set_color_blue(void)
 int get_curve_value(uint16_t temp)
 {
     int value = 0;
-    temp      = (float) (1023 * temp / 254);
+    temp      = (float) (987 * temp / 254);
     printf("temp %d\r\n", temp);
     if (temp == 0)
     {
@@ -399,21 +400,36 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
     }
 
     printf("now_Rduty update=%lx,now_Gduty update =%lx,now_Bduty update     =%lx\r\n", new_Rduty, new_Gduty, new_Bduty);
-    if (Light_TimerHdl != NULL)
+    
+    if(lastlevel!=currLevel)
     {
-        if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
+        lastlevel=currLevel;
+        if (Light_TimerHdl != NULL)
         {
-            if (Light_TimerHdl)
-                xTimerStop(Light_TimerHdl, 0);
-        }
-        if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
-        {
+            if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
+            {
+                if (Light_TimerHdl)
+                    xTimerStop(Light_TimerHdl, 0);
+            }
+            if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
+            {
 
-            Light_Timer_Status = 1;
-            if (Light_TimerHdl)
-                xTimerStart(Light_TimerHdl, 0);
+                Light_Timer_Status = 1;
+                if (Light_TimerHdl)
+                    xTimerStart(Light_TimerHdl, 0);
+            }
         }
     }
+    else
+    {
+        Cduty = 0;
+        Wduty = 0;
+        Rduty=new_Rduty;
+        Gduty=new_Gduty;
+        Bduty=new_Bduty;
+        demo_color_set_param(pwm_curve[Rduty], pwm_curve[Gduty], pwm_curve[Bduty], 0, 0);
+    }
+
 }
 
 void hw_set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
@@ -500,21 +516,37 @@ void set_temperature(uint8_t currLevel, uint16_t temperature)
         new_Wduty = get_curve_value(warm);
         new_Cduty = get_curve_value(clod);
         printf("now_Cduty update=%lx,now_Wduty update =%lx\r\n", new_Cduty, new_Wduty);
-        if (Light_TimerHdl != NULL)
-        {
-            if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
-            {
-                if (Light_TimerHdl)
-                    xTimerStop(Light_TimerHdl, 0);
-            }
-            if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
-            {
 
-                Light_Timer_Status = 2;
-                if (Light_TimerHdl)
-                    xTimerStart(Light_TimerHdl, 0);
+        if(lastlevel!=currLevel)
+        {
+            lastlevel=currLevel;
+            if (Light_TimerHdl != NULL)
+            {
+                if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
+                {
+                    if (Light_TimerHdl)
+                        xTimerStop(Light_TimerHdl, 0);
+                }
+                if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
+                {
+
+                    Light_Timer_Status = 2;
+                    if (Light_TimerHdl)
+                        xTimerStart(Light_TimerHdl, 0);
+                }
             }
+
         }
+        else
+        {
+            Wduty = new_Wduty;
+            Cduty = new_Cduty;
+            Rduty = 0;
+            Gduty = 0;
+            Bduty = 0;
+            demo_color_set_param(0, 0, 0, pwm_curve[Cduty], pwm_curve[Wduty]);
+        }
+   
     }
 }
 
@@ -564,7 +596,7 @@ void set_warm_temperature(void)
     Bduty = 0;
     Cduty = 0;
     Wduty = 0xbe8;
-    SM2235EGH_Set_Color(0, 0, 0, 0, 1023);
+    SM2235EGH_Set_Color(0, 0, 0, 0, 987);
 }
 
 void set_cold_temperature(void)
@@ -574,7 +606,7 @@ void set_cold_temperature(void)
     Bduty = 0;
     Cduty = 0xbe8;
     Wduty = 0;
-    SM2235EGH_Set_Color(0, 0, 0, 1023, 0);
+    SM2235EGH_Set_Color(0, 0, 0, 987, 0);
 }
 
 static void Light_TimerHandler(TimerHandle_t p_timerhdl)

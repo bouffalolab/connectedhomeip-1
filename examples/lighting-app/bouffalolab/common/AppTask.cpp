@@ -63,8 +63,8 @@ extern "C" {
 #include "demo_light_effect.h"
 #endif
 
-#include "mboard.h"
 #include "AppTask.h"
+#include "mboard.h"
 
 using namespace ::chip;
 using namespace ::chip::app;
@@ -173,7 +173,7 @@ void AppTask::AppTaskMain(void * pvParameter)
     uint32_t resetCnt      = 1;
     size_t saved_value_len = 0;
     ef_get_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt), &saved_value_len);
-    printf("reset cnt %ld\r\n ",resetCnt);
+    printf("reset cnt %ld\r\n ", resetCnt);
     if (resetCnt > APP_REBOOT_RESET_COUNT)
     {
         /** To share with RESET PIN logic, mButtonPressedTime is used to recorded resetCnt increased.
@@ -185,12 +185,12 @@ void AppTask::AppTaskMain(void * pvParameter)
     else
     {
         resetCnt++;
-        GetAppTask().mRestcutTime=System::SystemClock().GetMonotonicMilliseconds64().count() + 1;
+        GetAppTask().mRestcutTime = System::SystemClock().GetMonotonicMilliseconds64().count() + 1;
     }
     ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
 #endif
-    GetAppTask().mcommissionTime=0;
-    GetAppTask().sTimer = xTimerCreate("lightTmr", pdMS_TO_TICKS(1000), false, NULL, AppTask::TimerCallback);
+    GetAppTask().mcommissionTime = 0;
+    GetAppTask().sTimer          = xTimerCreate("lightTmr", pdMS_TO_TICKS(1000), false, NULL, AppTask::TimerCallback);
     if (GetAppTask().sTimer == NULL)
     {
         ChipLogError(NotSpecified, "Failed to create timer task");
@@ -210,29 +210,29 @@ void AppTask::AppTaskMain(void * pvParameter)
 
     vTaskSuspend(NULL);
 
-
     while (true)
     {
         appEvent                 = APP_EVENT_NONE;
         BaseType_t eventReceived = xTaskNotifyWait(0, APP_EVENT_ALL_MASK, (uint32_t *) &appEvent, portMAX_DELAY);
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
-        if(ConnectivityMgr().IsWiFiStationConnected()==true)
-#else 
-        if(ConnectivityMgr().IsThreadAttached()==true)
+        if (ConnectivityMgr().IsWiFiStationConnected() == true)
+#else
+        if (ConnectivityMgr().IsThreadAttached() == true)
 #endif
         {
-            if(Server::GetInstance().GetFabricTable().FabricCount()==0)
+            if (Server::GetInstance().GetFabricTable().FabricCount() == 0)
             {
                 DeviceLayer::ConfigurationMgr().InitiateFactoryReset();
             }
-            if((Server::GetInstance().GetFabricTable().FabricCount()>=1)&&(chip::Server::GetInstance().GetFailSafeContext().IsFailSafeArmed()==false))
+            if ((Server::GetInstance().GetFabricTable().FabricCount() >= 1) &&
+                (chip::Server::GetInstance().GetFailSafeContext().IsFailSafeArmed() == false))
             {
-                if(GetAppTask().mcommissionTime!=0)
+                if (GetAppTask().mcommissionTime != 0)
                 {
-                    appEvent=APP_EVENT_COMMISON_COMPLETE;
-                    eventReceived=true;
+                    appEvent      = APP_EVENT_COMMISON_COMPLETE;
+                    eventReceived = true;
                 }
-            }            
+            }
         }
         if (eventReceived)
         {
@@ -242,7 +242,7 @@ void AppTask::AppTaskMain(void * pvParameter)
             {
                 LightingUpdate(appEvent);
             }
-        
+
             if (APP_EVENT_BTN_SHORT & appEvent)
             {
                 if (Server::GetInstance().GetFabricTable().FabricCount())
@@ -255,11 +255,10 @@ void AppTask::AppTaskMain(void * pvParameter)
                 {
                     sLightLED.Toggle();
                 }
-                 
             }
 
 #ifdef BOOT_PIN_RESET
-            if (APP_EVENT_BTN_LONG & appEvent) 
+            if (APP_EVENT_BTN_LONG & appEvent)
             {
                 /** Turn off light to indicate button long press for factory reset is confirmed */
                 sLightLED.SetOnoff(false);
@@ -274,34 +273,33 @@ void AppTask::AppTaskMain(void * pvParameter)
             {
                 DeviceLayer::ConfigurationMgr().InitiateFactoryReset();
             }
-            if(APP_EVENT_COMMISON_TOOGLE==appEvent)
+            if (APP_EVENT_COMMISON_TOOGLE == appEvent)
             {
-                GetAppTask().mTimerIntvl = 1000;
-                GetAppTask().mcommissionToggle=true;
-
+                GetAppTask().mTimerIntvl       = 1000;
+                GetAppTask().mcommissionToggle = true;
             }
-            if(APP_EVENT_COMMISON_START==appEvent)
+            if (APP_EVENT_COMMISON_START == appEvent)
             {
-                GetAppTask().mcommissionToggle=false;
-                GetAppTask().mcommission=0;
-                GetAppTask().mTimerIntvl = 3000;
-                GetAppTask().mcommission_target=0xfe;
-                hw_set_temperature(0,154);
+                GetAppTask().mcommissionToggle  = false;
+                GetAppTask().mcommission        = 0;
+                GetAppTask().mTimerIntvl        = 3000;
+                GetAppTask().mcommission_target = 0xfe;
+                hw_set_temperature(0, 154);
                 GetAppTask().mcommissionTime = System::SystemClock().GetMonotonicMilliseconds64().count();
             }
-            if(APP_EVENT_COMMISON_COMPLETE==appEvent)
+            if (APP_EVENT_COMMISON_COMPLETE == appEvent)
             {
-                GetAppTask().mcommissionTime=0;
-                GetAppTask().mTimerIntvl = 1000;
+                GetAppTask().mcommissionTime = 0;
+                GetAppTask().mTimerIntvl     = 1000;
                 set_cold_temperature();
-                onoff=1;
-                colormode=2;
-                temperature=154;
-                level=254;
+                onoff       = 1;
+                colormode   = 2;
+                temperature = 154;
+                level       = 254;
                 Clusters::OnOff::Attributes::OnOff::Set(GetAppTask().GetEndpointId(), onoff);
                 Clusters::LevelControl::Attributes::CurrentLevel::Set(GetAppTask().GetEndpointId(), level);
-                Clusters::ColorControl::Attributes::ColorMode::Set(GetAppTask().GetEndpointId(),colormode);
-                Clusters::ColorControl::Attributes::ColorTemperatureMireds::Set(GetAppTask().GetEndpointId(),temperature);
+                Clusters::ColorControl::Attributes::ColorMode::Set(GetAppTask().GetEndpointId(), colormode);
+                Clusters::ColorControl::Attributes::ColorTemperatureMireds::Set(GetAppTask().GetEndpointId(), temperature);
             }
             TimerEventHandler(appEvent);
 
@@ -344,7 +342,8 @@ void AppTask::LightingUpdate(app_event_t status)
                 {
                     break;
                 }
-                if (EMBER_ZCL_STATUS_SUCCESS != Clusters::ColorControl::Attributes::ColorTemperatureMireds::Get(endpoint, &temperature))
+                if (EMBER_ZCL_STATUS_SUCCESS !=
+                    Clusters::ColorControl::Attributes::ColorTemperatureMireds::Get(endpoint, &temperature))
                 {
                     break;
                 }
@@ -352,7 +351,8 @@ void AppTask::LightingUpdate(app_event_t status)
                 {
                     break;
                 }
-                printf("%s onoff =%d  level= %d,hue =%d  sat %d colormode %d temperature %d\r\n",__func__, onoff,v.Value(),hue,sat,colormode,temperature);
+                printf("%s onoff =%d  level= %d,hue =%d  sat %d colormode %d temperature %d\r\n", __func__, onoff, v.Value(), hue,
+                       sat, colormode, temperature);
                 if (!onoff)
                 {
                     sLightLED.SetLevel(0, colormode);
@@ -363,11 +363,11 @@ void AppTask::LightingUpdate(app_event_t status)
                     {
                         v.SetNonNull(254);
                     }
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT) 
+#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT)
 
                     if (colormode != 2)
                     {
-                        if(ConnectivityMgr().IsWiFiStationConnected()==false)
+                        if (ConnectivityMgr().IsWiFiStationConnected() == false)
                         {
                             hw_set_color(v.Value(), hue, sat);
                         }
@@ -375,11 +375,10 @@ void AppTask::LightingUpdate(app_event_t status)
                         {
                             sLightLED.SetColor(v.Value(), hue, sat);
                         }
-
                     }
                     else
                     {
-                         if(ConnectivityMgr().IsWiFiStationConnected()==false)
+                        if (ConnectivityMgr().IsWiFiStationConnected() == false)
                         {
                             hw_set_temperature(v.Value(), temperature);
                         }
@@ -387,8 +386,7 @@ void AppTask::LightingUpdate(app_event_t status)
                         {
                             sLightLED.SetTemperature(v.Value(), temperature);
                         }
-                        printf("%s level= %d,temperature =%d \r\n",__func__,v.Value(),temperature);
-                        
+                        printf("%s level= %d,temperature =%d \r\n", __func__, v.Value(), temperature);
                     }
 #else
                     sLightLED.SetLevel(v.Value());
@@ -397,9 +395,7 @@ void AppTask::LightingUpdate(app_event_t status)
             } while (0);
         }
         else
-        {
-
-        }
+        {}
     }
 }
 
@@ -438,13 +434,14 @@ void AppTask::TimerEventHandler(app_event_t event)
     if (GetAppTask().mButtonPressedTime)
     {
 #ifdef BOOT_PIN_RESET
-        if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime > APP_BUTTON_PRESS_LONG) 
+        if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime > APP_BUTTON_PRESS_LONG)
         {
             GetAppTask().PostEvent(APP_EVENT_BTN_LONG);
         }
-        else if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime >= APP_BUTTON_PRESS_SHORT)
+        else if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime >=
+                 APP_BUTTON_PRESS_SHORT)
         {
-#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT)||defined(BL616_COLOR_LIGHT)
+#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT)
             /** change color to indicate to wait factory reset confirm */
             sLightLED.SetColor(254, 0, 210);
 #else
@@ -461,78 +458,77 @@ void AppTask::TimerEventHandler(app_event_t event)
         }
         else
         {
-#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT) ||defined(BL616_COLOR_LIGHT)
+#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT) || defined(BL616_COLOR_LIGHT)
             /** change color to indicate to wait factory reset confirm */
-            //sLightLED.SetColor(254, 0, 210);
+            // sLightLED.SetColor(254, 0, 210);
 #else
             /** toggle led to indicate to wait factory reset confirm */
-            //sLightLED.Toggle();
+            // sLightLED.Toggle();
 #endif
         }
 #endif
     }
-    if(GetAppTask().mcommissionTime)
+    if (GetAppTask().mcommissionTime)
     {
-        if(System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mcommissionTime >APP_EVENT_COMMISON_TIME)
+        if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mcommissionTime > APP_EVENT_COMMISON_TIME)
         {
-            GetAppTask().mTimerIntvl = 1000;
-            GetAppTask().mcommissionTime=0;
+            GetAppTask().mTimerIntvl     = 1000;
+            GetAppTask().mcommissionTime = 0;
+            hw_set_temperature(0xfe, 154);
         }
         else
         {
-            set_temperature(GetAppTask().mcommission_target,154);
-            if(GetAppTask().mcommission_target==0xf)
+            set_temperature(GetAppTask().mcommission_target, 154);
+            if (GetAppTask().mcommission_target == 0xf)
             {
-                GetAppTask().mcommission_target=0xfe;
+                GetAppTask().mcommission_target = 0xfe;
             }
-            else if(GetAppTask().mcommission_target==0xfe)
+            else if (GetAppTask().mcommission_target == 0xfe)
             {
-                 GetAppTask().mcommission_target=0xf;
+                GetAppTask().mcommission_target = 0xf;
             }
-            
         }
-
     }
-    if( GetAppTask().mcommissionToggle==true)
+    if (GetAppTask().mcommissionToggle == true)
     {
-        
-        if( GetAppTask().mcommission==0)
-        {
-            set_cold_temperature();
-        }
-        else if( GetAppTask().mcommission==1)
+
+        if (GetAppTask().mcommission == 0)
         {
             set_warm_temperature();
         }
-         else if( GetAppTask().mcommission==2)
+        else if (GetAppTask().mcommission == 1)
         {
-           set_color_red();
+            set_cold_temperature();
         }
-        else if( GetAppTask().mcommission==3)
+        else if (GetAppTask().mcommission == 2)
+        {
+            set_color_red();
+        }
+        else if (GetAppTask().mcommission == 3)
         {
             set_color_green();
         }
-        else if(GetAppTask().mcommission==4)
+        else if (GetAppTask().mcommission == 4)
         {
             set_color_blue();
         }
-        else if(GetAppTask().mcommission==5)
+        else if (GetAppTask().mcommission == 5)
         {
-            GetAppTask().mcommissionToggle=false;
+            GetAppTask().mcommissionToggle = false;
             GetAppTask().PostEvent(AppTask::APP_EVENT_COMMISON_START);
         }
         GetAppTask().mcommission++;
     }
-    if(GetAppTask().mRestcutTime)
+    if (GetAppTask().mRestcutTime)
     {
         if (System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mRestcutTime > APP_BUTTON_PRESS_LONG)
         {
-            GetAppTask().mRestcutTime=0;
-            uint32_t resetCnt      = 1;
+            GetAppTask().mRestcutTime = 0;
+            uint32_t resetCnt         = 1;
             ef_set_env_blob(APP_REBOOT_RESET_COUNT_KEY, &resetCnt, sizeof(resetCnt));
         }
     }
-    //bl61x_get_chip_temp();
+    // bl61x_get_chip_temp();
     StartTimer();
 }
 
@@ -578,10 +574,11 @@ void AppTask::ButtonEventHandler(uint8_t btnIdx, uint8_t btnAction)
 #ifdef BOOT_PIN_RESET
 #if CHIP_DEVICE_LAYER_TARGET_BL616
 static struct bflb_device_s * app_task_gpio_var = NULL;
-static void app_task_gpio_isr(int irq, void *arg) 
+static void app_task_gpio_isr(int irq, void * arg)
 {
     bool intstatus = bflb_gpio_get_intstatus(app_task_gpio_var, BOOT_PIN_RESET);
-    if (intstatus) {
+    if (intstatus)
+    {
         bflb_gpio_int_clear(app_task_gpio_var, BOOT_PIN_RESET);
     }
 
