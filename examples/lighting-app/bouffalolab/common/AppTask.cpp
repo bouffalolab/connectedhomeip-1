@@ -284,7 +284,7 @@ void AppTask::AppTaskMain(void * pvParameter)
                 GetAppTask().mcommission        = 0;
                 GetAppTask().mTimerIntvl        = 3000;
                 GetAppTask().mcommission_target = 0xfe;
-                hw_set_temperature(0, 154);
+                hw_set_temperature(0, LAM_MIN_MIREDS_DEFAULT);
                 GetAppTask().mcommissionTime = System::SystemClock().GetMonotonicMilliseconds64().count();
             }
             if (APP_EVENT_COMMISON_COMPLETE == appEvent)
@@ -294,7 +294,7 @@ void AppTask::AppTaskMain(void * pvParameter)
                 set_cold_temperature();
                 onoff       = 1;
                 colormode   = 2;
-                temperature = 154;
+                temperature = LAM_MIN_MIREDS_DEFAULT;
                 level       = 254;
                 Clusters::OnOff::Attributes::OnOff::Set(GetAppTask().GetEndpointId(), onoff);
                 Clusters::LevelControl::Attributes::CurrentLevel::Set(GetAppTask().GetEndpointId(), level);
@@ -474,11 +474,11 @@ void AppTask::TimerEventHandler(app_event_t event)
         {
             GetAppTask().mTimerIntvl     = 1000;
             GetAppTask().mcommissionTime = 0;
-            hw_set_temperature(0xfe, 154);
+            hw_set_temperature(0xfe, LAM_MIN_MIREDS_DEFAULT);
         }
         else
         {
-            set_temperature(GetAppTask().mcommission_target, 154);
+            set_temperature(GetAppTask().mcommission_target, LAM_MIN_MIREDS_DEFAULT);
             if (GetAppTask().mcommission_target == 0xf)
             {
                 GetAppTask().mcommission_target = 0xfe;
