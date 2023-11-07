@@ -488,30 +488,32 @@ void set_temperature(uint8_t currLevel, uint16_t temperature)
 
     if ((targettemp != temperature) || (targetlevel != currLevel))
     {
-        targettemp  = temperature;
-        targetlevel = currLevel;
-        printf("%s\r\n", __func__);
-        uint32_t hw_temp_delta = LAM_MAX_MIREDS_DEFAULT - LAM_MIN_MIREDS_DEFAULT;
+        targettemp      = temperature;
+        targetlevel     = currLevel;
+        uint32_t kelvin = 1000000 / temperature;
+
+        printf("%s kelvin =%ld\r\n", __func__, kelvin);
+        uint32_t hw_temp_delta = CT_MAX - CT_MIN;
         uint32_t soft_temp_delta;
 
-        if (temperature > LAM_MAX_MIREDS_DEFAULT)
+        if (kelvin > CT_MAX)
         {
-            temperature = LAM_MAX_MIREDS_DEFAULT;
+            kelvin = CT_MAX;
         }
-        else if (temperature < LAM_MIN_MIREDS_DEFAULT)
+        else if (kelvin < CT_MIN)
         {
-            temperature = LAM_MIN_MIREDS_DEFAULT;
+            kelvin = CT_MIN;
         }
 
-        soft_temp_delta = temperature - LAM_MIN_MIREDS_DEFAULT;
+        soft_temp_delta = kelvin - CT_MIN;
         soft_temp_delta *= 100;
 
-        uint32_t warm = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
-        uint32_t clod = 254 - warm;
-
+        uint32_t clod = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
+        uint32_t warm = 254 - clod;
+        printf("warm=%ld,clod=%ld\r\n", warm, clod);
         warm = (float) (warm * currLevel / 254);
         clod = (float) (clod * currLevel / 254);
-        printf("warm=%lx,clod=%lx\r\n", warm, clod);
+
         new_Wduty = get_curve_value(warm);
         new_Cduty = get_curve_value(clod);
         printf("now_Cduty update=%lx,now_Wduty update =%lx\r\n", new_Cduty, new_Wduty);
@@ -552,27 +554,30 @@ void hw_set_temperature(uint8_t currLevel, uint16_t temperature)
 
     if ((targettemp != temperature) || (targetlevel != currLevel))
     {
-        targettemp  = temperature;
-        targetlevel = currLevel;
-        printf("%s\r\n", __func__);
-        uint32_t hw_temp_delta = LAM_MAX_MIREDS_DEFAULT - LAM_MIN_MIREDS_DEFAULT;
+        targettemp      = temperature;
+        targetlevel     = currLevel;
+        uint32_t kelvin = 1000000 / temperature;
+
+        printf("%s kelvin =%ld\r\n", __func__, kelvin);
+        uint32_t hw_temp_delta = CT_MAX - CT_MIN;
         uint32_t soft_temp_delta;
 
-        if (temperature > LAM_MAX_MIREDS_DEFAULT)
+        if (kelvin > CT_MAX)
         {
-            temperature = LAM_MAX_MIREDS_DEFAULT;
+            kelvin = CT_MAX;
         }
-        else if (temperature < LAM_MIN_MIREDS_DEFAULT)
+        else if (kelvin < CT_MIN)
         {
-            temperature = LAM_MIN_MIREDS_DEFAULT;
+            kelvin = CT_MIN;
         }
 
-        soft_temp_delta = temperature - LAM_MIN_MIREDS_DEFAULT;
+        soft_temp_delta = kelvin - CT_MIN;
         soft_temp_delta *= 100;
 
-        uint32_t warm = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
-        uint32_t clod = 254 - warm;
+        uint32_t clod = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
+        uint32_t warm = 254 - clod;
 
+        printf("warm=%ld,clod=%ld\r\n", warm, clod);
         warm = (float) (warm * currLevel / 254);
         clod = (float) (clod * currLevel / 254);
 
