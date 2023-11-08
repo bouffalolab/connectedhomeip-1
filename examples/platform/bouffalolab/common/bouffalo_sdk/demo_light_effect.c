@@ -362,7 +362,7 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
         green = 0;
         blue  = currLevel;
     }
-    if ((currSat = 254) && (currHue == 84)) // green
+    if ((currSat = 254) && (currHue == 84 || currHue == 85)) // green
     {
         red   = 0;
         green = currLevel;
@@ -444,7 +444,7 @@ void hw_set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
         green = 0;
         blue  = currLevel;
     }
-    if ((currSat = 254) && (currHue == 84)) // green
+    if ((currSat = 254) && (currHue == 84 || currHue == 85)) // green
     {
         red   = 0;
         green = currLevel;

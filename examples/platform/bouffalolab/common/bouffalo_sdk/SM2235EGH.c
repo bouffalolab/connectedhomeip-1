@@ -1,6 +1,8 @@
 #include "SM2235EGH.h"
+#include "FreeRTOS.h"
 #include "bl616_glb_gpio.h"
 #include "mboard.h"
+#include "task.h"
 
 SM2235EGH_Config_t led_cfg;
 #define I2C_SLAVE_ADDR_NORMAL (0xD8 >> 1)
@@ -142,14 +144,14 @@ int SM2235EGH_SendData(uint8_t * data, uint16_t len)
         printf("Byte%d: %02X\r\n", i, data[i]);
     }
 #endif
-
+    // vTaskEnterCritical();
     Soft_I2C_Start(&g_softI2C, data[0]);
     for (int i = 1; i < len; i++)
     {
         Soft_I2C_WriteByte(&g_softI2C, data[i]);
     }
     Soft_I2C_Stop(&g_softI2C);
-
+    // vTaskEnterCritical();
     return 0;
 }
 
