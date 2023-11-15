@@ -17,12 +17,15 @@ static uint32_t new_Bduty = 0;
 static uint32_t new_Cduty = 0;
 static uint32_t new_Wduty = 0;
 
-static uint32_t Rduty = 0;
-static uint32_t Gduty = 0;
-static uint32_t Bduty = 0;
-static uint32_t Cduty = 0;
-static uint32_t Wduty = 0;
+static uint32_t Rduty    = 0;
+static uint32_t Gduty    = 0;
+static uint32_t Bduty    = 0;
+static uint32_t Cduty    = 0;
+static uint32_t Wduty    = 0;
 static uint8_t lastlevel = 0;
+static uint8_t lasthue   = 0;
+static uint8_t lastsat   = 0;
+static uint16_t lasttemp = 0;
 // gamma = 2.00 steps = 3048 range = 0-1023
 const float pwm_curve[] = {
     0,    10,   10,   10,   10,   10,   10,   10,   10,   10,   10,   10,   10,  10,  10,  10,  10,  10,  10,  10,   10,   10,
@@ -350,82 +353,98 @@ void HSVtoRGB(uint32_t * ofR, uint32_t * ofG, uint32_t * ofB, uint16_t currLevel
 void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
 {
     printf("%s\r\n", __func__);
-    uint32_t red, green, blue;
-
-    HSVtoRGB(&red, &green, &blue, currLevel, currHue, currSat);
-
-    if ((currSat = 254) && (currHue == 169)) // blue
+    lasttemp = 0;
+    if ((lasthue == currHue) && (lastsat == currSat) && (lastlevel == currLevel))
     {
-        red   = 0;
-        green = 0;
-        blue  = currLevel;
-    }
-    if ((currSat = 254) && (currHue == 84 || currHue == 85)) // green
-    {
-        red   = 0;
-        green = currLevel;
-        blue  = 0;
-    }
-
-    printf("R %ld G %ld B %ld \r\n", red, green, blue);
-    if (currLevel != 0)
-    {
-
-        float RGB_total = (float) (red + green + blue);
-        float ofR       = (float) (red);
-        float ofG       = (float) (green);
-        float ofB       = (float) (blue);
-
-        ofR = red * currLevel / (254 * RGB_total);
-        ofG = green * currLevel / (254 * RGB_total);
-        ofB = blue * currLevel / (254 * RGB_total);
-        printf("R %f G %f B %f \r\n", ofR, ofG, ofB);
-
-        red   = ofR * 1023;
-        green = ofG * 1023;
-        blue  = ofB * 1023;
-        printf("R %ld G %ld B %ld  \r\n", red, green, blue);
-
-        new_Rduty = get_curve_value_forcolor(red);
-        new_Gduty = get_curve_value_forcolor(green);
-        new_Bduty = get_curve_value_forcolor(blue);
     }
     else
     {
-        new_Rduty = 0;
-        new_Gduty = 0;
-        new_Bduty = 0;
-    }
+        uint32_t red, green, blue;
+        HSVtoRGB(&red, &green, &blue, currLevel, currHue, currSat);
 
-    printf("now_Rduty update=%lx,now_Gduty update =%lx,now_Bduty update     =%lx\r\n", new_Rduty, new_Gduty, new_Bduty);
-
-    if (lastlevel != currLevel)
-    {
-        lastlevel = currLevel;
-        if (Light_TimerHdl != NULL)
+        if ((currSat = 254) && (currHue == 169)) // blue
         {
-            if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
-            {
-                if (Light_TimerHdl)
-                    xTimerStop(Light_TimerHdl, 0);
-            }
-            if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
-            {
+            red   = 0;
+            green = 0;
+            blue  = currLevel;
+        }
+        if ((currSat = 254) && (currHue == 84)) // green
+        {
+            red   = 0;
+            green = currLevel;
+            blue  = 0;
+        }
 
-                Light_Timer_Status = 1;
-                if (Light_TimerHdl)
-                    xTimerStart(Light_TimerHdl, 0);
+        printf("R %ld G %ld B %ld \r\n", red, green, blue);
+        if (currLevel != 0)
+        {
+
+            float RGB_total = (float) (red + green + blue);
+            float ofR       = (float) (red);
+            float ofG       = (float) (green);
+            float ofB       = (float) (blue);
+
+            ofR = red * currLevel / (254 * RGB_total);
+            ofG = green * currLevel / (254 * RGB_total);
+            ofB = blue * currLevel / (254 * RGB_total);
+            printf("R %f G %f B %f \r\n", ofR, ofG, ofB);
+
+            red   = ofR * 1023;
+            green = ofG * 1023;
+            blue  = ofB * 1023;
+            printf("R %ld G %ld B %ld  \r\n", red, green, blue);
+
+            new_Rduty = get_curve_value_forcolor(red);
+            new_Gduty = get_curve_value_forcolor(green);
+            new_Bduty = get_curve_value_forcolor(blue);
+        }
+        else
+        {
+            new_Rduty = 0;
+            new_Gduty = 0;
+            new_Bduty = 0;
+        }
+
+        printf("now_Rduty update=%lx,now_Gduty update =%lx,now_Bduty update     =%lx\r\n", new_Rduty, new_Gduty, new_Bduty);
+
+        if (lasthue != currHue)
+        {
+            lasthue = currHue;
+        }
+        if (lastsat != currSat)
+        {
+            lastsat = currSat;
+        }
+
+        if (lastlevel != currLevel)
+        {
+            lastlevel = currLevel;
+
+            if (Light_TimerHdl != NULL)
+            {
+                if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
+                {
+                    if (Light_TimerHdl)
+                        xTimerStop(Light_TimerHdl, 0);
+                }
+                if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
+                {
+
+                    Light_Timer_Status = 1;
+                    if (Light_TimerHdl)
+                        xTimerStart(Light_TimerHdl, 0);
+                }
             }
         }
-    }
-    else
-    {
-        Cduty = 0;
-        Wduty = 0;
-        Rduty = new_Rduty;
-        Gduty = new_Gduty;
-        Bduty = new_Bduty;
-        demo_color_set_param(pwm_curve[Rduty], pwm_curve[Gduty], pwm_curve[Bduty], 0, 0);
+        else
+        {
+            Cduty = 0;
+            Wduty = 0;
+            Rduty = new_Rduty;
+            Gduty = new_Gduty;
+            Bduty = new_Bduty;
+            demo_color_set_param(pwm_curve[Rduty], pwm_curve[Gduty], pwm_curve[Bduty], 0, 0);
+        }
     }
 }
 
@@ -442,12 +461,16 @@ void hw_set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
         green = 0;
         blue  = currLevel;
     }
-    if ((currSat = 254) && (currHue == 84 || currHue == 85)) // green
+    if ((currSat = 254) && (currHue == 84)) // green
     {
         red   = 0;
         green = currLevel;
         blue  = 0;
     }
+    lasthue   = currHue;
+    lastsat   = currSat;
+    lastlevel = currLevel;
+    lasttemp  = 0;
     printf("R %ld G %ld B %ld \r\n", red, green, blue);
     if (currLevel != 0)
     {
@@ -483,72 +506,84 @@ void hw_set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
 }
 void set_temperature(uint8_t currLevel, uint16_t temperature)
 {
-
-    uint32_t kelvin = 1000000 / temperature;
-
-    printf("%s kelvin =%ld\r\n", __func__, kelvin);
-    uint32_t hw_temp_delta = CT_MAX - CT_MIN;
-    uint32_t soft_temp_delta;
-
-    if (kelvin > CT_MAX)
+    lasthue = 0;
+    lastsat = 0;
+    if ((lasttemp == temperature) && (lastlevel == currLevel))
     {
-        kelvin = CT_MAX;
-    }
-    else if (kelvin < CT_MIN)
-    {
-        kelvin = CT_MIN;
-    }
-
-    soft_temp_delta = kelvin - CT_MIN;
-    soft_temp_delta *= 100;
-
-    uint32_t clod = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
-    uint32_t warm = 254 - clod;
-    printf("warm=%ld,clod=%ld\r\n", warm, clod);
-    warm = (float) (warm * currLevel / 254);
-    clod = (float) (clod * currLevel / 254);
-
-    new_Wduty = get_curve_value(warm);
-    new_Cduty = get_curve_value(clod);
-    printf("now_Cduty update=%lx,now_Wduty update =%lx\r\n", new_Cduty, new_Wduty);
-
-    if (lastlevel != currLevel)
-    {
-        lastlevel = currLevel;
-        if (Light_TimerHdl != NULL)
-        {
-            if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
-            {
-                if (Light_TimerHdl)
-                    xTimerStop(Light_TimerHdl, 0);
-            }
-            if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
-            {
-
-                Light_Timer_Status = 2;
-                if (Light_TimerHdl)
-                    xTimerStart(Light_TimerHdl, 0);
-            }
-        }
     }
     else
     {
-        Wduty = new_Wduty;
-        Cduty = new_Cduty;
-        Rduty = 0;
-        Gduty = 0;
-        Bduty = 0;
-        demo_color_set_param(0, 0, 0, pwm_curve[Cduty], pwm_curve[Wduty]);
+        uint32_t kelvin = 1000000 / temperature;
+
+        printf("%s kelvin =%ld\r\n", __func__, kelvin);
+        uint32_t hw_temp_delta = CT_MAX - CT_MIN;
+        uint32_t soft_temp_delta;
+
+        if (kelvin > CT_MAX)
+        {
+            kelvin = CT_MAX;
+        }
+        else if (kelvin < CT_MIN)
+        {
+            kelvin = CT_MIN;
+        }
+
+        soft_temp_delta = kelvin - CT_MIN;
+        soft_temp_delta *= 100;
+
+        uint32_t clod = (254 * (soft_temp_delta / hw_temp_delta)) / 100;
+        uint32_t warm = 254 - clod;
+        printf("warm=%ld,clod=%ld\r\n", warm, clod);
+        warm = (float) (warm * currLevel / 254);
+        clod = (float) (clod * currLevel / 254);
+
+        new_Wduty = get_curve_value(warm);
+        new_Cduty = get_curve_value(clod);
+        printf("now_Cduty update=%lx,now_Wduty update =%lx\r\n", new_Cduty, new_Wduty);
+        printf("Cduty=%lx,Wduty =%lx\r\n", Cduty, Wduty);
+        if (lasttemp != temperature)
+        {
+            lasttemp = temperature;
+        }
+        if (lastlevel != currLevel)
+        {
+            lastlevel = currLevel;
+            if (Light_TimerHdl != NULL)
+            {
+                if (xTimerIsTimerActive(Light_TimerHdl) != pdFALSE)
+                {
+                    if (Light_TimerHdl)
+                        xTimerStop(Light_TimerHdl, 0);
+                }
+                if (xTimerChangePeriod(Light_TimerHdl, pdMS_TO_TICKS(1), 0) == pdPASS)
+                {
+
+                    Light_Timer_Status = 2;
+                    if (Light_TimerHdl)
+                        xTimerStart(Light_TimerHdl, 0);
+                }
+            }
+        }
+        else
+        {
+            Wduty = new_Wduty;
+            Cduty = new_Cduty;
+            Rduty = 0;
+            Gduty = 0;
+            Bduty = 0;
+            demo_color_set_param(0, 0, 0, pwm_curve[Cduty], pwm_curve[Wduty]);
+        }
     }
-    
 }
 
 void hw_set_temperature(uint8_t currLevel, uint16_t temperature)
 {
 
-
     uint32_t kelvin = 1000000 / temperature;
-
+    lasttemp        = temperature;
+    lastlevel       = currLevel;
+    lasthue         = 0;
+    lastsat         = 0;
     printf("%s kelvin =%ld\r\n", __func__, kelvin);
     uint32_t hw_temp_delta = CT_MAX - CT_MIN;
     uint32_t soft_temp_delta;
@@ -579,7 +614,6 @@ void hw_set_temperature(uint8_t currLevel, uint16_t temperature)
     Gduty = 0;
     Bduty = 0;
     demo_color_set_param(0, 0, 0, pwm_curve[Cduty], pwm_curve[Wduty]);
-
 }
 
 void set_warm_temperature(void)
@@ -659,26 +693,6 @@ static void Light_TimerHandler(TimerHandle_t p_timerhdl)
         if ((new_Cduty != Cduty) || (new_Wduty != Wduty))
         {
 
-            if ((Cduty == 0) && (Wduty == 0))
-            {
-                if (new_Wduty >= 0xbe8)
-                {
-                    Wduty = 0xbe8;
-                }
-                else
-                {
-                    Wduty = new_Wduty;
-                }
-
-                if (new_Cduty >= 0xbe8)
-                {
-                    Cduty = 0xbe8;
-                }
-                else
-                {
-                    Cduty = new_Cduty;
-                }
-            }
             if ((Rduty != 0) || (Gduty != 0) || (Bduty != 0))
             {
                 Cduty = new_Cduty;
