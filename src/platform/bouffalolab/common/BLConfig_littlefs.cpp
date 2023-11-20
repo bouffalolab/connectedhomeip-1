@@ -1,0 +1,172 @@
+/*
+ *    Copyright (c) 2022 Project CHIP Authors
+ *    All rights reserved.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+#include <easyflash.h>
+#include <platform/internal/CHIPDeviceLayerInternal.h>
+
+#include <platform/bouffalolab/common/BLConfig.h>
+
+namespace chip {
+namespace DeviceLayer {
+namespace Internal {
+
+CHIP_ERROR BLConfig::ReadConfigValue(const char * key, uint8_t * val, size_t size, size_t & readsize)
+{
+    if (ef_get_env_blob(key, val, size, &readsize)) {
+        return CHIP_NO_ERROR;
+    }
+
+    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+CHIP_ERROR BLConfig::ReadConfigValue(const char * key, bool & val)
+{
+    size_t readlen = 0;
+    return ReadConfigValue(key, (uint8_t *) &val, 1, readlen);
+}
+
+CHIP_ERROR BLConfig::ReadConfigValue(const char * key, uint32_t & val)
+{
+    size_t readlen = 0;
+    return ReadConfigValue(key, (uint8_t *) &val, sizeof(val), readlen);
+}
+
+CHIP_ERROR BLConfig::ReadConfigValue(const char * key, uint64_t & val)
+{
+    size_t readlen = 0;
+    return ReadConfigValue(key, (uint8_t *) &val, sizeof(val), readlen);
+}
+
+CHIP_ERROR BLConfig::ReadConfigValueStr(const char * key, char * buf, size_t bufSize, size_t & outLen)
+{
+    size_t readlen = 0;
+
+    if (CHIP_NO_ERROR == ReadConfigValue(key, (uint8_t *) buf, bufSize, readlen))
+    {
+        outLen = readlen;
+        if (readlen && readlen < bufSize)
+        {
+            buf[readlen] = '\0';
+        }
+
+        return CHIP_NO_ERROR;
+    }
+
+    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+CHIP_ERROR BLConfig::ReadConfigValueBin(const char * key, uint8_t * buf, size_t bufSize, size_t & outLen)
+{
+    size_t readlen = 0;
+    if (CHIP_NO_ERROR == ReadConfigValue(key, (uint8_t *) buf, bufSize, readlen))
+    {
+        outLen = readlen;
+        return CHIP_NO_ERROR;
+    }
+
+    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+CHIP_ERROR BLConfig::WriteConfigValue(const char * key, uint8_t * val, size_t size)
+{
+    if (EF_NO_ERR == ef_set_env_blob(key, val, size)) {
+        return CHIP_NO_ERROR;
+    }
+
+    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+CHIP_ERROR BLConfig::WriteConfigValue(const char * key, bool val)
+{
+    return WriteConfigValue(key, (uint8_t *) &val, sizeof(val));
+}
+
+CHIP_ERROR BLConfig::WriteConfigValue(const char * key, uint32_t val)
+{
+    return WriteConfigValue(key, (uint8_t *) &val, sizeof(val));
+}
+
+CHIP_ERROR BLConfig::WriteConfigValue(const char * key, uint64_t val)
+{
+    return WriteConfigValue(key, (uint8_t *) &val, sizeof(val));
+}
+
+CHIP_ERROR BLConfig::WriteConfigValueStr(const char * key, const char * str)
+{
+    return WriteConfigValue(key, (uint8_t *) str, strlen(str) + 1);
+}
+
+CHIP_ERROR BLConfig::WriteConfigValueStr(const char * key, const char * str, size_t strLen)
+{
+    return WriteConfigValue(key, (uint8_t *) str, strLen);
+}
+
+CHIP_ERROR BLConfig::WriteConfigValueBin(const char * key, const uint8_t * data, size_t dataLen)
+{
+    return WriteConfigValue(key, (uint8_t *) data, dataLen);
+}
+
+CHIP_ERROR BLConfig::ClearConfigValue(const char * key)
+{
+    return EF_NO_ERR == ef_del_env(key) ? CHIP_NO_ERROR : CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+CHIP_ERROR BLConfig::FactoryResetConfig(void)
+{
+    ef_del_env("");
+    return CHIP_NO_ERROR;
+}
+
+void BLConfig::RunConfigUnitTest() {}
+
+bool BLConfig::ConfigValueExists(const char * key)
+{
+    size_t temp = 0;
+
+    return ef_get_env_blob(key, &temp, sizeof(temp), nullptr) != 0;
+}
+
+CHIP_ERROR BLConfig::ReadKVS(const char * key, void * value, size_t value_size, size_t * read_bytes_size, size_t offset_bytes)
+{
+    if (offset_bytes) {
+        return CHIP_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (ef_get_env_blob(key, value, value_size, read_bytes_size) != 0) {
+        return CHIP_NO_ERROR;
+    }
+
+    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+CHIP_ERROR BLConfig::WriteKVS(const char * key, const void * value, size_t value_size)
+{
+    if (EF_NO_ERR == ef_set_env_blob(key, value, value_size)) {
+        return CHIP_NO_ERROR;
+    }
+
+    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+CHIP_ERROR BLConfig::ClearKVS(const char * key)
+{
+    return EF_NO_ERR == ef_del_env(key) ? CHIP_NO_ERROR : CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+}
+
+} // namespace Internal
+} // namespace DeviceLayer
+} // namespace chip

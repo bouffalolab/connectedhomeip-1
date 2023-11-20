@@ -45,8 +45,10 @@ extern "C" int START_ENTRY(void)
     platform_port_init();
 
     easyflash_init();
+#if BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED
     ef_load_env_cache();
-    
+#endif
+
     ChipLogProgress(NotSpecified, "==================================================");
     ChipLogProgress(NotSpecified, "bouffalolab chip-lighting-example, built at " __DATE__ " " __TIME__);
     ChipLogProgress(NotSpecified, "==================================================");

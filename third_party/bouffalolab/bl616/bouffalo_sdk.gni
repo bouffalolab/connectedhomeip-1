@@ -618,6 +618,7 @@ template("bouffalo_sdk") {
     ]
 
     configs += [
+      ":${sdk_target_name}_config",
       ":${sdk_target_name}_config_freertos",
       ":${sdk_target_name}_config_utils",
       ":${sdk_target_name}_config_lhal",
@@ -655,9 +656,12 @@ template("bouffalo_sdk") {
 
     cflags_c = [
       "-Wno-sign-compare",
+<<<<<<< HEAD
       "-Wno-format",
       "-Wno-format-nonliteral",
       "-Wno-format-security",
+=======
+>>>>>>> 7cee777b1c (add littlefs supports)
     ]
 
     configs += [

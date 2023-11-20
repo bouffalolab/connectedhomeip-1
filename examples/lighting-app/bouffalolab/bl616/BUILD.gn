@@ -222,6 +222,13 @@ bouffalolab_executable("lighting_app") {
     defines += [ "HEAP_MONITORING=1" ]
   }
 
+  if (bouffalo_sdk_component_easyflash_enabled) {
+      defines += [ "BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED=1" ]
+  }
+  else {
+      defines += [ "BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED=0" ]
+  }
+
   cflags_c = [ "-Wno-sign-compare" ]
   ldscript = "${examples_plat_dir}/bl616/ldscripts/bl616_flash.ld"
 

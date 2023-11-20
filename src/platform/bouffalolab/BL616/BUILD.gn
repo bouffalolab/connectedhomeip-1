@@ -36,7 +36,6 @@ static_library("BL616") {
   common_sources = [
     "../../FreeRTOS/SystemTimeSupport.cpp",
     "../../SingletonConfigurationManager.cpp",
-    "../common/BLConfig.cpp",
     "../common/ConfigurationManagerImpl.cpp",
     "../common/ConnectivityManagerImpl.cpp",
     "../common/DiagnosticDataProviderImpl.cpp",
@@ -72,6 +71,13 @@ static_library("BL616") {
       "utils_base64.h"
     ]
     cflags_c = [ "-Wno-sign-compare" ]
+  }
+
+  if (bouffalo_sdk_component_easyflash_enabled) {
+    sources += [ "../common/BLConfig.cpp"]
+  }
+  else {
+    sources += [ "../common/BLConfig_littlefs.cpp"]
   }
 
   sources += common_sources

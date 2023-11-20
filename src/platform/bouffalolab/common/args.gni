@@ -17,4 +17,6 @@ declare_args() {
   chip_enable_factory_data_test = true
 
   chip_enable_ethernet = false
+
+  bouffalo_sdk_component_easyflash_enabled = false
 }
