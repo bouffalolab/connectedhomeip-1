@@ -24,13 +24,14 @@
 #include <task.h>
 
 #include "SM2235EGH.h"
+#include "bflb_efuse.h"
 #include <bflb_mtd.h>
 #include <bl616dk/board.h>
 #include <easyflash.h>
 #include <plat.h>
 extern void __libc_init_array(void);
 extern void shell_init_with_task(struct bflb_device_s * shell);
-
+char Test_SN[33];
 #if CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
 static int btblecontroller_em_config(void)
 {
@@ -79,18 +80,20 @@ void bl_lp_rtc_use_xtal32K()
     /* GPIO17 no pull */
     *((volatile uint32_t *) 0x2000F014) &= ~(1 << 16);
 }
-#define SW_LDO11_ADDR (*(volatile unsigned int *) 0x2000F030)
-#define SET_BITS(reg, mask, shift, val) (reg = (reg & ~(mask << shift)) | ((val & mask) << shift))
-
-static void ldo_settings(void)
-{
-    SET_BITS(SW_LDO11_ADDR, 0xFF, 24, 0x99); // 设置sw_ldo11_aon_vout_sel为0x9,sw_ldo11_rt_vout_sel为0x9
-    SET_BITS(SW_LDO11_ADDR, 0xF, 16, 0x9);   // 设置sw_ldo11soc_vout_sel_aon为0x9
-}
 void platform_port_init(void)
 {
     board_init();
-    ldo_settings();
+    uint8_t chip_id[8];
+
+    Test_SN[0] = 'B';
+    Test_SN[1] = 'L';
+    Test_SN[2] = '0';
+    Test_SN[3] = '0';
+    Test_SN[4] = '1';
+    Test_SN[5] = '_';
+    bflb_efuse_get_chipid(chip_id);
+    snprintf(&Test_SN[6], 13, "%02X%02X%02X%02X%02X%02X", chip_id[0], chip_id[1], chip_id[2], chip_id[3], chip_id[4], chip_id[5]);
+    // ldo_settings();
     SM2235EGH_Config_Init();
     /*if need use xtal 32k please enable next API */
     // bl_lp_rtc_use_xtal32K();

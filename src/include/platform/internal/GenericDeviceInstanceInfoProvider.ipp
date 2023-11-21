@@ -87,7 +87,7 @@ CHIP_ERROR GenericDeviceInstanceInfoProvider<ConfigClass>::GetProductLabel(char 
     return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
 #endif
 }
-
+extern "C" char Test_SN[33];
 template <class ConfigClass>
 CHIP_ERROR GenericDeviceInstanceInfoProvider<ConfigClass>::GetSerialNumber(char * buf, size_t bufSize)
 {
@@ -99,9 +99,10 @@ CHIP_ERROR GenericDeviceInstanceInfoProvider<ConfigClass>::GetSerialNumber(char 
 #ifdef CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER
     if (CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER[0] != 0 && err == CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
+
         ReturnErrorCodeIf(sizeof(CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER) > bufSize, CHIP_ERROR_BUFFER_TOO_SMALL);
-        memcpy(buf, CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER, sizeof(CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER));
-        serialNumLen = sizeof(CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER) - 1;
+        memcpy(buf, Test_SN, sizeof(Test_SN));
+        serialNumLen = sizeof(Test_SN) - 1;
         err          = CHIP_NO_ERROR;
     }
 #endif // CHIP_DEVICE_CONFIG_TEST_SERIAL_NUMBER
