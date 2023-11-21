@@ -150,7 +150,7 @@ CHIP_ERROR BLConfig::ClearConfigValue(const char * key)
 
 CHIP_ERROR BLConfig::FactoryResetConfig(void)
 {
-    ef_del_env("");
+    ef_env_set_default();
     return CHIP_NO_ERROR;
 }
 
