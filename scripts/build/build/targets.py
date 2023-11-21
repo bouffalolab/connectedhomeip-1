@@ -615,6 +615,7 @@ def BuildBouffalolabTarget():
     target.AppendModifier('wifi', enable_wifi="test")
     target.AppendModifier('thread', enable_thread="test")
     target.AppendModifier('fp', enable_frame_ptr=True)
+    target.AppendModifier('easyflash', use_component_easyflash=True)
 
     return target
 

@@ -94,7 +94,8 @@ class BouffalolabBuilder(GnBuilder):
                  enable_ethernet: bool = False,
                  enable_wifi: bool = False,
                  enable_thread: bool = False,
-                 enable_frame_ptr: bool = False
+                 enable_frame_ptr: bool = False,
+                 use_component_easyflash: bool = False
                  ):
 
         if 'BL602' == module_type:
@@ -192,6 +193,9 @@ class BouffalolabBuilder(GnBuilder):
 
         if enable_frame_ptr:
             self.argsOpt.append("enable_debug_frame_ptr=true")
+
+        if use_component_easyflash:
+            self.argsOpt.append("bouffalo_sdk_component_easyflash_enabled=true")
 
         try:
             self.argsOpt.append('bouffalolab_sdk_root="%s"' % os.environ['BOUFFALOLAB_SDK_ROOT'])
