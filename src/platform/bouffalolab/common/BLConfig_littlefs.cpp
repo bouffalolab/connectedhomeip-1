@@ -83,11 +83,34 @@ CHIP_ERROR BLConfig::ReadConfigValueBin(const char * key, uint8_t * buf, size_t 
 
 CHIP_ERROR BLConfig::WriteConfigValue(const char * key, uint8_t * val, size_t size)
 {
-    if (EF_NO_ERR == ef_set_env_blob(key, val, size)) {
-        return CHIP_NO_ERROR;
+    
+   EfErrCode ret = EF_NO_ERR;
+
+    if (size)
+    {
+        if (val)
+        {
+            ret = ef_set_env_blob(key, val, size);
+        }
+        else
+        {
+            ret = EF_ENV_ARG_ERR;
+        }
+    }
+    else
+    {
+        uint32_t value_null = 0;
+        ret                 = ef_set_env_blob(key, &value_null, size);
     }
 
-    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+    if (ret == EF_NO_ERR)
+    {
+        return CHIP_NO_ERROR;
+    }
+    else
+    {
+        return CHIP_ERROR_PERSISTED_STORAGE_FAILED;
+    }
 }
 
 CHIP_ERROR BLConfig::WriteConfigValue(const char * key, bool val)
@@ -155,11 +178,32 @@ CHIP_ERROR BLConfig::ReadKVS(const char * key, void * value, size_t value_size, 
 
 CHIP_ERROR BLConfig::WriteKVS(const char * key, const void * value, size_t value_size)
 {
-    if (EF_NO_ERR == ef_set_env_blob(key, value, value_size)) {
+    EfErrCode ret = EF_NO_ERR;
+    
+    if (value_size)
+    {
+        if (value)
+        {
+            ret = ef_set_env_blob(key, value, value_size);
+        }
+        else
+        {
+            ret = EF_ENV_ARG_ERR;
+        }
+    }
+    else
+    {
+        uint32_t value_null = 0;
+        ret                 = ef_set_env_blob(key, &value_null, value_size);
+    }
+    if (ret == EF_NO_ERR)
+    {
         return CHIP_NO_ERROR;
     }
-
-    return CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND;
+    else
+    {
+        return CHIP_ERROR_PERSISTED_STORAGE_FAILED;
+    }
 }
 
 CHIP_ERROR BLConfig::ClearKVS(const char * key)
