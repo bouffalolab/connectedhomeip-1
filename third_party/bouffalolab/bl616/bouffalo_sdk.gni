@@ -618,7 +618,6 @@ template("bouffalo_sdk") {
     ]
 
     configs += [
-      ":${sdk_target_name}_config",
       ":${sdk_target_name}_config_freertos",
       ":${sdk_target_name}_config_utils",
       ":${sdk_target_name}_config_lhal",
