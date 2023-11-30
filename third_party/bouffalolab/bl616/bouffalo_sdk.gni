@@ -655,12 +655,9 @@ template("bouffalo_sdk") {
 
     cflags_c = [
       "-Wno-sign-compare",
-<<<<<<< HEAD
       "-Wno-format",
       "-Wno-format-nonliteral",
       "-Wno-format-security",
-=======
->>>>>>> 7cee777b1c (add littlefs supports)
     ]
 
     configs += [
@@ -685,15 +682,15 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/getopt",
       "${bouffalo_sdk_root}/components/utils/ring_buffer",
       "${bouffalo_sdk_root}/components/utils/matter_factory_data/include",
-      "${bouffalo_sdk_root}/components/utils/coredump",
-      "${bouffalo_sdk_root}/components/utils/math/include",
+      #"${bouffalo_sdk_root}/components/utils/coredump",
+      #"${bouffalo_sdk_root}/components/utils/math/include",
     ]
 
     defines = [
       "CONFIG_LOG_LEVEL=0",
       "CONFIG_BFLOG",
       "CONFIG_BFLOG_DEBUG",
-      "CONFIG_COREDUMP",
+      #"CONFIG_COREDUMP",
     ]
   }
 
@@ -702,7 +699,7 @@ template("bouffalo_sdk") {
       "CONFIG_LOG_LEVEL=0",
       "CONFIG_BFLOG",
       "CONFIG_BFLOG_DEBUG",
-      "CONFIG_COREDUMP",
+      #"CONFIG_COREDUMP",
     ]
 
     include_dirs = [
@@ -712,8 +709,8 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/partition",
       "${bouffalo_sdk_root}/components/utils/getopt",
       "${bouffalo_sdk_root}/components/utils/ring_buffer",
-      "${bouffalo_sdk_root}/components/utils/coredump",
-      "${bouffalo_sdk_root}/components/utils/math/include",
+      #"${bouffalo_sdk_root}/components/utils/coredump",
+      #"${bouffalo_sdk_root}/components/utils/math/include",
     ]
 
     sources = [
@@ -729,10 +726,10 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/ring_buffer/ring_buffer.c",
       "${bouffalo_sdk_root}/components/utils/matter_factory_data/efuse_slot.c",
       "${bouffalo_sdk_root}/components/utils/matter_factory_data/matter_factory_data.c",
-      "${bouffalo_sdk_root}/components/utils/coredump/bflb_coredump.c",
-      "${bouffalo_sdk_root}/components/utils/math/src/utils_base64.c",
-      "${bouffalo_sdk_root}/components/utils/math/src/utils_crc.c",
-      "${bouffalo_sdk_root}/components/utils/math/src/utils_hex.c",
+      #"${bouffalo_sdk_root}/components/utils/coredump/bflb_coredump.c",
+      #"${bouffalo_sdk_root}/components/utils/math/src/utils_base64.c",
+      #"${bouffalo_sdk_root}/components/utils/math/src/utils_crc.c",
+      #"${bouffalo_sdk_root}/components/utils/math/src/utils_hex.c",
     ]
 
     cflags_c = [
