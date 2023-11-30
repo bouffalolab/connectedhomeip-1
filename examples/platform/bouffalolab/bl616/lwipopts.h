@@ -67,17 +67,16 @@
 #define LWIP_TCPIP_CORE_LOCKING_INPUT 1
 
 #define PBUF_LINK_ENCAPSULATION_HLEN  388
+#define MAC_TXQ_DEPTH                 CONFIG_MAC_TXQ_DEPTH
+#define MAC_RXQ_DEPTH                 CONFIG_MAC_RXQ_DEPTH
 
-#define IP_REASS_MAX_PBUFS            (2 * CONFIG_MAC_RXQ_DEPTH - 2)
+
+#define IP_REASS_MAX_PBUFS            (1 * MAC_RXQ_DEPTH)
 
 #define MEMP_NUM_NETBUF               32
 #define MEMP_NUM_NETCONN              16
 #define MEMP_NUM_UDP_PCB              16
 #define MEMP_NUM_REASSDATA            LWIP_MIN((IP_REASS_MAX_PBUFS), 5)
-#define CONFIG_MAC_TXQ_DEPTH          8
-#define CONFIG_MAC_RXQ_DEPTH          8
-#define MAC_TXQ_DEPTH                 CONFIG_MAC_TXQ_DEPTH
-#define MAC_RXQ_DEPTH                 CONFIG_MAC_RXQ_DEPTH
 
 #define TCP_MSS                       (1500 - 40)
 #define TCP_WND                       (1 * MAC_RXQ_DEPTH * TCP_MSS)
@@ -91,7 +90,7 @@
 #define TCP_RCV_SCALE                 2
 #define TCP_SNDLOWAT                  LWIP_MIN(LWIP_MAX(((TCP_SND_BUF) / 4), (2 * TCP_MSS) + 1), (TCP_SND_BUF)-1)
 
-#define MEM_MIN_TCP                   (2300 + MEMP_NUM_PBUF * (100 + PBUF_LINK_ENCAPSULATION_HLEN))
+#define MEM_MIN_TCP                   (20 * 1024)//20k ram heap increase iperf(2300 + MEMP_NUM_PBUF * (100 + PBUF_LINK_ENCAPSULATION_HLEN))
 #define MEM_MIN                       MEM_MIN_TCP
 #define MEM_ALIGNMENT                 4
 
@@ -124,7 +123,7 @@
 #define LWIP_SO_SNDTIMEO          1
 #define SO_REUSE                  1
 #define LWIP_TCP_KEEPALIVE        1
-
+#define LWIP_NETIF_HOSTNAME       1
 #define LWIP_IGMP                 1
 #define LWIP_IPV6 1
 #define LWIP_IPV6_DHCP6 1
@@ -135,6 +134,7 @@
 #define MEMP_NUM_MLD6_GROUP 10
 
 #define LWIP_NETIF_EXT_STATUS_CALLBACK 1
+#define LWIP_NETIF_HOSTNAME 1
 
 #define LWIP_ERRNO_STDINCLUDE 1
 

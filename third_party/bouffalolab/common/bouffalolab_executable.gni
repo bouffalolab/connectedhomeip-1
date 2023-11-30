@@ -26,7 +26,11 @@ template("bouffalolab_executable") {
 
   objcopy = "riscv64-unknown-elf-objcopy"
   if ("linux" == host_os) {
-    objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Linux/bin/riscv64-unknown-elf-objcopy"
+    if (invoker.bl_plat_name == "bl616") {
+      objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Thead_riscv/Linux_x86_64/bin/riscv64-unknown-elf-objcopy"
+    } else {
+      objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Linux/bin/riscv64-unknown-elf-objcopy"
+    }
   } else if ("mac" == host_os || "darwin" == host_os) {
     objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Darwin/bin/riscv64-unknown-elf-objcopy"
   }

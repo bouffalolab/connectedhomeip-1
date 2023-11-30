@@ -118,6 +118,7 @@ template("bouffalo_sdk") {
       ":${sdk_target_name}_config_freertos",
       ":${sdk_target_name}_config_std_drv",
       ":${sdk_target_name}_config_lhal",
+      ":${sdk_target_name}_config_utils",
     ]
     
     public_configs = [
@@ -595,11 +596,10 @@ template("bouffalo_sdk") {
     defines = [
       "CONFIG_EASYFLASH4",
       "BL616",
-      "EF_ENV_CACHE_TABLE_SIZE=32",
+      "EF_ENV_CACHE_TABLE_SIZE=100"
     ]
 
     include_dirs = [
-      #memory heap
       "${bouffalo_sdk_root}/components/easyflash4/inc",
     ]
 
@@ -628,6 +628,50 @@ template("bouffalo_sdk") {
     ]
   }
 
+  config("${sdk_target_name}_config_littlefs") {
+    include_dirs = [
+      "${bouffalo_sdk_root}/components/fs/littlefs/easyflash_port",
+    ]
+  }
+
+  source_set("${sdk_target_name}_littlefs") {
+    defines = [
+      "CONFIG_LITTLEFS",
+      "CONFIG_FREERTOS",
+      "CONFIG_LITTLEFS_KV_EASYFLASH",
+    ]
+
+    include_dirs = [
+      "${bouffalo_sdk_root}/components/fs/littlefs/littlefs",
+      "${bouffalo_sdk_root}/components/fs/littlefs/port",
+    ]
+
+    sources = [
+      "${bouffalo_sdk_root}/components/fs/littlefs/easyflash_port/lfs_easyflash.c",
+      "${bouffalo_sdk_root}/components/fs/littlefs/littlefs/lfs_util.c",
+      "${bouffalo_sdk_root}/components/fs/littlefs/littlefs/lfs.c",
+      "${bouffalo_sdk_root}/components/fs/littlefs/port/lfs_xip_flash.c",
+    ]
+
+    cflags_c = [
+      "-Wno-sign-compare",
+      "-Wno-format",
+      "-Wno-format-nonliteral",
+      "-Wno-format-security",
+    ]
+
+    configs += [
+      ":${sdk_target_name}_config",
+      ":${sdk_target_name}_config_freertos",
+      ":${sdk_target_name}_config_utils",
+      ":${sdk_target_name}_config_lhal",
+    ]
+
+    public_configs = [
+      ":${sdk_target_name}_config_littlefs",
+    ]
+  }
+
   config("${sdk_target_name}_config_utils") {
     include_dirs = [
       "${bouffalo_sdk_root}/components/utils/log",
@@ -638,12 +682,15 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/getopt",
       "${bouffalo_sdk_root}/components/utils/ring_buffer",
       "${bouffalo_sdk_root}/components/utils/matter_factory_data/include",
+      "${bouffalo_sdk_root}/components/utils/coredump",
+      "${bouffalo_sdk_root}/components/utils/math/include",
     ]
 
     defines = [
       "CONFIG_LOG_LEVEL=0",
       "CONFIG_BFLOG",
       "CONFIG_BFLOG_DEBUG",
+      "CONFIG_COREDUMP",
     ]
   }
 
@@ -652,6 +699,7 @@ template("bouffalo_sdk") {
       "CONFIG_LOG_LEVEL=0",
       "CONFIG_BFLOG",
       "CONFIG_BFLOG_DEBUG",
+      "CONFIG_COREDUMP",
     ]
 
     include_dirs = [
@@ -661,6 +709,8 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/partition",
       "${bouffalo_sdk_root}/components/utils/getopt",
       "${bouffalo_sdk_root}/components/utils/ring_buffer",
+      "${bouffalo_sdk_root}/components/utils/coredump",
+      "${bouffalo_sdk_root}/components/utils/math/include",
     ]
 
     sources = [
@@ -676,6 +726,10 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/ring_buffer/ring_buffer.c",
       "${bouffalo_sdk_root}/components/utils/matter_factory_data/efuse_slot.c",
       "${bouffalo_sdk_root}/components/utils/matter_factory_data/matter_factory_data.c",
+      "${bouffalo_sdk_root}/components/utils/coredump/bflb_coredump.c",
+      "${bouffalo_sdk_root}/components/utils/math/src/utils_base64.c",
+      "${bouffalo_sdk_root}/components/utils/math/src/utils_crc.c",
+      "${bouffalo_sdk_root}/components/utils/math/src/utils_hex.c",
     ]
 
     cflags_c = [
@@ -855,6 +909,8 @@ template("bouffalo_sdk") {
 
     defines = [
       "CONFIG_LWIP",
+      "CONFIG_MAC_TXQ_DEPTH=8",
+      "CONFIG_MAC_RXQ_DEPTH=8",
     ]
   }
 
@@ -1018,6 +1074,7 @@ template("bouffalo_sdk") {
       "CONFIG_BT_KEYS_SAVE_AGING_COUNTER_ON_PAIRING",
       "CONFIG_BT_HCI_VS_EVT_USER",
       "CONFIG_BT_SETTINGS_USE_PRINTK",
+      "CONFIG_BLE_MULTI_ADV",
     ]
 
     libs = [ "${bouffalo_sdk_root}/components/wireless/bluetooth/btblecontroller/lib/libbtblecontroller_bl616_ble1m0s1bredr0.a" ]
@@ -1049,6 +1106,8 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/host/settings.c",
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/host/uuid.c",
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/port/bl_port.c",
+      "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/host/multi_adv.c"
+
     ]
 
     cflags_c = [
@@ -1081,12 +1140,19 @@ template("bouffalo_sdk") {
       ":${sdk_target_name}_libc",
       ":${sdk_target_name}_mm",
       ":${sdk_target_name}_freertos",
-      ":${sdk_target_name}_easyflash4",
+      
       ":${sdk_target_name}_mbedtls",
       ":${sdk_target_name}_utils",
       ":${sdk_target_name}_lwip",
       ":${sdk_target_name}_wifi",
     ]
+
+    if (defined(invoker.bouffalo_sdk_component_easyflash_enabled) && invoker.bouffalo_sdk_component_easyflash_enabled) {
+        public_deps += [ ":${sdk_target_name}_easyflash4" ]
+    }
+    else {
+        public_deps += [ ":${sdk_target_name}_littlefs" ]
+    }
 
     if (defined(invoker.chip_config_network_layer_ble) && invoker.chip_config_network_layer_ble) {
       public_deps += [
