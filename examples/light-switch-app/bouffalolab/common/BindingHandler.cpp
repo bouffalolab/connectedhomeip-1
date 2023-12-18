@@ -53,7 +53,6 @@ namespace {
 void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding,
                                        Messaging::ExchangeManager * exchangeMgr, const SessionHandle & sessionHandle)
 {
-    printf("___func___ %s\r\n",__func__);
     auto onSuccess = [](const ConcreteCommandPath & commandPath, const StatusIB & status, const auto & dataResponse) {
         ChipLogProgress(NotSpecified, "OnOff command succeeds");
     };
@@ -83,7 +82,7 @@ void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTa
 
 void ProcessOnOffGroupBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding)
 {
-    printf("___func___ %s\r\n",__func__);
+    
     Messaging::ExchangeManager & exchangeMgr = Server::GetInstance().GetExchangeManager();
 
     switch (commandId)
@@ -108,7 +107,7 @@ void ProcessOnOffGroupBindingCommand(CommandId commandId, const EmberBindingTabl
 
 void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, OperationalDeviceProxy * peer_device, void * context)
 {
-    printf("___func___ %s\r\n",__func__);
+    
     VerifyOrReturn(context != nullptr, ChipLogError(NotSpecified, "OnDeviceConnectedFn: context is null"));
     BindingCommandData * data = static_cast<BindingCommandData *>(context);
 
@@ -136,7 +135,7 @@ void LightSwitchChangedHandler(const EmberBindingTableEntry & binding, Operation
 
 void LightSwitchContextReleaseHandler(void * context)
 {
-    printf("___func___ %s\r\n",__func__);
+    
     VerifyOrReturn(context != nullptr, ChipLogError(NotSpecified, "Invalid context for Light switch context release handler"));
 
     Platform::Delete(static_cast<BindingCommandData *>(context));
@@ -144,7 +143,7 @@ void LightSwitchContextReleaseHandler(void * context)
 
 void InitBindingHandlerInternal(intptr_t arg)
 {
-    printf("___func___ %s\r\n",__func__);
+    
     auto & server = chip::Server::GetInstance();
     chip::BindingManager::GetInstance().Init(
         { &server.GetFabricTable(), server.GetCASESessionManager(), &server.GetPersistentStorage() });
@@ -407,7 +406,7 @@ static void RegisterSwitchCommands()
 
 void SwitchWorkerFunction(intptr_t context)
 {
-    printf("___func___ %s\r\n",__func__);
+    
     VerifyOrReturn(context != 0, ChipLogError(NotSpecified, "SwitchWorkerFunction - Invalid work data"));
 
     BindingCommandData * data = reinterpret_cast<BindingCommandData *>(context);
@@ -416,7 +415,7 @@ void SwitchWorkerFunction(intptr_t context)
 
 void BindingWorkerFunction(intptr_t context)
 {
-    printf("___func___ %s\r\n",__func__);
+    
     VerifyOrReturn(context != 0, ChipLogError(NotSpecified, "BindingWorkerFunction - Invalid work data"));
 
     EmberBindingTableEntry * entry = reinterpret_cast<EmberBindingTableEntry *>(context);
@@ -427,7 +426,7 @@ void BindingWorkerFunction(intptr_t context)
 
 CHIP_ERROR InitBindingHandler()
 {
-    printf("___func___ %s\r\n",__func__);
+    
     // The initialization of binding manager will try establishing connection with unicast peers
     // so it requires the Server instance to be correctly initialized. Post the init function to
     // the event queue so that everything is ready when initialization is conducted.
