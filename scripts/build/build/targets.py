@@ -602,6 +602,7 @@ def BuildBouffalolabTarget():
     # Apps
     target.AppendFixedTargets([
         TargetPart('light', app=BouffalolabApp.LIGHT),
+        TargetPart('light-switch', app=BouffalolabApp.SWITCH),
     ])
 
     target.AppendModifier('shell', enable_shell=True)
