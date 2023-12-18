@@ -29,22 +29,28 @@ def raise_exception(info):
 
 class BouffalolabApp(Enum):
     LIGHT = auto()
-
+    SWITCH= auto()
     def ExampleName(self):
         if self == BouffalolabApp.LIGHT:
             return 'lighting-app'
+        elif self == BouffalolabApp.SWITCH:
+            return 'light-switch-app'
         else:
             raise_exception('Unknown app type: %r' % self)
 
     def AppNamePrefix(self, chip_name):
         if self == BouffalolabApp.LIGHT:
             return ('chip-%s-lighting-example' % chip_name)
+        elif self == BouffalolabApp.SWITCH:
+                return ('chip-%s-light-swith-example' % chip_name)
         else:
             raise_exception('Unknown app type: %r' % self)
 
     def FlashBundleName(self):
         if self == BouffalolabApp.LIGHT:
             return 'lighting_app.flashbundle.txt'
+        elif self == BouffalolabApp.SWITCH:
+            return 'light-swith_app.flashbundle.txt'
         else:
             raise_exception('Unknown app type: %r' % self)
 

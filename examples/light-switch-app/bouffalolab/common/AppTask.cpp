@@ -196,7 +196,6 @@ void AppTask::AppTaskMain(void * pvParameter)
         ChipLogError(NotSpecified, "PlatformMgr().StartEventLoopTask() failed");
         appError(ret);
     }
-    InitBindingHandler();
     GetAppTask().PostEvent(APP_EVENT_TIMER);
 
     vTaskSuspend(NULL);

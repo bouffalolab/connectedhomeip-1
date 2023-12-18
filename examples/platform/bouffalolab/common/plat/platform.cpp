@@ -24,7 +24,7 @@
 #include <credentials/examples/DeviceAttestationCredsExample.h>
 #include <platform/bouffalolab/common/PlatformManagerImpl.h>
 #include <system/SystemClock.h>
-
+#include <BindingHandler.h>
 #if HEAP_MONITORING
 #include <MemMonitoring.h>
 #endif
@@ -159,6 +159,10 @@ void ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
         ChipLogProgress(NotSpecified, "Commissioning complete");
         GetAppTask().PostEvent(AppTask::APP_EVENT_LIGHTING_MASK);
         break;
+    case DeviceEventType::kDnssdInitialized:
+        InitBindingHandler();
+        ChipLogProgress(NotSpecified, "DnssdInitialized");
+
     default:
         break;
     }
