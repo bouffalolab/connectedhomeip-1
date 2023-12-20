@@ -93,10 +93,9 @@ void platform_port_init(void)
     Test_SN[5] = '_';
     bflb_efuse_get_chipid(chip_id);
     snprintf(&Test_SN[6], 13, "%02X%02X%02X%02X%02X%02X", chip_id[0], chip_id[1], chip_id[2], chip_id[3], chip_id[4], chip_id[5]);
-    // ldo_settings();
+#ifdef BL616_COLOR_LIGHT
     SM2235EGH_Config_Init();
-    /*if need use xtal 32k please enable next API */
-    // bl_lp_rtc_use_xtal32K();
+#endif
 #if CONFIG_ENABLE_CHIP_SHELL
     struct bflb_device_s * uart0 = bflb_device_get_by_name("uart0");
     shell_init_with_task(uart0);

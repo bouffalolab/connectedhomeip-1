@@ -24,7 +24,9 @@
 #include <credentials/examples/DeviceAttestationCredsExample.h>
 #include <platform/bouffalolab/common/PlatformManagerImpl.h>
 #include <system/SystemClock.h>
+#ifdef BL616_LIGHT_SWITCH
 #include <BindingHandler.h>
+#endif
 #if HEAP_MONITORING
 #include <MemMonitoring.h>
 #endif
@@ -103,10 +105,12 @@ void ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
         ChipLogProgress(NotSpecified, "BLE adv changed, connection number: %d", ConnectivityMgr().NumBLEConnections());
         if (event->CHIPoBLEAdvertisingChange.Result == kActivity_Started)
         {
+#ifdef BL616_COLOR_LIGHT
             if(System::SystemClock().GetMonotonicMilliseconds64().count()<APP_BUTTON_PRESS_SHORT)
             {
                 GetAppTask().PostEvent(AppTask::APP_EVENT_COMMISON_TOOGLE);
             }
+#endif
         }
         break;
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
@@ -164,10 +168,14 @@ void ChipEventHandler(const ChipDeviceEvent * event, intptr_t arg)
         break;
     case DeviceEventType::kCommissioningComplete:
         ChipLogProgress(NotSpecified, "Commissioning complete");
+#ifdef BL616_COLOR_LIGHT
         GetAppTask().PostEvent(AppTask::APP_EVENT_COMMISON_COMPLETE);
+#endif
         break;
     case DeviceEventType::kDnssdInitialized:
+#ifdef BL616_LIGHT_SWITCH
         InitBindingHandler();
+#endif
         ChipLogProgress(NotSpecified, "DnssdInitialized");
 
     default:

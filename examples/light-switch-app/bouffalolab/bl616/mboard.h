@@ -44,3 +44,5 @@
 
 #define CHIP_UART_PIN_RX 7
 #define CHIP_UART_PIN_TX 16
+
+#define BL616_LIGHT_SWITCH
