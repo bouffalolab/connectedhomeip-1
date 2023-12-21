@@ -124,15 +124,13 @@ bouffalolab_executable("light-switch-app") {
   ]
 
   defines += [ "BL616DK" ]
-
+  defines += ["BL616_LIGHT_SWITCH"]
   sources += [
     "${chip_root}/examples/providers/DeviceInfoProviderImpl.cpp",
     "${example_dir}/common/AppTask.cpp",
     "${example_dir}/common/BindingHandler.cpp",
     "${example_dir}/common/ZclCallbacks.cpp",
-    "${examples_plat_dir}/common/bouffalo_sdk/demo_pwm.c",
     "${examples_plat_dir}/common/bouffalo_sdk/platform_port.c",
-    "${examples_plat_dir}/common/plat/LEDWidget.cpp",
     "${examples_plat_dir}/common/plat/OTAConfig.cpp",
     "${examples_plat_dir}/common/plat/main.cpp",
     "${examples_plat_dir}/common/plat/platform.cpp",

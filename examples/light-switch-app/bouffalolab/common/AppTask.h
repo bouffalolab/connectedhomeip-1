@@ -124,7 +124,7 @@ private:
     TimerHandle_t sTimer;
     uint32_t mTimerIntvl;
     uint64_t mButtonPressedTime;
-
+    uint64_t mRestcutTime;
     static StackType_t appStack[APP_TASK_STACK_SIZE / sizeof(StackType_t)];
     static StaticTask_t appTaskStruct;
     static AppTask sAppTask;
