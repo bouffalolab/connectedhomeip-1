@@ -25,7 +25,7 @@ pw_assert_BACKEND = "$dir_pw_assert_log"
 pw_rpc_CONFIG = "$dir_pw_rpc:disable_global_mutex"
 
 chip_enable_ota_requestor = true
-chip_detail_logging = false
+chip_detail_logging = true
 
 pw_build_LINK_DEPS = [
   "$dir_pw_assert:impl",

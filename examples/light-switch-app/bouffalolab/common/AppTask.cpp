@@ -203,6 +203,7 @@ void AppTask::AppTaskMain(void * pvParameter)
             {
                 if (Server::GetInstance().GetFabricTable().FabricCount())
                 {
+                    ChipLogProgress(NotSpecified, "Toggle Light");
                     BindingCommandData * data = Platform::New<BindingCommandData>();
                     data->commandId           = chip::app::Clusters::OnOff::Commands::Toggle::Id;
                     data->clusterId           = chip::app::Clusters::OnOff::Id;
@@ -385,13 +386,20 @@ void AppTask::ButtonEventHandler(void * arg)
 {
     if (ButtonPressed())
     {       
-        GetAppTask().mTimerIntvl = 1000;
-        GetAppTask().PostEvent(APP_EVENT_BTN_SHORT);
+        GetAppTask().mButton_ToggleTime_H=System::SystemClock().GetMonotonicMilliseconds64().count();
+        if((GetAppTask().mButton_ToggleTime_H-GetAppTask().mButton_ToggleTime_L)>APP_BUTTON_PRESS_JITTER)
+        {
+            GetAppTask().PostEvent(APP_EVENT_BTN_SHORT);
+        }
+
     }
     else
     {
-        GetAppTask().mTimerIntvl = 1000;
-        GetAppTask().PostEvent(APP_EVENT_BTN_SHORT);
+        GetAppTask().mButton_ToggleTime_L=System::SystemClock().GetMonotonicMilliseconds64().count();
+        if((GetAppTask().mButton_ToggleTime_L-GetAppTask().mButton_ToggleTime_H)>APP_BUTTON_PRESS_JITTER)
+        {
+            GetAppTask().PostEvent(APP_EVENT_BTN_SHORT);
+        }
     }
 }
 #endif

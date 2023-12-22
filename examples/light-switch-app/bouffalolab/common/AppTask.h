@@ -28,7 +28,7 @@
 using namespace ::chip;
 using namespace ::chip::DeviceLayer;
 
-#define APP_BUTTON_PRESS_JITTER 50
+#define APP_BUTTON_PRESS_JITTER 1000
 #define APP_BUTTON_PRESS_SHORT 1500
 #define APP_BUTTON_PRESS_LONG 5000
 
@@ -124,6 +124,8 @@ private:
     TimerHandle_t sTimer;
     uint32_t mTimerIntvl;
     uint64_t mButtonPressedTime;
+    uint64_t mButton_ToggleTime_H;
+    uint64_t mButton_ToggleTime_L;
     uint64_t mRestcutTime;
     static StackType_t appStack[APP_TASK_STACK_SIZE / sizeof(StackType_t)];
     static StaticTask_t appTaskStruct;
