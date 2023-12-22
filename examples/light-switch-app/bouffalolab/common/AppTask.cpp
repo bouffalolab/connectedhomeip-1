@@ -185,7 +185,7 @@ void AppTask::AppTaskMain(void * pvParameter)
         appError(ret);
     }
     GetAppTask().PostEvent(APP_EVENT_TIMER);
-
+    GetAppTask().Toggle_Flag=true;
     vTaskSuspend(NULL);
 
     // ChipLogProgress(NotSpecified, "App Task started, with SRAM heap %d left\r\n", xPortGetFreeHeapSize());
@@ -201,14 +201,16 @@ void AppTask::AppTaskMain(void * pvParameter)
 
             if (APP_EVENT_BTN_SHORT & appEvent)
             {
-                if (Server::GetInstance().GetFabricTable().FabricCount())
+                if (Server::GetInstance().GetFabricTable().FabricCount()&&GetAppTask().Toggle_Flag==true)
                 {
+                    GetAppTask().Toggle_Flag=false;
                     ChipLogProgress(NotSpecified, "Toggle Light");
                     BindingCommandData * data = Platform::New<BindingCommandData>();
                     data->commandId           = chip::app::Clusters::OnOff::Commands::Toggle::Id;
                     data->clusterId           = chip::app::Clusters::OnOff::Id;
 
                     DeviceLayer::PlatformMgr().ScheduleWork(SwitchWorkerFunction, reinterpret_cast<intptr_t>(data));
+
                 }
                 else
                 {

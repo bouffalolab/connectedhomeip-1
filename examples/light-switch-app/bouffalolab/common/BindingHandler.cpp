@@ -24,6 +24,7 @@
 #include "platform/CHIPDeviceLayer.h"
 #include <app/clusters/bindings/bindings.h>
 #include <lib/support/CodeUtils.h>
+#include "AppTask.h"
 
 #if CONFIG_ENABLE_CHIP_SHELL
 #include "lib/shell/Engine.h"
@@ -78,6 +79,7 @@ void ProcessOnOffUnicastBindingCommand(CommandId commandId, const EmberBindingTa
         Controller::InvokeCommandRequest(exchangeMgr, sessionHandle, binding.remote, offCommand, onSuccess, onFailure);
         break;
     }
+    GetAppTask().Toggle_Flag=true;
 }
 
 void ProcessOnOffGroupBindingCommand(CommandId commandId, const EmberBindingTableEntry & binding)

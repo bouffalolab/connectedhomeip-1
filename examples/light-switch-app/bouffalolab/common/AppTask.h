@@ -72,7 +72,7 @@ public:
 
         APP_EVENT_ALL_MASK = APP_EVENT_LIGHTING_MASK | APP_EVENT_TIMER | APP_EVENT_BTN_SHORT | APP_EVENT_BTN_LONG | APP_EVENT_IDENTIFY_MASK,
     };
-
+    bool Toggle_Flag;
     void SetEndpointId(EndpointId endpointId)
     {
         if (mEndpointId != (EndpointId) -1)
