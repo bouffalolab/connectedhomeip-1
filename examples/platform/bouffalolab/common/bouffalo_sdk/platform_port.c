@@ -85,8 +85,8 @@ void platform_port_init(void)
     board_init();
     uint8_t chip_id[8];
 
-    Test_SN[0] = 'B';
-    Test_SN[1] = 'L';
+    Test_SN[0] = 'Q';
+    Test_SN[1] = 'C';
     Test_SN[2] = '0';
     Test_SN[3] = '0';
     Test_SN[4] = '1';

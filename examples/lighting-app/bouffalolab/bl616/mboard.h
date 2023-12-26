@@ -40,8 +40,8 @@
 #ifdef BL616_COLOR_LIGHT
 
 // 29 sda and 28 scl for test board
-#define SM2235_SDA  29 
-#define SM2235_SCL  28
+#define SM2235_SDA  11 
+#define SM2235_SCL  12
 
 #define MAX_PWM_CHANNEL 3
 
