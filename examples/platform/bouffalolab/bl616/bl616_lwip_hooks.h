@@ -4,6 +4,8 @@
 #include "lwip/err.h"
 #include "lwip/ip_addr.h"
 
+#include "lwiphooks.h"
+
 extern struct netif * lwip_hook_ip6_route(const ip6_addr_t * src, const ip6_addr_t * dest);
 #define LWIP_HOOK_IP6_ROUTE lwip_hook_ip6_route
 

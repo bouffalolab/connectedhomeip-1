@@ -103,8 +103,8 @@
 #define MEM_SIZE 8192
 #endif
 #endif
-#define LWIP_HOOK_FILENAME        "lwiphooks.h"
-//#define LWIP_HOOK_FILENAME        "bl_lwip_hooks.h"
+//#define LWIP_HOOK_FILENAME        "lwiphooks.h"
+#define LWIP_HOOK_FILENAME        "bl616_lwip_hooks.h"
 
 #define LWIP_RAW                  1
 #define LWIP_MULTICAST_TX_OPTIONS 1
