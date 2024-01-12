@@ -84,6 +84,7 @@ Identify sIdentify = {
     AppTask::IdentifyStartHandler,
     AppTask::IdentifyStopHandler,
     Clusters::Identify::IdentifyTypeEnum::kLightOutput,
+    AppTask::OnIdentifyTriggerEffect,
 };
 
 } // namespace
@@ -429,6 +430,28 @@ void AppTask::IdentifyHandleOp(app_event_t event)
     }
 }
 
+void AppTask::OnIdentifyTriggerEffect(Identify * identify)
+{
+    switch (identify->mCurrentEffectIdentifier)
+    {
+    case Clusters::Identify::EffectIdentifierEnum::kBlink:
+        ChipLogProgress(NotSpecified,"Clusters::Identify::EffectIdentifierEnum::kBlink");
+        break;
+    case Clusters::Identify::EffectIdentifierEnum::kBreathe:
+        ChipLogProgress(NotSpecified,"Clusters::Identify::EffectIdentifierEnum::kBreathe");
+        break;
+    case Clusters::Identify::EffectIdentifierEnum::kOkay:
+        ChipLogProgress(NotSpecified,"Clusters::Identify::EffectIdentifierEnum::kOkay");
+        break;
+    case Clusters::Identify::EffectIdentifierEnum::kChannelChange:
+        ChipLogProgress(NotSpecified,"Clusters::Identify::EffectIdentifierEnum::kChannelChange");
+        break;
+    default:
+        ChipLogProgress(NotSpecified,"No identifier effect");
+        break;
+    }
+    return;
+}
 void AppTask::ButtonEventHandler(uint8_t btnIdx, uint8_t btnAction)
 {
     GetAppTask().PostEvent(APP_EVENT_FACTORY_RESET);

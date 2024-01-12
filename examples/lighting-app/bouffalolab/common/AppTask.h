@@ -89,6 +89,7 @@ public:
     static void IdentifyStartHandler(Identify *);
     static void IdentifyStopHandler(Identify *);
     static void IdentifyHandleOp(app_event_t event);
+    static void OnIdentifyTriggerEffect(Identify * identify);
 
 private:
     friend void StartAppTask(void);
