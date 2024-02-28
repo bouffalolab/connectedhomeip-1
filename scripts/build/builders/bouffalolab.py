@@ -48,6 +48,7 @@ class BouffalolabBoard(Enum):
     BL706_NIGHT_LIGHT = auto()
     BL706DK = auto()
     BL704LDK = auto()
+    BL616DK = auto()
 
     def GnArgName(self):
         if self == BouffalolabBoard.BL602_IoT_Matter_V1:
@@ -62,6 +63,8 @@ class BouffalolabBoard(Enum):
             return 'BL706DK'
         elif self == BouffalolabBoard.BL704LDK:
             return 'BL704LDK'
+        elif self == BouffalolabBoard.BL616DK:
+            return 'BL616DK'
         else:
             raise Exception('Unknown board #: %r' % self)
 
@@ -92,7 +95,7 @@ class BouffalolabBuilder(GnBuilder):
                  enable_thread: bool = False,
                  enable_frame_ptr: bool = False,
                  enable_heap_monitoring: bool = False,
-                 use_matter_openthread: bool = False
+                 use_matter_openthread: bool = False,
                  ):
 
         if 'BL602' == module_type:
@@ -101,6 +104,8 @@ class BouffalolabBuilder(GnBuilder):
             bouffalo_chip = 'bl702l'
         elif "BL70" in module_type:
             bouffalo_chip = 'bl702'
+        elif "BL616" == module_type:
+            bouffalo_chip = "bl616"
         else:
             raise Exception(f"module_type {module_type} is not supported")
 
@@ -133,6 +138,9 @@ class BouffalolabBuilder(GnBuilder):
                 enable_wifi, enable_thread, enable_ethernet = False, True, False
             elif bouffalo_chip == "bl702l":
                 enable_wifi, enable_thread, enable_ethernet = False, True, False
+            elif bouffalo_chip == "bl616":
+                ## Current support wifi for bl616
+                enable_wifi, enable_thread, enable_ethernet = True, False, False
 
         if (enable_ethernet or enable_wifi) and enable_thread:
             raise Exception('Currently, Thread can NOT be enabled with Wi-Fi or Ethernet')
@@ -154,6 +162,9 @@ class BouffalolabBuilder(GnBuilder):
         elif bouffalo_chip == "bl702l":
             if enable_ethernet or enable_wifi:
                 raise Exception(f"SoC {bouffalo_chip} does NOT support connectivity Ethernet/Wi-Fi currently.")
+        elif bouffalo_chip == "bl616":
+            if enable_ethernet:
+                raise Exception(f"SoC {bouffalo_chip} does NOT support connectivity Ethernet/Thread currently.")
 
         self.argsOpt.append(f'chip_enable_ethernet={str(enable_ethernet).lower()}')
         self.argsOpt.append(f'chip_enable_wifi={str(enable_wifi).lower()}')
@@ -164,15 +175,23 @@ class BouffalolabBuilder(GnBuilder):
 
         self.argsOpt.append(f'chip_mdns="{chip_mdns}"')
         self.argsOpt.append(f'chip_inet_config_enable_ipv4={str(enable_ethernet or enable_wifi).lower()}')
+        if bouffalo_chip == "bl616":
+            self.argsOpt.append(f'bouffalo_sdk_component_easyflash_enabled=false')
 
         if enable_thread:
             self.argsOpt.append('chip_system_config_use_open_thread_inet_endpoints=true')
             self.argsOpt.append('chip_with_lwip=false')
             self.argsOpt.append(f'openthread_project_core_config_file="{bouffalo_chip}-openthread-core-bl-config.h"')
-            if not use_matter_openthread:
-                self.argsOpt.append(
-                    'openthread_root="//third_party/connectedhomeip/third_party/bouffalolab/repo/components/network/thread/openthread"')
+            self.argsOpt.append(f'openthread_package_version="7e32165be"')
 
+            if not use_matter_openthread:
+                if bouffalo_chip in {"bl702", "bl702l"}:
+                    self.argsOpt.append(
+                        'openthread_root="//third_party/connectedhomeip/third_party/bouffalolab/repo/components/network/thread/openthread"')
+                else:
+                    self.argsOpt.append(
+                        'openthread_root="//third_party/connectedhomeip/third_party/bouffalolab/bouffalo_sdk/components/wireless/thread/openthread"')
+                    
         if enable_cdc:
             if bouffalo_chip != "bl702":
                 raise Exception(f'SoC {bouffalo_chip} does NOT support USB CDC')
@@ -210,12 +229,12 @@ class BouffalolabBuilder(GnBuilder):
 
     def print_enviroment_error(self):
         logging.fatal('*' * 80)
+        logging.error('Flashtool is not installed, or environment variable BOUFFALOLAB_SDK_ROOT is not exported.')
         logging.fatal('\tPlease make sure Bouffalo Lab SDK installs as below:')
-        logging.fatal('\t\tcd third_party/bouffalolab/repo')
-        logging.fatal('\t\tsudo bash scripts/setup.sh')
+        logging.fatal('\t\t./third_party/bouffalolab/env-setup.sh')
 
         logging.fatal('\tPlease make sure BOUFFALOLAB_SDK_ROOT exports before building as below:')
-        logging.fatal('\t\texport BOUFFALOLAB_SDK_ROOT=/opt/bouffalolab_sdk')
+        logging.fatal('\t\texport BOUFFALOLAB_SDK_ROOT="your install path"')
         logging.fatal('*' * 80)
 
     def GnBuildArgs(self):

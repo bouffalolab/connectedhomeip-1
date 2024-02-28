@@ -30,7 +30,7 @@
 #endif
 
 extern "C" {
-#if CHIP_DEVICE_LAYER_TARGET_BL702L
+#if CHIP_DEVICE_LAYER_TARGET_BLBL702L || CHIP_DEVICE_LAYER_TARGET_BL616
 #include <btble_lib_api.h>
 #else
 #include <ble_lib_api.h>
@@ -125,7 +125,7 @@ CHIP_ERROR BLEManagerImpl::_Init()
     memset(mSubscribedConns, 0, sizeof(mSubscribedConns));
 
     ReturnErrorOnFailure(InitRandomStaticAddress());
-#if CHIP_DEVICE_LAYER_TARGET_BL702L
+#if CHIP_DEVICE_LAYER_TARGET_BL702L || CHIP_DEVICE_LAYER_TARGET_BL616
     btble_controller_init(configMAX_PRIORITIES - 1);
 #else
     ble_controller_init(configMAX_PRIORITIES - 1);
@@ -404,6 +404,16 @@ CHIP_ERROR BLEManagerImpl::_SetDeviceName(const char * deviceName)
 CHIP_ERROR BLEManagerImpl::HandleGAPConnect(const ChipDeviceEvent * event)
 {
     const BleConnEventType * connEvent = &event->Platform.BleConnEvent;
+
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD || CHIP_DEVICE_LAYER_TARGET_BL616
+    const struct bt_le_conn_param param = {
+        .interval_min = 0x28,
+        .interval_max = 0x28,
+        .latency = 0,
+        .timeout = 800,
+    };
+    bt_conn_le_param_update((struct bt_conn *)connEvent->BtConn, &param);
+#endif
 
     if (connEvent->HciResult == BT_HCI_ERR_SUCCESS)
     {

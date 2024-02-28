@@ -213,7 +213,6 @@ CHIP_ERROR PlatformManagerImpl::PlatformInit(void)
 #else
     ReturnLogErrorOnFailure(ConnectivityMgr().SetThreadDeviceType(ConnectivityManager::kThreadDeviceType_MinimalEndDevice));
 #endif
-
 #endif
 
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI

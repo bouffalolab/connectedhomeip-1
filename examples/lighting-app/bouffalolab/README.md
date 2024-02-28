@@ -17,6 +17,25 @@ The steps were verified on `Bouffalo Lab` BL602 and BL706 development board.
 > Warning: Changing the VID/PID may cause compilation problems, we recommend
 > leaving it as the default while using this example.
 
+## Solutions introduction
+
+`Bouffalo Lab` has full connectives support for Matter Applications.
+
+- Wi-Fi 4/6 application, we have
+    - BL602, Wi-Fi 4 application.
+    - BL706 + BL602, Wi-Fi 4 application. BL602 runs as a normal WLAN transceiver; TCP/IP stack runs as BL706 side. We recommend this solution is for Openthread Border Router application and Matter ZigBee bridge.
+        - Openthread Border Router application, please refer to Openthread Border Router application
+        - Matter ZigBee Bridge application, please contact Bouffalo Lab for support.
+    - BL616/BL618, Wi-Fi 6 application.
+        - Openthread Border Router application, please refer to Openthread Border Router application
+        - Matter ZigBee Bridge application, please contact Bouffalo Lab for support.
+- Thread application, we have
+    - B70X/BL61X
+- Ethernet application, we have
+    - BL706/BL61X. It supports single Matter application, and also Openthread Border Router application and Matter ZigBee bridge
+        - Openthread Border Router application, please refer to Openthread Border Router application
+        - Matter ZigBee application, please contact Bouffalo Lab for support.
+
 ## BL602
 
 BL602/BL604 is combo chip-set for Wi-Fi 802.11b/g/n and BLE 5.0 base-band/MAC.
@@ -41,6 +60,9 @@ and Thread Border Router with `DUA manager`.
 
 <img src="../../platform/bouffalolab/doc/chart/bl706_dev_board.jpg" style="zoom:23%;" />
 
+## BL61X
+BL61X is commbo chip-set for Wi-Fi 6, Classic Bluetooth, Bluetooth low energy 5.3 and IEEE 802.15.4/ZigBee/Thread.
+
 ## Initial setup
 
 The following steps in this document were validated on Ubuntu 18.04/20.04 and
@@ -58,30 +80,25 @@ Mac OS.
     source ./scripts/activate.sh -p bouffalolab
     ```
 
-    > After environment setup `Bouffalo Lab` flash tool, `bflb-iot-tool`,
-    > imports under this environment. If not, please try
-    > `scripts/bootstrap.sh -p bouffalolab` for matter environment update.
-
 -   Setup build environment for `Bouffalo Lab` SoC
 
-    Run `setup.sh` to install `Bouffalo Lab` SDK to /opt/bouffalolab_sdk
+    Run `env-setup.sh` to install `Bouffalo Lab` toolchain.
 
     ```
-    cd third_party/bouffalolab/repo
-    sudo bash scripts/setup.sh
+    ./third_party/bouffalolab/env-setup.sh
     ```
 
     Please execute following command to export `BOUFFALOLAB_SDK_ROOT` before
     building.
 
     ```
-    export BOUFFALOLAB_SDK_ROOT=/opt/bouffalolab_sdk
+    export BOUFFALOLAB_SDK_ROOT="Your install path"
     ```
 
 ## Build CHIP Lighting App example
 
 The following steps take examples for `BL602-IoT-Matter-V1` BL602 board,
-`BL706DK` BL706 board, and `BL704LDK` BL704L board .
+`BL706DK` BL706 board, `BL704LDK` BL704L board and `BL616DK` BL616 board.
 
 -   Build lighting app with UART baudrate 2000000
 
@@ -91,6 +108,7 @@ The following steps take examples for `BL602-IoT-Matter-V1` BL602 board,
     ./scripts/build/build_examples.py --target bouffalolab-bl706dk-light-ethernet build
     ./scripts/build/build_examples.py --target bouffalolab-bl706dk-light-wifi build
     ./scripts/build/build_examples.py --target bouffalolab-bl704ldk-light build
+    ./scripts/build/build_examples.py --target bouffalolab-bl616dk-light-wifi build
     ```
 
 -   Build lighting app with UART baudrate 115200
@@ -146,6 +164,7 @@ The following steps take examples for `BL602-IoT-Matter-V1` BL602 board,
     -   `chip-bl602-lighting-example.flash.py` for BL602
     -   `chip-bl702-lighting-example.flash.py` for BL702
     -   `chip-bl702l-lighting-example.flash.py` for BL702L
+    -   `chip-bl616-lighting-example.flash.py` for BL616
 
     > Note 1, `*.flash.py` should be ran under Matter build environment; if
     > python module `bflb_iot_tool` is not found, please try to do
@@ -167,13 +186,14 @@ The following steps take examples for `BL602-IoT-Matter-V1` BL602 board,
     -   Type following command for image download. Please set serial port
         accordingly, here we use /dev/ttyACM0 as a serial port example.
 
-        -   `bl602-iot-matter-v1`, `bl706dk` and `bl704ldk` without additional
+        -   `bl602-iot-matter-v1`, `bl706dk`, `bl704ldk` and `bl616dk` without additional
             build options
 
             ```shell
             ./out/bouffalolab-bl602-iot-matter-v1-light/chip-bl602-lighting-example.flash.py --port /dev/ttyACM0
             ./out/bouffalolab-bl706dk-light/chip-bl702-lighting-example.flash.py --port /dev/ttyACM0
             ./out/bouffalolab-bl704ldk-light/chip-bl702l-lighting-example.flash.py --port /dev/ttyACM0
+            ./out/bouffalolab-bl616dk-light/chip-bl616dk-lighting-example.flash.py --port /dev/ttyACM0
             ```
 
         -   `bl706dk` with 115200 baudrate setting
