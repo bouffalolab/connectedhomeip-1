@@ -46,8 +46,6 @@
 #include <LEDWidget.h>
 #include <plat.h>
 
-#include <easyflash.h>
-
 #if CHIP_DEVICE_LAYER_TARGET_BL616
 #ifdef BOOT_PIN_RESET
 #include <bflb_gpio.h>
@@ -58,6 +56,7 @@ extern "C" {
 #include <hal_gpio.h>
 #include <hosal_gpio.h>
 }
+#include <easyflash.h>
 #endif
 
 #include "AppTask.h"

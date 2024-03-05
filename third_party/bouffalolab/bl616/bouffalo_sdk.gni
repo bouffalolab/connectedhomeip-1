@@ -637,15 +637,17 @@ template("bouffalo_sdk") {
 
   config("${sdk_target_name}_config_littlefs") {
     include_dirs = [
-      "${bouffalo_sdk_root}/components/fs/littlefs/easyflash_port",
+      "${bouffalo_sdk_root}/components/fs/littlefs/littlefs",
+      "${bouffalo_sdk_root}/components/fs/littlefs/port",
     ]
+
+    defines = [ "LFS_THREADSAFE" ]
   }
 
   source_set("${sdk_target_name}_littlefs") {
     defines = [
       "CONFIG_LITTLEFS",
       "CONFIG_FREERTOS",
-      "CONFIG_LITTLEFS_KV_EASYFLASH",
     ]
 
     include_dirs = [

@@ -106,7 +106,8 @@
 //#define LWIP_HOOK_FILENAME        "lwiphooks.h"
 #define LWIP_HOOK_FILENAME        "bl616_lwip_hooks.h"
 
-// #define MEMP_MEM_MALLOC           1
+#define MEMP_MEM_MALLOC           1
+// #define LWIP_PBUF_FROM_CUSTOM_POOLS 1
 
 #define LWIP_RAW                  1
 #define LWIP_MULTICAST_TX_OPTIONS 1
@@ -138,8 +139,6 @@
 #define LWIP_NETIF_HOSTNAME 1
 
 #define LWIP_ERRNO_STDINCLUDE 1
-
-#define LWIP_PBUF_FROM_CUSTOM_RAM_HEAP 1
 
 #if defined(__cplusplus)
 extern "C" long random(void);

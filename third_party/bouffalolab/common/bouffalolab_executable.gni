@@ -74,7 +74,7 @@ template("bouffalolab_executable") {
   }
 
   flashing_options += [ "--pt" ]
-  if (invoker.bl_plat_name == "bl602") {
+  if (invoker.bl_plat_name == "bl602" || invoker.bl_plat_name == "bl616") {
     flashing_options +=
         [ rebase_path("partition_cfg_4M.toml", root_out_dir, root_out_dir) ]
   } else if (defined(invoker.enable_openthread_border_router) &&

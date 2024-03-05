@@ -108,7 +108,12 @@ to exclude the API function. */
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
 void vApplicationMallocFailedHook(void);
+
+#if __cplusplus
+extern "C" void vAssertCalled(void);
+#else
 void vAssertCalled(void);
+#endif
 #define configASSERT(x)                        \
     if ((x) == 0) {                            \
         printf("file [%s]\r\n", __FILE__);     \
