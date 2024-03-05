@@ -30,7 +30,7 @@
 #endif
 
 extern "C" {
-#if CHIP_DEVICE_LAYER_TARGET_BL702L
+#if CHIP_DEVICE_LAYER_TARGET_BLBL702L || CHIP_DEVICE_LAYER_TARGET_BL616
 #include <btble_lib_api.h>
 #else
 #include <ble_lib_api.h>
@@ -125,7 +125,7 @@ CHIP_ERROR BLEManagerImpl::_Init()
     memset(mSubscribedConns, 0, sizeof(mSubscribedConns));
 
     ReturnErrorOnFailure(InitRandomStaticAddress());
-#if CHIP_DEVICE_LAYER_TARGET_BL702L
+#if CHIP_DEVICE_LAYER_TARGET_BL702L || CHIP_DEVICE_LAYER_TARGET_BL616
     btble_controller_init(configMAX_PRIORITIES - 1);
 #else
     ble_controller_init(configMAX_PRIORITIES - 1);

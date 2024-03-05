@@ -5,6 +5,8 @@
 #include <lwip/tcpip.h>
 
 #include <bl_fw_api.h>
+#undef __INLINE
+#undef __PACKED
 #include <wifi_mgmr.h>
 
 #include <wifi_mgmr_portable.h>

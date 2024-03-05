@@ -146,7 +146,10 @@ class Flasher(firmware_utils.Flasher):
 
         for root, dirs, files in os.walk(config_path, topdown=False):
             for name in files:
-                if chip_name == 'bl702':
+                if chip_name == 'bl616':
+                    if name.find("bl_factory_params_IoTKitA_auto.dts") >= 0:
+                        return os.path.join(config_path, name)
+                elif chip_name == 'bl702':
                     if name.find("bl_factory_params_IoTKitA_32M.dts") >= 0:
                         return os.path.join(config_path, name)
                 else:
@@ -170,25 +173,25 @@ class Flasher(firmware_utils.Flasher):
             import bflb_iot_tool
             import bflb_iot_tool.__main__
 
-            version_target_str = "1.8.6"
-            version_target = version_target_str.split('.')
-            version_target = "".join(["%03d" % int(var) for var in version_target])
+        #     version_target_str = "1.8.9"
+        #     version_target = version_target_str.split('.')
+        #     version_target = "".join(["%03d" % int(var) for var in version_target])
 
-            version_current_str = importlib.metadata.version("bflb_iot_tool")
-            version_current = version_current_str.split('.')
-            version_current = "".join(["%03d" % int(var) for var in version_current])
+        #     version_current_str = importlib.metadata.version("bflb_iot_tool")
+        #     version_current = version_current_str.split('.')
+        #     version_current = "".join(["%03d" % int(var) for var in version_current])
 
-            if version_current < version_target:
-                raise Exception("bflb_iot_tool {} version is less than {}".format(version_current_str, version_target_str))
+        #     if version_current < version_target:
+        #         raise Exception("bflb_iot_tool {} version is less than {}".format(version_current_str, version_target_str))
 
         except Exception as e:
 
-            logging.error('Please try the following command to setup or upgrade Bouffalo Lab environment:')
-            logging.error('source scripts/activate.sh -p bouffalolab')
-            logging.error('Or')
-            logging.error('source scripts/bootstrap.sh -p bouffalolab')
+        #     logging.error('Please try the following command to setup or upgrade Bouffalo Lab environment:')
+        #     logging.error('source scripts/activate.sh -p bouffalolab')
+        #     logging.error('Or')
+        #     logging.error('source scripts/bootstrap.sh -p bouffalolab')
 
-            logging.error('If upgrade bflb_iot_tool failed, try pip uninstall bflb_iot_tool first.')
+        #     logging.error('If upgrade bflb_iot_tool failed, try pip uninstall bflb_iot_tool first.')
 
             raise Exception(e)
 
@@ -321,7 +324,6 @@ class Flasher(firmware_utils.Flasher):
                     os.remove(os.path.join(ota_output_folder, img))
 
         return self
-
 
 if __name__ == '__main__':
 

@@ -346,11 +346,11 @@ void NetworkEventHandler(const ChipDeviceEvent * event, intptr_t arg)
     case kWiFiOnConnected:
         BLWiFiDriver::GetInstance().OnNetworkStatusChange();
         break;
-    case kWiFiOnGotIpAddress:
+    case kGotIpAddress:
         ConnectivityMgrImpl().ChangeWiFiStationState(ConnectivityManagerImpl::kWiFiStationState_Connected);
         ConnectivityMgrImpl().OnConnectivityChanged(deviceInterface_getNetif());
         break;
-    case kWiFiOnGotIpv6Address:
+    case kGotIpv6Address:
         ConnectivityMgrImpl().ChangeWiFiStationState(ConnectivityManagerImpl::kWiFiStationState_Connected);
         ConnectivityMgrImpl().OnConnectivityChanged(deviceInterface_getNetif());
         break;
@@ -392,7 +392,7 @@ extern "C" void wifi_event_handler(uint32_t code)
             PlatformMgr().PostEventOrDie(&event);
             break;
         case CODE_WIFI_ON_GOT_IP: 
-            event.Type                                 = kWiFiOnGotIpAddress;
+            event.Type                                 = kGotIpAddress;
             PlatformMgr().PostEventOrDie(&event);
             break;
         case CODE_WIFI_ON_DISCONNECT: 
@@ -411,7 +411,7 @@ extern "C" void network_netif_ext_callback(struct netif* nif, netif_nsc_reason_t
 
     memset(&event, 0, sizeof(ChipDeviceEvent));
 
-    if ((LWIP_NSC_IPV6_ADDR_STATE_CHANGED & reason) && args) {
+    if (((LWIP_NSC_IPV6_ADDR_STATE_CHANGED | LWIP_NSC_IPV6_SET) & reason) && args) {
 
         if (args->ipv6_addr_state_changed.addr_index >= LWIP_IPV6_NUM_ADDRESSES || 
             ip6_addr_islinklocal(netif_ip6_addr(nif, args->ipv6_addr_state_changed.addr_index))) {
@@ -420,7 +420,7 @@ extern "C" void network_netif_ext_callback(struct netif* nif, netif_nsc_reason_t
 
         if (netif_ip6_addr_state(nif, args->ipv6_addr_state_changed.addr_index) != args->ipv6_addr_state_changed.old_state &&
             ip6_addr_ispreferred(netif_ip6_addr_state(nif, args->ipv6_addr_state_changed.addr_index))) {
-            event.Type                                 = kWiFiOnGotIpv6Address;
+            event.Type                                 = kGotIpv6Address;
             PlatformMgr().PostEventOrDie(&event);
         }
     }

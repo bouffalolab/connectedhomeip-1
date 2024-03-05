@@ -106,6 +106,8 @@
 //#define LWIP_HOOK_FILENAME        "lwiphooks.h"
 #define LWIP_HOOK_FILENAME        "bl616_lwip_hooks.h"
 
+// #define MEMP_MEM_MALLOC           1
+
 #define LWIP_RAW                  1
 #define LWIP_MULTICAST_TX_OPTIONS 1
 
@@ -127,8 +129,7 @@
 #define LWIP_IGMP                 1
 #define LWIP_IPV6 1
 #define LWIP_IPV6_DHCP6 1
-#define LWIP_IPV6_SCOPES 1
-#define LWIP_AUTOIP 1
+#define LWIP_IPV6_SCOPES 0
 #define LWIP_IPV6_MLD 1
 #define LWIP_ND6_RDNSS_MAX_DNS_SERVERS 1
 #define MEMP_NUM_MLD6_GROUP 10

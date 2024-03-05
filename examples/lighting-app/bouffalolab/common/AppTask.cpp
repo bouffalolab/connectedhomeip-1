@@ -25,6 +25,7 @@
 #include <credentials/DeviceAttestationCredsProvider.h>
 #include <credentials/examples/DeviceAttestationCredsExample.h>
 #include <system/SystemClock.h>
+#include <platform/bouffalolab/common/DiagnosticDataProviderImpl.h>
 
 #if HEAP_MONITORING
 #include "MemMonitoring.h"
@@ -47,11 +48,17 @@
 
 #include <easyflash.h>
 
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+#ifdef BOOT_PIN_RESET
+#include <bflb_gpio.h>
+#endif
+#else
 extern "C" {
 #include <bl_gpio.h>
 #include <hal_gpio.h>
 #include <hosal_gpio.h>
 }
+#endif
 
 #include "AppTask.h"
 #include "mboard.h"
@@ -98,6 +105,18 @@ void StartAppTask(void)
 }
 
 #if CONFIG_ENABLE_CHIP_SHELL
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+CHIP_ERROR AppTask::StartAppShellTask()
+{
+    Engine::Root().Init();
+
+    cmd_misc_init();
+
+    Engine::Root().RunMainLoop();
+
+    return CHIP_NO_ERROR;
+}
+#else
 void AppTask::AppShellTask(void * args)
 {
     Engine::Root().RunMainLoop();
@@ -115,6 +134,7 @@ CHIP_ERROR AppTask::StartAppShellTask()
 
     return CHIP_NO_ERROR;
 }
+#endif
 #endif
 
 void AppTask::PostEvent(app_event_t event)
@@ -134,6 +154,7 @@ void AppTask::AppTaskMain(void * pvParameter)
 {
     app_event_t appEvent;
     bool onoff = false;
+    uint64_t currentHeapFree = 0;
 
 #if !(CHIP_DEVICE_LAYER_TARGET_BL702 && CHIP_DEVICE_CONFIG_ENABLE_ETHERNET)
     sLightLED.Init();
@@ -184,7 +205,8 @@ void AppTask::AppTaskMain(void * pvParameter)
 
     vTaskSuspend(NULL);
 
-    ChipLogProgress(NotSpecified, "App Task started, with SRAM heap %d left\r\n", xPortGetFreeHeapSize());
+    DiagnosticDataProviderImpl::GetDefaultInstance().GetCurrentHeapFree(currentHeapFree);
+    ChipLogProgress(NotSpecified, "App Task started, with SRAM heap %lld left\r\n",currentHeapFree);
 
     while (true)
     {
@@ -452,23 +474,50 @@ void AppTask::ButtonEventHandler(uint8_t btnIdx, uint8_t btnAction)
 }
 
 #ifdef BOOT_PIN_RESET
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+static struct bflb_device_s * app_task_gpio_var = NULL;
+static void app_task_gpio_isr(int irq, void *arg) 
+{
+    bool intstatus = bflb_gpio_get_intstatus(app_task_gpio_var, BOOT_PIN_RESET);
+    if (intstatus) {
+        bflb_gpio_int_clear(app_task_gpio_var, BOOT_PIN_RESET);
+    }
+
+    GetAppTask().ButtonEventHandler(arg);
+}
+#else
 static hosal_gpio_dev_t gpio_key = { .port = BOOT_PIN_RESET, .config = INPUT_HIGH_IMPEDANCE, .priv = NULL };
+#endif
 
 void AppTask::ButtonInit(void)
 {
     GetAppTask().mButtonPressedTime = 0;
 
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+    app_task_gpio_var = bflb_device_get_by_name("gpio");
+
+    bflb_gpio_int_init(app_task_gpio_var, BOOT_PIN_RESET, GPIO_INT_TRIG_MODE_SYNC_FALLING_RISING_EDGE);
+    bflb_gpio_int_mask(app_task_gpio_var, BOOT_PIN_RESET, false);
+
+    bflb_irq_attach(app_task_gpio_var->irq_num, app_task_gpio_isr, app_task_gpio_var);
+    bflb_irq_enable(app_task_gpio_var->irq_num);
+#else
     hosal_gpio_init(&gpio_key);
     hosal_gpio_irq_set(&gpio_key, HOSAL_IRQ_TRIG_POS_PULSE, GetAppTask().ButtonEventHandler, NULL);
+#endif
 }
 
 bool AppTask::ButtonPressed(void)
 {
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+    return bflb_gpio_read(app_task_gpio_var, BOOT_PIN_RESET);
+#else
     uint8_t val = 1;
 
     hosal_gpio_input_get(&gpio_key, &val);
 
     return val == 1;
+#endif
 }
 
 void AppTask::ButtonEventHandler(void * arg)

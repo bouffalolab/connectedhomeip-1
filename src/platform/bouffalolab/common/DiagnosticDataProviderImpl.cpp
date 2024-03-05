@@ -23,7 +23,9 @@
 #include <platform/bouffalolab/common/DiagnosticDataProviderImpl.h>
 
 #include <FreeRTOS.h>
-
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+#include <mem.h>
+#endif
 namespace chip {
 namespace DeviceLayer {
 
@@ -41,10 +43,14 @@ DiagnosticDataProviderImpl & DiagnosticDataProviderImpl::GetDefaultInstance()
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapFree(uint64_t & currentHeapFree)
 {
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+    size_t freeHeapSize = kfree_size();
+#else
 #ifdef CFG_USE_PSRAM
     size_t freeHeapSize = xPortGetFreeHeapSize() + xPortGetFreeHeapSizePsram();
 #else
-    size_t freeHeapSize      = xPortGetFreeHeapSize();
+    size_t freeHeapSize = xPortGetFreeHeapSize();
+#endif
 #endif
 
     currentHeapFree = static_cast<uint64_t>(freeHeapSize);
@@ -53,10 +59,14 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapFree(uint64_t & currentHeap
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapUsed(uint64_t & currentHeapUsed)
 {
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+
+#else
 #ifdef CFG_USE_PSRAM
     currentHeapUsed = (get_heap_size() + get_heap3_size() - xPortGetFreeHeapSize() - xPortGetFreeHeapSizePsram());
 #else
-    currentHeapUsed          = (get_heap_size() - xPortGetFreeHeapSize());
+    currentHeapUsed = (get_heap_size() - xPortGetFreeHeapSize());
+#endif
 #endif
 
     return CHIP_NO_ERROR;
@@ -64,11 +74,15 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapUsed(uint64_t & currentHeap
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapHighWatermark(uint64_t & currentHeapHighWatermark)
 {
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+
+#else
 #ifdef CFG_USE_PSRAM
     currentHeapHighWatermark =
         get_heap_size() + get_heap3_size() - xPortGetMinimumEverFreeHeapSize() - xPortGetMinimumEverFreeHeapSizePsram();
 #else
     currentHeapHighWatermark = get_heap_size() - xPortGetMinimumEverFreeHeapSize();
+#endif
 #endif
 
     return CHIP_NO_ERROR;

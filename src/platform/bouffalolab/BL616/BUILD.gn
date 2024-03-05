@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import("//build_overrides/chip.gni")
 
 import("${chip_root}/src/platform/device.gni")
@@ -24,7 +23,6 @@ assert(chip_device_platform == "bl616")
 
 static_library("BL616") {
   sources = [
-    "CHIPMem-Platform.cpp",
     "ConfigurationManagerImpl.cpp",
     "ConnectivityManagerImpl.cpp",
     "DiagnosticDataProviderImpl.cpp",
@@ -33,7 +31,7 @@ static_library("BL616") {
     "wifi_mgmr_portable.c",
   ]
 
-  common_sources = [
+  sources += [
     "../../FreeRTOS/SystemTimeSupport.cpp",
     "../../SingletonConfigurationManager.cpp",
     "../common/ConfigurationManagerImpl.cpp",
@@ -52,22 +50,16 @@ static_library("BL616") {
   }
 
   if (chip_enable_ble) {
-    defines = [ "BOUFFALOLAB_BLE_DATA_ENABLE=1" ]
-    defines +=[ "BOUFFALOLAB_BLE_MULTI_ADV=1"   ]
-    
     sources += [
       "../common/BLEManagerImpl.cpp",
       "../common/BLEManagerImpl.h",
     ]
   }
 
+  defines =
+      [ "CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE=${chip_enable_factory_data}" ]
   if (chip_enable_factory_data || chip_enable_factory_data_test) {
-    if (chip_enable_factory_data) {
-      defines = [ "CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE=1" ]
-    }
-    common_sources += [
-      "${chip_root}/src/credentials/CHIPCert.h",
-      "${chip_root}/src/credentials/DeviceAttestationCredsProvider.h",
+    sources += [
       "../common/FactoryDataProvider.cpp",
       "../common/FactoryDataProvider.h",
     ]
@@ -79,9 +71,11 @@ static_library("BL616") {
   else {
     sources += [ "../common/BLConfig_littlefs.cpp"]
   }
-
-  sources += common_sources
-
-  deps = [ "${chip_root}/src/lib/dnssd:platform_header" ]
+  
+  deps = [
+    "${chip_root}/src/credentials:credentials_header",
+    "${chip_root}/src/lib/dnssd:platform_header",
+    "${chip_root}/src/platform/logging:headers",
+  ]
   public_deps = [ "${chip_root}/src/platform:platform_base" ]
 }

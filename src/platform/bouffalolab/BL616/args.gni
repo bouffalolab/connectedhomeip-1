@@ -18,19 +18,20 @@ import("${chip_root}/examples/platform/bouffalolab/bl616/args.gni")
 
 riscv_platform_config = "${bouffalolab_iot_sdk_build_root}/common/rsicv.gni"
 
-mbedtls_target = "${bouffalolab_iot_sdk_build_root}/bl616:bl_iot_sdk"
+mbedtls_target = "${bouffalolab_iot_sdk_build_root}/bl616:bouffalo_sdk"
 
 chip_device_platform = "bl616"
 
-#chip_enable_ota_requestor = true
+chip_enable_ota_requestor = true
 
 lwip_platform = "bl616"
-
-chip_config_memory_management = "platform"
 
 chip_inet_config_enable_ipv4 = true
 
 chip_enable_rotating_device_id = false
+
+#chip_with_lwip = false
+#chip_system_config_use_sockets = true
 
 chip_build_tests = false
 chip_inet_config_enable_dns_resolver = false

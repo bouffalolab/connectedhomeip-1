@@ -26,7 +26,11 @@ template("bouffalolab_executable") {
 
   objcopy = "riscv64-unknown-elf-objcopy"
   if ("linux" == host_os) {
-    objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Linux/bin/riscv64-unknown-elf-objcopy"
+    if (invoker.bl_plat_name == "bl616") {
+      objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Thead_riscv/Linux_x86_64/bin/riscv64-unknown-elf-objcopy"
+    } else {
+      objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Linux/bin/riscv64-unknown-elf-objcopy"
+    }
   } else if ("mac" == host_os || "darwin" == host_os) {
     objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Darwin/bin/riscv64-unknown-elf-objcopy"
   }
@@ -41,7 +45,7 @@ template("bouffalolab_executable") {
     "${chip_root}/scripts/flashing/firmware_utils.py",
   ]
 
-  if (invoker.bl_plat_name == "bl602") {
+  if (invoker.bl_plat_name == "bl602" || invoker.bl_plat_name == "bl616") {
     flashing_script_inputs += [ "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_4M.toml" ]
   } else {
     flashing_script_inputs += [ "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_2M.toml" ]
@@ -65,6 +69,8 @@ template("bouffalolab_executable") {
     flashing_options += [ "32M" ]
   } else if (invoker.bl_plat_name == "bl702l") {
     flashing_options += [ "32M" ]
+  } else if (invoker.bl_plat_name == "bl616") {
+    flashing_options += [ "40M" ]
   }
 
   flashing_options += [ "--pt" ]

@@ -20,7 +20,7 @@ psram_min_size = 0x1000;
 nocache_min_size = 20K;
 
 __EM_SIZE = DEFINED(btble_controller_init) ? 32K : 0K;
-__REMAIN_WRAM_SIZE = 60K;
+__REMAIN_WRAM_SIZE = 0;
 __RFTLV_SIZE_OFFSET = 1K;
 __RFTLV_SIZE_HOLE = 2K;
 __RFTLV_HEAD1_H = (0x46524C42); /* BLRF */
@@ -33,7 +33,7 @@ MEMORY
     itcm_memory (rx)  : ORIGIN = 0x62FC0000, LENGTH = 20K
     dtcm_memory (rx)  : ORIGIN = 0x62FC5000, LENGTH = 4K
     nocache_ram_memory (!rx) : ORIGIN = 0x22FC6000, LENGTH = 4K
-    ram_memory  (!rx) : ORIGIN = 0x22FC6000 + LENGTH(nocache_ram_memory), LENGTH = 320K-20K-4K-LENGTH(nocache_ram_memory) + __REMAIN_WRAM_SIZE
+    ram_memory  (!rx) : ORIGIN = 0x62FC6000 + LENGTH(nocache_ram_memory), LENGTH = 320K-20K-4K-LENGTH(nocache_ram_memory) + __REMAIN_WRAM_SIZE
     ram_wifi  (wxa)   : ORIGIN = 0x23010000 + __REMAIN_WRAM_SIZE, LENGTH = 160K - __EM_SIZE - __REMAIN_WRAM_SIZE
 }
 
@@ -87,6 +87,12 @@ SECTIONS
         __fsymtab_start = .;
         KEEP(*(FSymTab))
         __fsymtab_end = .;
+        
+        /* section information for components's version */
+        . = ALIGN(4);
+        _version_info_section_start = .;
+        KEEP(*(.version.*))
+        _version_info_section_end = .;
 
         . = ALIGN(4);
         __vsymtab_start = .;
