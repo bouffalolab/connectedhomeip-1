@@ -56,7 +56,9 @@ void wifi_start_firmware_task(void)
     bflb_irq_attach(WIFI_IRQn, (irq_callback)interrupt0_handler, NULL);
     bflb_irq_enable(WIFI_IRQn);
 
+    LOCK_TCPIP_CORE();
     netif_add_ext_callback(&netifExtCallback, network_netif_ext_callback);
+    UNLOCK_TCPIP_CORE();
 
     xTaskCreate(wifi_main, (char *)"fw", WIFI_STACK_SIZE, NULL, TASK_PRIORITY_FW, &wifi_fw_task);
 }

@@ -57,12 +57,6 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
     tcpip_init(NULL, NULL);
 
     wifi_start_firmware_task();
-    if(deviceInterface_getNetif()!=NULL)
-    {
-        printf("host name =%s\r\n",deviceInterface_getNetif()->hostname);
-        netif_set_hostname(deviceInterface_getNetif(),"Bouffalo Device");
-        printf("host name =%s\r\n",deviceInterface_getNetif()->hostname);
-    }
     err = chip::Crypto::add_entropy_source(app_entropy_source, NULL, 16);
     SuccessOrExit(err);
 

@@ -1027,7 +1027,7 @@ template("bouffalo_sdk") {
     ]
 
     libs = [
-      "${bouffalo_sdk_root}/components/wireless/wifi6/lib/libwifi6.a",
+      "${bouffalo_sdk_root}/components/wireless/wifi6/lib/libwifi6_2sta.a",
     ]
 
     include_dirs = [
