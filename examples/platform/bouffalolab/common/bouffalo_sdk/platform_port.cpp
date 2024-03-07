@@ -16,10 +16,6 @@
  *    limitations under the License.
  */
 
-// #include <bl616_glb.h>
-// #include <bl616_glb_gpio.h>
-// #include <bl616_hbn.h>
-
 #include <FreeRTOS.h>
 #include <task.h>
 

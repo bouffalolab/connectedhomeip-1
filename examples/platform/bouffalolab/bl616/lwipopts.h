@@ -109,10 +109,11 @@ extern const int fhost_tcpip_priority;
 #define MEMP_NUM_UDP_PCB              16
 #define MEMP_NUM_REASSDATA            LWIP_MIN((IP_REASS_MAX_PBUFS), 5)
 
-#define PBUF_POOL_SIZE                15
+#define PBUF_POOL_SIZE                0
 #define MEM_ALIGNMENT                 4
 #define MEM_SIZE                      25600
 #define PBUF_POOL_BUFSIZE             (PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN + 1560)
+#define MEMP_MEM_MALLOC               1
 
 //#define LWIP_HOOK_FILENAME        "lwiphooks.h"
 #define LWIP_HOOK_FILENAME          "bl616_lwip_hooks.h"
