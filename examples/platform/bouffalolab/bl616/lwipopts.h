@@ -111,8 +111,8 @@ extern const int fhost_tcpip_priority;
 
 #define PBUF_POOL_SIZE                0
 #define MEM_ALIGNMENT                 4
-#define MEM_SIZE                      25600
-#define PBUF_POOL_BUFSIZE             (PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN + 1560)
+#define MEM_SIZE                      30720
+#define PBUF_POOL_BUFSIZE             (PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN + 1280)
 #define MEMP_MEM_MALLOC               1
 
 //#define LWIP_HOOK_FILENAME        "lwiphooks.h"
