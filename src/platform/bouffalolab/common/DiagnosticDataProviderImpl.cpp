@@ -44,23 +44,26 @@ DiagnosticDataProviderImpl & DiagnosticDataProviderImpl::GetDefaultInstance()
 CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapFree(uint64_t & currentHeapFree)
 {
 #if CHIP_DEVICE_LAYER_TARGET_BL616
-    size_t freeHeapSize = kfree_size();
+    struct meminfo info;
+    bflb_mem_usage(KMEM_HEAP, &info);
+    currentHeapFree = info.free_size;
 #else
 #ifdef CFG_USE_PSRAM
-    size_t freeHeapSize = xPortGetFreeHeapSize() + xPortGetFreeHeapSizePsram();
+    currentHeapFree = xPortGetFreeHeapSize() + xPortGetFreeHeapSizePsram();
 #else
-    size_t freeHeapSize = xPortGetFreeHeapSize();
+    currentHeapFree = xPortGetFreeHeapSize();
 #endif
 #endif
 
-    currentHeapFree = static_cast<uint64_t>(freeHeapSize);
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapUsed(uint64_t & currentHeapUsed)
 {
 #if CHIP_DEVICE_LAYER_TARGET_BL616
-
+    struct meminfo info;
+    bflb_mem_usage(KMEM_HEAP, &info);
+    currentHeapUsed = info.total_size - info.free_size;
 #else
 #ifdef CFG_USE_PSRAM
     currentHeapUsed = (get_heap_size() + get_heap3_size() - xPortGetFreeHeapSize() - xPortGetFreeHeapSizePsram());
@@ -75,7 +78,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapUsed(uint64_t & currentHeap
 CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapHighWatermark(uint64_t & currentHeapHighWatermark)
 {
 #if CHIP_DEVICE_LAYER_TARGET_BL616
-
+    return CHIP_ERROR_NOT_IMPLEMENTED;
 #else
 #ifdef CFG_USE_PSRAM
     currentHeapHighWatermark =
@@ -83,9 +86,8 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapHighWatermark(uint64_t & cu
 #else
     currentHeapHighWatermark = get_heap_size() - xPortGetMinimumEverFreeHeapSize();
 #endif
-#endif
-
     return CHIP_NO_ERROR;
+#endif
 }
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetThreadMetrics(ThreadMetrics ** threadMetricsOut)

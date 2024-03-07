@@ -32,30 +32,7 @@ namespace DeviceLayer {
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetBootReason(BootReasonType & bootReason)
 {
-#if 0
-    BL_RST_REASON_E bootCause = bl_sys_rstinfo_get();
-
-    if (bootCause == BL_RST_POWER_OFF)
-    {
-        bootReason = BootReasonType::kPowerOnReboot;
-    }
-    else if (bootCause == BL_RST_HARDWARE_WATCHDOG)
-    {
-        bootReason = BootReasonType::kHardwareWatchdogReset;
-    }
-    else if (bootCause == BL_RST_SOFTWARE_WATCHDOG)
-    {
-        bootReason = BootReasonType::kSoftwareWatchdogReset;
-    }
-    else if (bootCause == BL_RST_SOFTWARE)
-    {
-        bootReason = BootReasonType::kSoftwareReset;
-    }
-    else
-    {
-        bootReason = BootReasonType::kUnspecified;
-    }
-#endif
+    bootReason = BootReasonType::kUnspecified;
     return CHIP_NO_ERROR;
 }
 
