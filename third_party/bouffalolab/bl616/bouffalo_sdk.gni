@@ -465,16 +465,18 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/libc/sprintf.c",
       "${bouffalo_sdk_root}/components/libc/vsprintf.c",
       "${bouffalo_sdk_root}/components/libc/printf.c",
+      "${bouffalo_sdk_root}/components/libc/stdatomic.c",
     ]
 
     cflags = [
       "-fno-builtin",
       "-Wno-sign-compare",
       "-Wno-implicit-fallthrough",
+      "-Wno-builtin-declaration-mismatch",
     ]
     configs += [
       ":${sdk_target_name}_config_mm",
-      ":${sdk_target_name}_config_lhal"
+      ":${sdk_target_name}_config_lhal",
     ]
     public_configs = [
       ":${sdk_target_name}_config",
@@ -512,7 +514,6 @@ template("bouffalo_sdk") {
     ]
 
     sources = [
-      "${bouffalo_sdk_root}/components/libc/stdatomic.c",
       "${bouffalo_sdk_root}/components/os/freertos/croutine.c",
       "${bouffalo_sdk_root}/components/os/freertos/event_groups.c",
       "${bouffalo_sdk_root}/components/os/freertos/list.c",
@@ -526,9 +527,7 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/os/freertos/portable/GCC/RISC-V/common/portASM.S",
     ]
 
-    cflags_c = [
-      "-Wno-builtin-declaration-mismatch",
-    ]
+    cflags_c = []
 
     if (defined(invoker.enable_debug_frame_ptr) && invoker.enable_debug_frame_ptr) {
       defines += [ "CONF_ENABLE_FRAME_PTR" ]
@@ -691,10 +690,10 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/partition",
       "${bouffalo_sdk_root}/components/utils/getopt",
       "${bouffalo_sdk_root}/components/utils/ring_buffer",
-      "${bouffalo_sdk_root}/components/utils/matter_factory_data/include",
       "${bouffalo_sdk_root}/components/utils/coredump",
       "${bouffalo_sdk_root}/components/utils/math/include",
     ]
+#   "${bouffalo_sdk_root}/components/utils/matter_factory_data/include",
 
     defines = [
       "CONFIG_LOG_LEVEL=0",
@@ -734,13 +733,14 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/getopt/utils_getopt.c",
       "${bouffalo_sdk_root}/components/utils/partition/partition.c",
       "${bouffalo_sdk_root}/components/utils/ring_buffer/ring_buffer.c",
-      "${bouffalo_sdk_root}/components/utils/matter_factory_data/efuse_slot.c",
-      "${bouffalo_sdk_root}/components/utils/matter_factory_data/matter_factory_data.c",
       "${bouffalo_sdk_root}/components/utils/coredump/bflb_coredump.c",
       "${bouffalo_sdk_root}/components/utils/math/src/utils_base64.c",
       "${bouffalo_sdk_root}/components/utils/math/src/utils_crc.c",
       "${bouffalo_sdk_root}/components/utils/math/src/utils_hex.c",
     ]
+
+#      "${bouffalo_sdk_root}/components/utils/matter_factory_data/efuse_slot.c",
+#      "${bouffalo_sdk_root}/components/utils/matter_factory_data/matter_factory_data.c",
 
     cflags_c = [
       "-Wno-sign-compare",

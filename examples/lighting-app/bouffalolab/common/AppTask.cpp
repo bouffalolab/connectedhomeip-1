@@ -495,6 +495,7 @@ void AppTask::ButtonInit(void)
 #if CHIP_DEVICE_LAYER_TARGET_BL616
     app_task_gpio_var = bflb_device_get_by_name("gpio");
 
+    bflb_gpio_init(app_task_gpio_var, BOOT_PIN_RESET, GPIO_INPUT);
     bflb_gpio_int_init(app_task_gpio_var, BOOT_PIN_RESET, GPIO_INT_TRIG_MODE_SYNC_FALLING_RISING_EDGE);
     bflb_gpio_int_mask(app_task_gpio_var, BOOT_PIN_RESET, false);
 
