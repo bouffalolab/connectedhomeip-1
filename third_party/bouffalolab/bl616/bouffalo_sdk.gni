@@ -522,7 +522,6 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/os/freertos/timers.c",
       "${bouffalo_sdk_root}/components/os/freertos/freertos_port.c",
       "${bouffalo_sdk_root}/components/os/freertos/portable/MemMang/heap_3.c",
-      "${bouffalo_sdk_root}/components/os/freertos/portable/GCC/RISC-V/portStatTrap.c",
       "${bouffalo_sdk_root}/components/os/freertos/portable/GCC/RISC-V/common/port.c",
       "${bouffalo_sdk_root}/components/os/freertos/portable/GCC/RISC-V/common/portASM.S",
     ]
@@ -1008,7 +1007,7 @@ template("bouffalo_sdk") {
 
     defines = [
       "CFG_VIF_MAX=2",
-      "CFG_STA_MAX=2",
+      "CFG_STA_MAX=4",
       "CFG_UMAC"
     ]
 
@@ -1027,7 +1026,7 @@ template("bouffalo_sdk") {
     ]
 
     libs = [
-      "${bouffalo_sdk_root}/components/wireless/wifi6/lib/libwifi6_2sta.a",
+      "${bouffalo_sdk_root}/components/wireless/wifi6/lib/libwifi6.a",
     ]
 
     include_dirs = [

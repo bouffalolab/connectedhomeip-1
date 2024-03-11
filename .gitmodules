@@ -324,3 +324,6 @@
 	path = third_party/infineon/psoc6/psoc6_sdk/libs/lwip-network-interface-integration
 	url = https://github.com/Infineon/lwip-network-interface-integration.git
 	platforms = infineon
+[submodule "third_party/bouffalolab/bouffalo_sdk"]
+	path = third_party/bouffalolab/bouffalo_sdk
+	url = git@github.com:bouffalolab/bouffalo_sdk-matter.git
