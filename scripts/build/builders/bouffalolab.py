@@ -223,12 +223,12 @@ class BouffalolabBuilder(GnBuilder):
 
     def print_enviroment_error(self):
         logging.fatal('*' * 80)
+        logging.error('Flashtool is not installed, or environment variable BOUFFALOLAB_SDK_ROOT is not exported.')
         logging.fatal('\tPlease make sure Bouffalo Lab SDK installs as below:')
-        logging.fatal('\t\tcd third_party/bouffalolab/repo')
-        logging.fatal('\t\tsudo bash scripts/setup.sh')
+        logging.fatal('\t\t./third_party/bouffalolab/env-setup.sh')
 
         logging.fatal('\tPlease make sure BOUFFALOLAB_SDK_ROOT exports before building as below:')
-        logging.fatal('\t\texport BOUFFALOLAB_SDK_ROOT=/opt/bouffalolab_sdk')
+        logging.fatal('\t\texport BOUFFALOLAB_SDK_ROOT="your install path"')
         logging.fatal('*' * 80)
 
     def GnBuildArgs(self):

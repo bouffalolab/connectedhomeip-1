@@ -27,7 +27,7 @@ template("bouffalolab_executable") {
   objcopy = "riscv64-unknown-elf-objcopy"
   if ("linux" == host_os) {
     if (invoker.bl_plat_name == "bl616") {
-      objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Thead_riscv/Linux_x86_64/bin/riscv64-unknown-elf-objcopy"
+      objcopy = "${bouffalolab_sdk_root}/toolchain/t-head-riscv/gcc_t-head_v2.6.1/bin/riscv64-unknown-elf-objcopy"
     } else {
       objcopy = "${bouffalolab_sdk_root}/toolchain/riscv/Linux/bin/riscv64-unknown-elf-objcopy"
     }

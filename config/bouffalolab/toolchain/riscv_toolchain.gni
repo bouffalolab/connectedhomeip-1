@@ -25,7 +25,7 @@ template("riscv_toolchain") {
 
     if ("linux" == host_os) {
       if (chip_device_platform == "bl616") {
-        _tool_name_root = "${bouffalolab_sdk_root}/toolchain/riscv/Thead_riscv/Linux_x86_64/bin/riscv64-unknown-elf-"
+        _tool_name_root = "${bouffalolab_sdk_root}/toolchain/t-head-riscv/gcc_t-head_v2.6.1/bin/riscv64-unknown-elf-"
       } else {
         _tool_name_root = "${bouffalolab_sdk_root}/toolchain/riscv/Linux/bin/riscv64-unknown-elf-"
       }
