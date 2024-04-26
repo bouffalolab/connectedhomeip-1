@@ -405,6 +405,16 @@ CHIP_ERROR BLEManagerImpl::HandleGAPConnect(const ChipDeviceEvent * event)
 {
     const BleConnEventType * connEvent = &event->Platform.BleConnEvent;
 
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD || CHIP_DEVICE_LAYER_TARGET_BL616
+    const struct bt_le_conn_param param = {
+        .interval_min = 0x28,
+        .interval_max = 0x28,
+        .latency = 0,
+        .timeout = 800,
+    };
+    bt_conn_le_param_update((struct bt_conn *)connEvent->BtConn, &param);
+#endif
+
     if (connEvent->HciResult == BT_HCI_ERR_SUCCESS)
     {
         ChipLogProgress(DeviceLayer, "BLE connection established (ConnId: 0x%02x)", bt_conn_index(connEvent->BtConn));

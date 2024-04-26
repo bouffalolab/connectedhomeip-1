@@ -61,7 +61,6 @@ bouffalo_sdk("sdk") {
   include_dirs = [
     "${example_dir}/bl616",
     "${examples_plat_dir}/bl616",
-    "${examples_plat_dir}/bl616/lwipopts",
     "${examples_plat_dir}/common/route_hook",
     "${chip_root}/src/platform/bouffalolab/BL616",
     "${chip_root}/src/platform/bouffalolab/common",
@@ -84,15 +83,26 @@ bouffalo_sdk("sdk") {
   } else if (chip_build_libshell) {
     include_dirs += [ "${examples_plat_dir}/common/plat" ]
   }
+
+  if (chip_enable_wifi || chip_enable_ethernet) {
+    include_dirs += [ "${examples_plat_dir}/bl616/lwipopts" ]
+  }
 }
 
 chip_data_model("bouffalolab-lighting") {
-  zap_file = "${example_dir}/data_model/lighting-app-wifi.zap"
+  if (chip_enable_openthread) {
+    zap_file = "${example_dir}/data_model/lighting-app-thread.zap"
+  } else if (chip_enable_wifi) {
+    zap_file = "${example_dir}/data_model/lighting-app-wifi.zap"
+  } else {
+    zap_file = "${example_dir}/data_model/lighting-app-ethernet.zap"
+  }
   is_server = true
 }
 
 bouffalolab_executable("lighting_app") {
   output_name = "chip-bl616-lighting-example.out"
+  bl_plat_name = "bl616"
 
   defines = [
     "APP_TASK_STACK_SIZE=4096",
@@ -101,30 +111,23 @@ bouffalolab_executable("lighting_app") {
     "START_ENTRY=main",
   ]
 
-  if (false == enable_reset_counter) {
-    defines += [ "BOOT_PIN_RESET=2" ]
-  }
-
-  defines += [ "CONF_ENABLE_FRAME_PTR=${enable_debug_frame_ptr}" ]
   defines +=
       [ "CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE=${chip_enable_factory_data}" ]
   defines += [
     "CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST=${chip_enable_factory_data_test}",
   ]
 
-  bl_plat_name = "bl616"
-  sources = [
-    "${examples_plat_dir}/common/route_hook/bl_route_hook.c",
-    "${examples_plat_dir}/common/route_hook/bl_route_table.c",
-  ]
-
-  defines += [ "BL616DK" ]
-
   if (chip_config_network_layer_ble) {
     defines += [ "CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE=1" ]
   }
 
-  sources += [
+  if (false == enable_reset_counter) {
+    defines += [ "BOOT_PIN_RESET=2" ]
+  }
+
+  defines += [ "BL616DK" ]
+
+  sources = [
     "${chip_root}/examples/providers/DeviceInfoProviderImpl.cpp",
     "${example_dir}/common/AppTask.cpp",
     "${example_dir}/common/ZclCallbacks.cpp",
@@ -139,7 +142,6 @@ bouffalolab_executable("lighting_app") {
   deps = [
     ":bouffalolab-lighting",
     ":sdk",
-    "${chip_root}/examples/common/QRCode",
     "${chip_root}/examples/providers:device_info_provider",
     "${chip_root}/src/lib",
     "${chip_root}/src/setup_payload",
@@ -149,11 +151,52 @@ bouffalolab_executable("lighting_app") {
     "${chip_root}/src/platform/bouffalolab/BL616",
     "${example_dir}/common",
     "${example_dir}/bl616",
-    "${examples_plat_dir}/common/route_hook",
     "${examples_plat_dir}/common/plat",
     "${examples_plat_dir}/common/bouffalo_sdk",
   ]
 
+  if (chip_enable_wifi || chip_enable_ethernet) {
+    include_dirs += [ "${examples_plat_dir}/bl616/lwipopts" ]
+  }
+
+  if (chip_enable_wifi || chip_enable_ethernet) {
+    include_dirs += [ "${examples_plat_dir}/common/route_hook" ]
+
+    if (chip_enable_wifi) {
+      defines += [ "CHIP_DEVICE_CONFIG_ENABLE_WIFI" ]
+    }
+
+    sources += [
+      "${examples_plat_dir}/common/route_hook/bl_route_hook.c",
+      "${examples_plat_dir}/common/route_hook/bl_route_table.c",
+    ]
+  }
+
+  if (chip_enable_openthread) {
+    import("//build_overrides/openthread.gni")
+
+    deps += [
+      "${chip_root}/third_party/openthread/platforms:libopenthread-platform",
+      "${chip_root}/third_party/openthread/platforms:libopenthread-platform-utils",
+    ]
+
+    if (chip_openthread_ftd) {
+      defines += [ "CHIP_DEVICE_CONFIG_THREAD_FTD=1" ]
+      deps += [
+        "${openthread_root}:libopenthread-cli-ftd",
+        "${openthread_root}:libopenthread-ftd",
+      ]
+    } else {
+      defines += [ "CHIP_DEVICE_CONFIG_THREAD_FTD=0" ]
+      deps += [
+        "${openthread_root}:libopenthread-cli-mtd",
+        "${openthread_root}:libopenthread-mtd",
+      ]
+    }
+  }
+
+  defines += [ "CONFIG_ENABLE_CHIP_SHELL=${chip_build_libshell}" ]
+  defines += [ "PW_RPC_ENABLED=${chip_enable_pw_rpc}" ]
   if (chip_enable_pw_rpc) {
     defines += [
       "PW_RPC_ENABLED",
@@ -191,10 +234,12 @@ bouffalolab_executable("lighting_app") {
       "${examples_plat_dir}/common/rpc/pw_sys_io:pw_sys_io",
     ]
 
-    public_deps = [
-      "$dir_pw_checksum",
-      "$dir_pw_kvs",
-    ]
+    if (chip_enable_openthread) {
+      deps += [
+        "${chip_root}/examples/common/pigweed:ot_cli_service.nanopb_rpc",
+        "${chip_root}/examples/common/pigweed:thread_service.nanopb_rpc",
+      ]
+    }
 
     deps += pw_build_LINK_DEPS
 
@@ -203,19 +248,19 @@ bouffalolab_executable("lighting_app") {
       "${chip_root}/examples/common/pigweed/bouffalolab",
     ]
   } else if (chip_build_libshell) {
-    defines += [ "CONFIG_ENABLE_CHIP_SHELL=1" ]
+    if (chip_build_libshell) {
+      include_dirs += [
+        "${chip_root}/src/lib/shell",
+        "${chip_root}/examples/shell/shell_common/include",
+      ]
 
-    deps += [ "${chip_root}/examples/shell/shell_common:shell_common" ]
-
-    include_dirs += [
-      "${chip_root}/src/lib/shell",
-      "${chip_root}/examples/shell/shell_common/include",
-    ]
+      deps += [ "${chip_root}/examples/shell/shell_common:shell_common" ]
+    }
   }
 
+  defines += [ "HEAP_MONITORING=${enable_heap_monitoring}" ]
   if (enable_heap_monitoring) {
     sources += [ "${examples_plat_dir}/common/plat/MemMonitoring.cpp" ]
-    defines += [ "HEAP_MONITORING=1" ]
   }
 
   if (bouffalo_sdk_component_easyflash_enabled) {

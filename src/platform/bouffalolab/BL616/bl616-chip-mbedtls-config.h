@@ -157,6 +157,7 @@ typedef void mbedtls_ecp_restart_ctx;
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
 
 #define MBEDTLS_PLATFORM_STD_MEM_HDR "mbedtls_port_bouffalo_sdk.h"
+#define MBEDTLS_SSL_MAX_CONTENT_LEN 900 /**< Maxium fragment length in bytes */
 
 #define MBEDTLS_SHA1_ALT
 #define MBEDTLS_SHA256_ALT

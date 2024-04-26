@@ -277,6 +277,38 @@ template("bouffalo_sdk") {
     ]
   }
 
+  config("${sdk_target_name}_config_pm") {
+    include_dirs = [
+      "${bouffalo_sdk_root}/drivers/pm",
+      "${bouffalo_sdk_root}/drivers/pm/bl616",
+    ]
+  }
+
+  source_set("${sdk_target_name}_pm") {
+    defines = [ "BL_WIFI_LP_FW" ]
+    sources = [
+      "${bouffalo_sdk_root}/drivers/pm/bl616/bl616_lp.c",
+      "${bouffalo_sdk_root}/drivers/pm/bl616/bl616_sys.c",
+    ]
+
+    cflags_c = [
+      "-Wno-sign-compare",
+      "-Wno-shadow",
+      "-Wno-format",
+      "-Wno-format-nonliteral",
+      "-Wno-format-security"
+    ]
+
+    configs += [
+      ":${sdk_target_name}_config",
+      ":${sdk_target_name}_config_std_drv",
+      ":${sdk_target_name}_config_lhal",
+    ]
+    public_configs = [
+      ":${sdk_target_name}_config_pm",
+    ]
+  }
+
   config("${sdk_target_name}_config_board") {
     include_dirs = [
       "${bouffalo_sdk_root}/bsp/board",
@@ -691,6 +723,7 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/ring_buffer",
       "${bouffalo_sdk_root}/components/utils/coredump",
       "${bouffalo_sdk_root}/components/utils/math/include",
+      "${bouffalo_sdk_root}/components/utils/list",
     ]
 #   "${bouffalo_sdk_root}/components/utils/matter_factory_data/include",
 
@@ -768,6 +801,7 @@ template("bouffalo_sdk") {
     include_dirs = [
       "${bouffalo_sdk_root}/components/crypto/mbedtls/mbedtls/include",
       "${bouffalo_sdk_root}/components/crypto/mbedtls/port/hw_acc",
+      "${bouffalo_sdk_root}/components/crypto/mbedtls/port",
     ]
 
     defines = [ "MBEDTLS_CONFIG_FILE=\"bl616-chip-mbedtls-config.h\"" ]
@@ -778,7 +812,6 @@ template("bouffalo_sdk") {
     defines = ["CONFIG_FREERTOS"]
 
     include_dirs = [
-      "${bouffalo_sdk_root}/components/crypto/mbedtls/port",
       "${bouffalo_sdk_root}/components/crypto/mbedtls/mbedtls/library",
     ]
 
@@ -1173,22 +1206,80 @@ template("bouffalo_sdk") {
     ]
   }
 
+  config("${sdk_target_name}_config_openthread_port") {
+
+    include_dirs = [
+      "${bouffalo_sdk_root}/components/wireless/thread/openthread_port/include",
+      "${bouffalo_sdk_root}/components/wireless/thread/openthread_utils/include",
+    ]
+  }
+
+  source_set("${sdk_target_name}_openthread_port") {
+    import("//build_overrides/openthread.gni")
+
+    defines = [ "BFLB_BL616" ]
+
+    include_dirs = [
+      "${bouffalo_sdk_root}/components/wireless/lmac154/include",
+      "${bouffalo_sdk_root}/components/wireless/thread/openthread_port",
+    ]
+
+    sources = [
+      "${bouffalo_sdk_root}/components/wireless/thread/openthread_port/ot_alarm_bl616.c",
+      "${bouffalo_sdk_root}/components/wireless/thread/openthread_port/ot_radio.c",
+      "${bouffalo_sdk_root}/components/wireless/thread/openthread_port/ot_sys_bflb.c",
+    ]
+
+    if (defined(invoker.bouffalo_sdk_component_easyflash_enabled) && invoker.bouffalo_sdk_component_easyflash_enabled) {
+        sources += ["${bouffalo_sdk_root}/components/wireless/thread/openthread_port/ot_settings_easyflash.c"]
+    }
+    else {
+        sources += ["${bouffalo_sdk_root}/components/wireless/thread/openthread_port/ot_settings_littlefs.c"]
+    }
+
+    libs = [
+      "${bouffalo_sdk_root}/components/wireless/lmac154/lib/liblmac154.a",
+      "${bouffalo_sdk_root}/components/wireless/thread/openthread_utils/lib/libopenthread_utils.a",
+    ]
+
+    cflags_c = [
+      "-Wno-sign-compare",
+    ]
+
+    configs += [
+      ":${sdk_target_name}_config_freertos",
+    ]
+    public_configs = [
+      ":${sdk_target_name}_config",
+      ":${sdk_target_name}_config_utils",
+      ":${sdk_target_name}_config_mm",
+      ":${sdk_target_name}_config_std_drv",
+      ":${sdk_target_name}_config_lhal",
+      ":${sdk_target_name}_config_shell",
+      ":${sdk_target_name}_config_littlefs",
+      ":${sdk_target_name}_config_openthread_port",
+    ]
+
+    public_deps = [
+      "${chip_root}/third_party/openthread/platforms:libopenthread-platform-utils",
+      "${openthread_root}/src/core:libopenthread_core_headers",
+    ]
+  }
+
   group(sdk_target_name) {
     public_deps = [
       ":${sdk_target_name}_startup",
       ":${sdk_target_name}_std_drv",
       ":${sdk_target_name}_lhal",
+      ":${sdk_target_name}_pm",
       ":${sdk_target_name}_board",
       ":${sdk_target_name}_shell",
       ":${sdk_target_name}_rf",
       ":${sdk_target_name}_libc",
       ":${sdk_target_name}_mm",
       ":${sdk_target_name}_freertos",
-      
       ":${sdk_target_name}_mbedtls",
       ":${sdk_target_name}_utils",
-      ":${sdk_target_name}_lwip",
-      ":${sdk_target_name}_wifi",
     ]
 
     if (defined(invoker.bouffalo_sdk_component_easyflash_enabled) && invoker.bouffalo_sdk_component_easyflash_enabled) {
@@ -1196,6 +1287,14 @@ template("bouffalo_sdk") {
     }
     else {
         public_deps += [ ":${sdk_target_name}_littlefs" ]
+    }
+
+    if (defined(invoker.chip_enable_wifi) && invoker.chip_enable_wifi) {
+      public_deps += [ ":${sdk_target_name}_wifi" ]
+      public_deps += [ ":${sdk_target_name}_lwip" ]
+    } else if (defined(invoker.chip_enable_openthread) &&
+               invoker.chip_enable_openthread) {
+      public_deps += [ ":${sdk_target_name}_openthread_port" ]
     }
 
     if (defined(invoker.chip_config_network_layer_ble) && invoker.chip_config_network_layer_ble) {

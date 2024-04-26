@@ -21,14 +21,14 @@ import("${chip_root}/src/platform/bouffalolab/common/args.gni")
 
 assert(chip_device_platform == "bl616")
 
+if (chip_enable_openthread) {
+  import("//build_overrides/openthread.gni")
+}
+
 static_library("BL616") {
   sources = [
-    "ConfigurationManagerImpl.cpp",
-    "ConnectivityManagerImpl.cpp",
     "DiagnosticDataProviderImpl.cpp",
-    "NetworkCommissioningDriver.cpp",
     "PlatformManagerImpl.cpp",
-    "wifi_mgmr_portable.c",
   ]
 
   sources += [
@@ -56,6 +56,8 @@ static_library("BL616") {
     ]
   }
 
+  deps = [ "${chip_root}/src/platform/logging:headers" ]
+
   defines =
       [ "CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE=${chip_enable_factory_data}" ]
   if (chip_enable_factory_data || chip_enable_factory_data_test) {
@@ -72,10 +74,41 @@ static_library("BL616") {
     sources += [ "../common/BLConfig_littlefs.cpp"]
   }
   
-  deps = [
+  if (chip_enable_wifi) {
+    sources += [
+      "ConfigurationManagerImpl.cpp",
+      "ConnectivityManagerImpl.cpp",
+      "NetworkCommissioningDriver.cpp",
+      "wifi_mgmr_portable.c",
+    ]
+
+    deps += [ "${chip_root}/src/lib/dnssd:platform_header" ]
+  }
+
+  if (chip_enable_openthread) {
+    # needed for MTD/FTD
+
+    import("//build_overrides/bouffalolab_iot_sdk.gni")
+    import("${bouffalolab_iot_sdk_build_root}/bl616/bouffalo_sdk.gni")
+    deps += [ "${bouffalolab_iot_sdk_build_root}/bl616:bouffalo_sdk" ]
+
+    sources += [
+      "../../OpenThread/OpenThreadUtils.cpp",
+      "ThreadStackManagerImpl.cpp",
+    ]
+
+    if (chip_mdns == "platform") {
+      sources += [
+        "../../OpenThread/DnssdImpl.cpp",
+        "../../OpenThread/OpenThreadDnssdImpl.cpp",
+        "../../OpenThread/OpenThreadDnssdImpl.h",
+      ]
+      deps += [ "${chip_root}/src/lib/dnssd:platform_header" ]
+    }
+  }
+
+  deps += [
     "${chip_root}/src/credentials:credentials_header",
-    "${chip_root}/src/lib/dnssd:platform_header",
-    "${chip_root}/src/platform/logging:headers",
   ]
   public_deps = [ "${chip_root}/src/platform:platform_base" ]
 }

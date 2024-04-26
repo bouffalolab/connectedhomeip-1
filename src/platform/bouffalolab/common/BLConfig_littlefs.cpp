@@ -111,7 +111,7 @@ void BLConfig::Init(void)
     CHIP_ERROR      err = CHIP_NO_ERROR;
     int             ret;
     struct lfs_info stat;
-
+    
     blconfig_lfs = lfs_xip_init();
     VerifyOrExit(blconfig_lfs != NULL, err = CHIP_ERROR_PERSISTED_STORAGE_FAILED);
 
@@ -256,7 +256,9 @@ CHIP_ERROR BLConfig::ClearConfigValue(const char * key)
 {
     std::string  delete_key = blcfg_convert_key(std::string(key), std::string(BLCONFIG_LFS_NAMESPACE));
 
-    return lfs_remove(blconfig_lfs, const_cast<char*>(delete_key.c_str())) >= LFS_ERR_OK ? CHIP_NO_ERROR: CHIP_ERROR_PERSISTED_STORAGE_FAILED;
+    int ret = lfs_remove(blconfig_lfs, const_cast<char*>(delete_key.c_str()));
+
+    return (ret >= LFS_ERR_OK || ret == LFS_ERR_NOENT) ? CHIP_NO_ERROR: CHIP_ERROR_PERSISTED_STORAGE_FAILED;
 }
 
 CHIP_ERROR BLConfig::FactoryResetConfig(void)

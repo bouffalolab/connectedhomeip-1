@@ -20,6 +20,7 @@
 
 extern "C" {
 #if CHIP_DEVICE_LAYER_TARGET_BL616
+#include <bl_sys.h>
 #include <bflb_ota.h>
 #else
 #include <hal_sys.h>
@@ -28,7 +29,9 @@ extern "C" {
 }
 #include "OTAImageProcessorImpl.h"
 
+#if CHIP_DEVICE_LAYER_TARGET_BL602 || CHIP_DEVICE_LAYER_TARGET_BL702 || CHIP_DEVICE_LAYER_TARGET_BL702L
 extern "C" void hal_reboot(void);
+#endif
 
 using namespace chip::System;
 
@@ -174,7 +177,11 @@ void OTAImageProcessorImpl::HandleApply(intptr_t context)
         System::Clock::Seconds32(OTA_AUTO_REBOOT_DELAY),
         [](Layer *, void *) {
             ChipLogProgress(SoftwareUpdate, "Rebooting...");
+#if CHIP_DEVICE_LAYER_TARGET_BL616
+            bl_sys_reset_por();
+#else
             hal_reboot();
+#endif
         },
         nullptr);
 }

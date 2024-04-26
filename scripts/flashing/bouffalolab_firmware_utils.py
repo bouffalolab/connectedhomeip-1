@@ -132,7 +132,6 @@ class Flasher(firmware_utils.Flasher):
 
         for root, dirs, files in os.walk(config_path, topdown=False):
             for name in files:
-                logging.info("get_boot_image {} {}".format(root, boot2_image))
                 if boot2_image:
                     return os.path.join(root, boot2_image)
                 else:

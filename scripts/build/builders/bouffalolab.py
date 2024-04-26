@@ -163,7 +163,7 @@ class BouffalolabBuilder(GnBuilder):
             if enable_ethernet or enable_wifi:
                 raise Exception(f"SoC {bouffalo_chip} does NOT support connectivity Ethernet/Wi-Fi currently.")
         elif bouffalo_chip == "bl616":
-            if enable_ethernet or enable_thread:
+            if enable_ethernet:
                 raise Exception(f"SoC {bouffalo_chip} does NOT support connectivity Ethernet/Thread currently.")
 
         self.argsOpt.append(f'chip_enable_ethernet={str(enable_ethernet).lower()}')
@@ -182,10 +182,16 @@ class BouffalolabBuilder(GnBuilder):
             self.argsOpt.append('chip_system_config_use_open_thread_inet_endpoints=true')
             self.argsOpt.append('chip_with_lwip=false')
             self.argsOpt.append(f'openthread_project_core_config_file="{bouffalo_chip}-openthread-core-bl-config.h"')
-            if not use_matter_openthread:
-                self.argsOpt.append(
-                    'openthread_root="//third_party/connectedhomeip/third_party/bouffalolab/repo/components/network/thread/openthread"')
+            self.argsOpt.append(f'openthread_package_version="7e32165be"')
 
+            if not use_matter_openthread:
+                if bouffalo_chip in {"bl702", "bl702l"}:
+                    self.argsOpt.append(
+                        'openthread_root="//third_party/connectedhomeip/third_party/bouffalolab/repo/components/network/thread/openthread"')
+                else:
+                    self.argsOpt.append(
+                        'openthread_root="//third_party/connectedhomeip/third_party/bouffalolab/bouffalo_sdk/components/wireless/thread/openthread"')
+                    
         if enable_cdc:
             if bouffalo_chip != "bl702":
                 raise Exception(f'SoC {bouffalo_chip} does NOT support USB CDC')

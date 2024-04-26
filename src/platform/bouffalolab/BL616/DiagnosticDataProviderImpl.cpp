@@ -20,12 +20,14 @@
 #include <platform/bouffalolab/common/DiagnosticDataProviderImpl.h>
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 
+#if CHIP_DEVICE_CONFIG_ENABLE_WIFI
 #include <lwip/tcpip.h>
 
 extern "C" {
 #include <wifi_mgmr_ext.h>
 }
 #include <wifi_mgmr_portable.h>
+#endif
 
 namespace chip {
 namespace DeviceLayer {
@@ -36,6 +38,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetBootReason(BootReasonType & bootReason
     return CHIP_NO_ERROR;
 }
 
+#if CHIP_DEVICE_CONFIG_ENABLE_WIFI
 CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiBssId(MutableByteSpan & BssId)
 {
     wifi_mgmr_connect_ind_stat_info_t statInfo;
@@ -130,6 +133,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiBeaconRxCount(uint32_t & beaconRxC
 {
     return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
 }
+#endif
 
 } // namespace DeviceLayer
 } // namespace chip

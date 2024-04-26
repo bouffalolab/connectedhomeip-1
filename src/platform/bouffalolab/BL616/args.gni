@@ -16,25 +16,25 @@ import("//build_overrides/bouffalolab_iot_sdk.gni")
 import("//build_overrides/chip.gni")
 import("${chip_root}/examples/platform/bouffalolab/bl616/args.gni")
 
-riscv_platform_config = "${bouffalolab_iot_sdk_build_root}/common/rsicv.gni"
-
-mbedtls_target = "${bouffalolab_iot_sdk_build_root}/bl616:bouffalo_sdk"
-
 chip_device_platform = "bl616"
 
 chip_enable_ota_requestor = true
 
 lwip_platform = "bl616"
 
-chip_inet_config_enable_ipv4 = true
+riscv_platform_config = "${bouffalolab_iot_sdk_build_root}/common/rsicv.gni"
 
-chip_enable_rotating_device_id = false
+mbedtls_target = "${bouffalolab_iot_sdk_build_root}/bl616:bouffalo_sdk"
 
-#chip_with_lwip = false
-#chip_system_config_use_sockets = true
+chip_inet_config_enable_tcp_endpoint = false
 
 chip_build_tests = false
-chip_inet_config_enable_dns_resolver = false
-chip_inet_config_enable_tun_endpoint = false
-chip_inet_config_enable_tcp_endpoint = true
-chip_inet_config_enable_udp_endpoint = true
+
+openthread_external_mbedtls = mbedtls_target
+
+openthread_core_config_platform_check_file =
+    "bl616-openthread-core-bl-config-check.h"
+openthread_project_include_dirs =
+    [ "${chip_root}/src/platform/bouffalolab/BL616" ]
+openthread_external_platform =
+    "${bouffalolab_iot_sdk_build_root}/bl616:bouffalo_sdk"

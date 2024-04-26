@@ -26,12 +26,6 @@ struct netif * deviceInterface_getNetif(void)
     return net_if;
 }
 
-void hal_reboot (void) 
-{
-    taskDISABLE_INTERRUPTS();
-    GLB_SW_POR_Reset();
-}
-
 int wifi_start_scan(const uint8_t * ssid, uint32_t length) 
 {
     wifi_mgmr_scan_params_t config;

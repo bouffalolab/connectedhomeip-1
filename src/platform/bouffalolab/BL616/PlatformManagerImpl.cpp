@@ -26,14 +26,23 @@
 #include <platform/bouffalolab/common/DiagnosticDataProviderImpl.h>
 #include <platform/internal/GenericPlatformManagerImpl_FreeRTOS.ipp>
 
+#if CHIP_SYSTEM_CONFIG_USE_LWIP
 #include <lwip/tcpip.h>
+#endif
+
+#if CHIP_DEVICE_CONFIG_ENABLE_WIFI
+#include "wifi_mgmr_portable.h"
+#endif
+
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD
+#include <openthread_port.h>
+#include <utils_list.h>
+#endif
 
 #include <bflb_sec_trng.h>
 extern "C" {
 #include <rfparam_adapter.h>
 }
-#include "wifi_mgmr_portable.h"
-
 
 namespace chip {
 namespace DeviceLayer {
@@ -53,10 +62,25 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
 
     VerifyOrDieWithMsg(0 == (iret_rfInit = rfparam_init(0, NULL, 0)), DeviceLayer, "rfparam_init failed with %d", iret_rfInit);
 
-    // Initialize LwIP.
+#if CHIP_SYSTEM_CONFIG_USE_LWIP
     tcpip_init(NULL, NULL);
+#endif
 
+#if CHIP_DEVICE_CONFIG_ENABLE_WIFI
     wifi_start_firmware_task();
+#endif
+    
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD
+    otRadio_opt_t opt;
+    opt.bf.isFtd        = true;
+    opt.bf.isCoexEnable = true;
+
+    ot_alarmInit();
+    ot_radioInit(opt);
+#endif // CHIP_DEVICE_CONFIG_ENABLE_THREAD
+
+    ReturnErrorOnFailure(System::Clock::InitClock_RealTime());
+
     err = chip::Crypto::add_entropy_source(app_entropy_source, NULL, 16);
     SuccessOrExit(err);
 

@@ -198,6 +198,9 @@ source_set("system_config_header") {
       if (chip_device_platform == "stm32") {
         public_deps += [ "${stm32_sdk_build_root}:stm32_sdk" ]
       }
+      if (chip_device_platform == "bl616") {
+        public_deps += [ "${bouffalolab_iot_sdk_build_root}/bl616:bouffalo_sdk" ]
+      }
       if (chip_device_platform == "bl702") {
         public_deps += [ "${bouffalolab_iot_sdk_build_root}/bl702:bl_iot_sdk" ]
       }

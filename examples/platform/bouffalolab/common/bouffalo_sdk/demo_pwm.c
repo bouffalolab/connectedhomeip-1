@@ -12,11 +12,20 @@
 #include "mboard.h"
 #include "demo_pwm.h"
 
+
+#if MAX_PWM_CHANNEL == 3
+static const uint32_t rgb_pwm[MAX_PWM_CHANNEL][2] = {
+    {LED_B_PIN, LED_B_PWM_CH},
+    {LED_R_PIN, LED_R_PWM_CH},
+    {LED_G_PIN, LED_G_PWM_CH},
+};
+#else
 static const uint32_t rgb_pwm[][2] = {
     {
         LED_PIN, LED_PIN_PWM_CH
     },
 };
+#endif
 
 struct bflb_device_s *bflb_device_pwm = NULL;
 
@@ -139,9 +148,9 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
         break;
     }
 
-    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[0][1], 0, blue * PWM_DUTY_CYCLE / 254);
-    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[1][1], 0, red * PWM_DUTY_CYCLE / 254); 
-    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[2][1], 0, green * PWM_DUTY_CYCLE / 254);
+    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[0][1], 0, blue * 1000 / 254);
+    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[1][1], 0, red * 1000 / 254); 
+    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[2][1], 0, green * 1000 / 254);
 #else
     set_level(currLevel);
 #endif

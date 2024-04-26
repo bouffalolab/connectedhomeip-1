@@ -16,11 +16,12 @@ ENTRY(__start)
 
 StackSize    = 0x1000; /*  4KB */
 HeapMinSize  = 0x1000; /*  4KB */
-psram_min_size = 0x1000;
-nocache_min_size = 20K;
-
+psram_heap_min_size = 0x1000;
 __EM_SIZE = DEFINED(btble_controller_init) ? 32K : 0K;
-__REMAIN_WRAM_SIZE = 0;
+wifi_ram_max_size = DEFINED(wifi_main) ? (160K -  __EM_SIZE): 32K;
+
+remain_wifi_ram = 160K - wifi_ram_max_size - __EM_SIZE;
+
 __RFTLV_SIZE_OFFSET = 1K;
 __RFTLV_SIZE_HOLE = 2K;
 __RFTLV_HEAD1_H = (0x46524C42); /* BLRF */
@@ -30,15 +31,14 @@ MEMORY
 {
     xip_memory  (rx)  : ORIGIN = 0xA0000000, LENGTH = 4M
     ram_psram  (wxa)   : ORIGIN = 0xA8000000, LENGTH = 4M
-    itcm_memory (rx)  : ORIGIN = 0x62FC0000, LENGTH = 20K
-    dtcm_memory (rx)  : ORIGIN = 0x62FC5000, LENGTH = 4K
-    nocache_ram_memory (!rx) : ORIGIN = 0x22FC6000, LENGTH = 4K
-    ram_memory  (!rx) : ORIGIN = 0x62FC6000 + LENGTH(nocache_ram_memory), LENGTH = 320K-20K-4K-LENGTH(nocache_ram_memory) + __REMAIN_WRAM_SIZE
-    ram_wifi  (wxa)   : ORIGIN = 0x23010000 + __REMAIN_WRAM_SIZE, LENGTH = 160K - __EM_SIZE - __REMAIN_WRAM_SIZE
+    ram_nocache (!rx) : ORIGIN = 0x22FC0400, LENGTH = 320K - 1K + remain_wifi_ram /* reserved 1k for security */
+    ram_memory  (!rx) : ORIGIN = 0x62FC0400, LENGTH = 320K - 1K + remain_wifi_ram /* reserved 1k for security */
+    ram_wifi  (wxa)   : ORIGIN = 0x23038000 - wifi_ram_max_size - __EM_SIZE, LENGTH = wifi_ram_max_size
 }
 
 SECTIONS
 {
+
     BOOT2_PT_ADDR = 0x63027c00;
 
     .init :
@@ -87,7 +87,7 @@ SECTIONS
         __fsymtab_start = .;
         KEEP(*(FSymTab))
         __fsymtab_end = .;
-        
+
         /* section information for components's version */
         . = ALIGN(4);
         _version_info_section_start = .;
@@ -120,12 +120,62 @@ SECTIONS
         *(.srodata)
         *(.srodata.*)
 
+        /* _dump_sections for bflb_coredump.c*/
+        . = ALIGN(4);
+        PROVIDE( _dump_sections = ABSOLUTE(.));
+        LONG(ORIGIN(ram_memory));
+        LONG(LENGTH(ram_memory));
+        LONG(ORIGIN(ram_nocache));
+        LONG(LENGTH(ram_nocache));
+        LONG(ORIGIN(ram_wifi));
+        LONG(LENGTH(ram_wifi));
+        /*
+        LONG(ORIGIN(ram_psram));
+        LONG(LENGTH(ram_psram));
+         */
+        LONG(0x28010000); /* bt memory */
+        LONG(__EM_SIZE);
+        LONG(0xffffffff);
+        LONG(0xffffffff);
+        /* _dump_sections for bl_coredump.c*/
+
         . = ALIGN(4);
         __text_code_end__ = .;
     } > xip_memory
 
     . = ALIGN(4);
-    __itcm_load_addr = .;
+    __nocache_ram_load_addr = .;
+
+    .nocache_ram_region  : AT (__nocache_ram_load_addr)
+    {
+        . = ALIGN(4);
+        __nocache_ram_data_start__ = .;
+
+        *(.nocache_ram)
+
+        . = ALIGN(4);
+        __nocache_ram_data_end__ = .;
+    } > ram_nocache
+
+    .nocache_noinit_ram_region (NOLOAD) :
+    {
+        . = ALIGN(4);
+        __nocache_noinit_ram_data_start__ = .;
+
+        *(.nocache_noinit_ram)
+        *(.noncacheable)
+
+        . = ALIGN(4);
+        __nocache_noinit_ram_data_end__ = .;
+    } > ram_nocache
+
+    /* Skip the nocache region */ 
+    .ram_skip_nocache_region (NOLOAD) :
+    {
+        . += (__nocache_noinit_ram_data_end__ - ORIGIN(ram_nocache));
+    } > ram_memory
+
+    __itcm_load_addr = __nocache_ram_load_addr + SIZEOF(.nocache_ram_region);
 
     .itcm_region : AT (__itcm_load_addr)
     {
@@ -149,7 +199,7 @@ SECTIONS
 
         . = ALIGN(4);
         __tcm_code_end__ = .;
-    } > itcm_memory
+    } > ram_memory
 
     __dtcm_load_addr = __itcm_load_addr + SIZEOF(.itcm_region);
 
@@ -163,44 +213,9 @@ SECTIONS
 
         . = ALIGN(4);
         __tcm_data_end__ = .;
-    } > dtcm_memory
+    } > ram_memory
 
-    /*************************************************************************/
-    /* .stack_dummy section doesn't contains any symbols. It is only
-     * used for linker to calculate size of stack sections, and assign
-     * values to stack symbols later */
-    .stack_dummy (NOLOAD):
-    {
-        . = ALIGN(0x4);
-        . = . + StackSize;
-        . = ALIGN(0x4);
-    } > dtcm_memory
-
-    /* Set stack top to end of RAM, and stack limit move down by
-     * size of stack_dummy section */
-    __StackTop = ORIGIN(dtcm_memory) + LENGTH(dtcm_memory);
-    PROVIDE( __freertos_irq_stack_top = __StackTop);
-    __StackLimit = __StackTop - SIZEOF(.stack_dummy);
-
-    /* Check if data + heap + stack exceeds RAM limit */
-    ASSERT(__StackLimit >= __tcm_data_end__, "region RAM overflowed with stack")
-
-    /*************************************************************************/
-
-    __nocache_ram_load_addr = __dtcm_load_addr + SIZEOF(.dtcm_region);
-
-    .nocache_ram_region  : AT (__nocache_ram_load_addr)
-    {
-        . = ALIGN(4);
-        __nocache_ram_data_start__ = .;
-
-        *(.nocache_ram)
-
-        . = ALIGN(4);
-        __nocache_ram_data_end__ = .;
-    } > nocache_ram_memory
-
-    __ram_load_addr = __nocache_ram_load_addr + SIZEOF(.nocache_ram_region);
+    __ram_load_addr = __dtcm_load_addr + SIZEOF(.dtcm_region);
 
     /* Data section */
     RAM_DATA : AT (__ram_load_addr)
@@ -217,6 +232,20 @@ SECTIONS
         *(.sdata2)
         *(.sdata2.*)
 
+        . = ALIGN(8);
+        *(._k_queue.static.*)
+        *(._k_sem.static.*)
+        *(._k_mutex.static.*)
+        _bt_gatt_service_static_list_start = .;
+        KEEP(*(SORT_BY_NAME("._bt_gatt_service_static.static.*")))
+        _bt_gatt_service_static_list_end = .;
+        _bt_l2cap_fixed_chan_list_start = .;
+        KEEP(*(SORT_BY_NAME("._bt_l2cap_fixed_chan.static.*")))
+        _bt_l2cap_fixed_chan_list_end = .;
+        _bt_l2cap_br_fixed_chan_list_start = .;
+        KEEP(*(SORT_BY_NAME("._bt_l2cap_br_fixed_chan.static.*")))
+        _bt_l2cap_br_fixed_chan_list_end = .;
+
         . = ALIGN(4);
         __bflog_tags_start__ = .;
         *(.bflog_tags_array)
@@ -224,7 +253,6 @@ SECTIONS
         __bflog_tags_end__ = .;
         __ram_data_end__ = .;
     } > ram_memory
-
 
     __psram_load_addr = (__ram_load_addr + SIZEOF (RAM_DATA));
 
@@ -241,6 +269,19 @@ SECTIONS
 
     __etext_final = (__psram_load_addr + SIZEOF (.psram_data_region));
     ASSERT(__etext_final <= ORIGIN(xip_memory) + LENGTH(xip_memory), "code memory overflow")
+
+    .stack (NOLOAD):
+    {
+        __StackLimit = .;
+        . = ALIGN(16);
+        . = . + StackSize;
+        __StackTop = .;
+        __freertos_irq_stack_top = .;
+    } > ram_memory
+
+    PROVIDE( __freertos_irq_stack_top = __StackTop);
+    PROVIDE( _sp_main = __StackTop);
+    PROVIDE( _sp_base = __StackLimit);
 
     .bss (NOLOAD) :
     {
@@ -265,18 +306,6 @@ SECTIONS
         . = ALIGN(4);
         __noinit_data_end__ = .;
     } > ram_memory
-
-    .nocache_noinit_ram_region (NOLOAD) :
-    {
-        . = ALIGN(4);
-        __nocache_noinit_ram_data_start__ = .;
-
-        *(.nocache_noinit_ram)
-        *(.noncacheable)
-
-        . = ALIGN(4);
-        __nocache_noinit_ram_data_end__ = .;
-    } > nocache_ram_memory
 
     .heap (NOLOAD):
     {
@@ -314,7 +343,7 @@ SECTIONS
     } > ram_psram
 
     __psram_limit = ORIGIN(ram_psram) + LENGTH(ram_psram);
-    ASSERT(__psram_limit - __psram_heap_base >= psram_min_size, "psram heap region overflow")
+    ASSERT(__psram_limit - __psram_heap_base >= psram_heap_min_size, "psram heap region overflow")
  
     .wifibss (NOLOAD) :
     {
@@ -340,19 +369,12 @@ SECTIONS
     PROVIDE( _heap_wifi_start = . );
     PROVIDE( _heap_wifi_size = ORIGIN(ram_wifi) + LENGTH(ram_wifi) - _heap_wifi_start );
     PROVIDE(__LD_CONFIG_EM_SEL = __EM_SIZE);
-
+    ASSERT((wifi_ram_max_size + __EM_SIZE) <= 160K,"wifi ram overflow")
 }
-  PROVIDE( _ld_ram_size0 = LENGTH(xip_memory) );
-  PROVIDE( _ld_ram_addr0 = ORIGIN(xip_memory) );
-  PROVIDE( _ld_ram_size1 = LENGTH(ram_psram) );
-  PROVIDE( _ld_ram_addr1 = ORIGIN(ram_psram) );
-  PROVIDE( _ld_ram_size2 = LENGTH(itcm_memory) );
-  PROVIDE( _ld_ram_addr2 = ORIGIN(itcm_memory) );
-  PROVIDE( _ld_ram_size3 = LENGTH(dtcm_memory) );
-  PROVIDE( _ld_ram_addr3 = ORIGIN(dtcm_memory) );
-  PROVIDE( _ld_ram_size4 = LENGTH(nocache_ram_memory) );
-  PROVIDE( _ld_ram_addr4 = ORIGIN(nocache_ram_memory) );
-  PROVIDE( _ld_ram_size5 = LENGTH(ram_memory) );
-  PROVIDE( _ld_ram_addr5 = ORIGIN(ram_memory) );
-  PROVIDE( _ld_ram_size6 = LENGTH(ram_wifi) );
-  PROVIDE( _ld_ram_addr6 = ORIGIN(ram_wifi) );
+
+  PROVIDE( _ld_ram_size2 = LENGTH(ram_nocache) );
+  PROVIDE( _ld_ram_addr2 = ORIGIN(ram_nocache) );
+  PROVIDE( _ld_ram_size3 = LENGTH(ram_memory) );
+  PROVIDE( _ld_ram_addr3 = ORIGIN(ram_memory) );
+  PROVIDE( _ld_ram_size4 = LENGTH(ram_wifi) );
+  PROVIDE( _ld_ram_addr4 = ORIGIN(ram_wifi) );

@@ -73,7 +73,7 @@ using namespace chip::Shell;
 
 namespace {
 
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
+#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616DK)
 ColorLEDWidget sLightLED;
 #else
 DimmableLEDWidget sLightLED;
@@ -306,7 +306,7 @@ void AppTask::LightingUpdate(app_event_t status)
                     {
                         v.SetNonNull(254);
                     }
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
+#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616DK)
                     sLightLED.SetColor(v.Value(), hue, sat);
 #else
                     sLightLED.SetLevel(v.Value());
@@ -316,7 +316,7 @@ void AppTask::LightingUpdate(app_event_t status)
         }
         else
         {
-#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
+#if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT) || defined(BL616DK)
             /** show yellow to indicate not-provision state for extended color light */
             sLightLED.SetColor(254, 35, 254);
 #else
@@ -373,7 +373,7 @@ void AppTask::TimerEventHandler(app_event_t event)
             }
             else if (pressedTime >= APP_BUTTON_PRESS_SHORT)
             {
-#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT)
+#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT) || defined(BL616DK)
                 /** change color to indicate to wait factory reset confirm */
                 sLightLED.SetColor(254, 0, 210);
 #else
@@ -409,7 +409,7 @@ void AppTask::TimerEventHandler(app_event_t event)
         }
         else
         {
-#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT)
+#if defined(BL602_NIGHT_LIGHT) || defined(BL706_NIGHT_LIGHT) || defined(BL616DK)
             /** change color to indicate to wait factory reset confirm */
             sLightLED.SetColor(254, 0, 210);
 #else
