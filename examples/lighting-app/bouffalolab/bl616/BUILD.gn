@@ -279,6 +279,7 @@ bouffalolab_executable("lighting_app") {
 
   if (chip_print_memory_usage) {
     ldflags += [
+      "--specs=nano.specs",
       "-Wl,--print-memory-usage",
       "-fstack-usage",
     ]

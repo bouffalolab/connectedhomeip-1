@@ -69,7 +69,6 @@ template("bouffalo_sdk") {
       "-Wl,--gc-sections",
       "-nostartfiles",
 
-      "--specs=nano.specs",
       "-fshort-enums", 
     ]
     cflags = [ "-Wno-unused-but-set-variable", "-Wno-conversion", "-fstack-usage" ]
