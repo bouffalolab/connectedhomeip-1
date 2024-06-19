@@ -30,7 +30,7 @@
 #endif
 
 extern "C" {
-#if CHIP_DEVICE_LAYER_TARGET_BLBL702L || CHIP_DEVICE_LAYER_TARGET_BL616
+#if CHIP_DEVICE_LAYER_TARGET_BL702L || CHIP_DEVICE_LAYER_TARGET_BL616
 #include <btble_lib_api.h>
 #else
 #include <ble_lib_api.h>

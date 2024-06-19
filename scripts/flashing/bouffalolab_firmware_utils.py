@@ -107,6 +107,21 @@ BOUFFALO_OPTIONS = {
                 'type': pathlib.Path
             }
         },
+        'mfd': {
+            'help': 'matter factory data',
+            'default': None,
+            'argparse': {
+                'metavar': 'path',
+                'type': pathlib.Path
+            }
+        },
+        'mfd-key': {
+            'help': 'data key in security engine for matter factory data decryption',
+            'default': None,
+            'argparse': {
+                'metavar': 'MFD_KEY',
+            }
+        },
         'boot2': {
             'help': 'boot2 image.',
             'default': None,
@@ -184,7 +199,6 @@ class Flasher(firmware_utils.Flasher):
             raise Exception(e)
 
         options_keys = BOUFFALO_OPTIONS["configuration"].keys()
-        # arguments = [__file__]
         arguments = [flashtool_exe]
         work_dir = None
 
