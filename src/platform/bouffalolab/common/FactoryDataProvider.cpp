@@ -20,7 +20,7 @@
 #include <platform/CHIPDeviceConfig.h>
 
 #if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
-#include <matter_factory_data.h>
+#include <bl_mfd.h>
 #else
 extern "C" {
 #include <utils_base64.h>

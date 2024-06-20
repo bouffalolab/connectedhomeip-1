@@ -724,7 +724,6 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/math/include",
       "${bouffalo_sdk_root}/components/utils/list",
     ]
-#   "${bouffalo_sdk_root}/components/utils/matter_factory_data/include",
 
     defines = [
       "CONFIG_LOG_LEVEL=0",
@@ -769,9 +768,6 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/utils/math/src/utils_crc.c",
       "${bouffalo_sdk_root}/components/utils/math/src/utils_hex.c",
     ]
-
-#      "${bouffalo_sdk_root}/components/utils/matter_factory_data/efuse_slot.c",
-#      "${bouffalo_sdk_root}/components/utils/matter_factory_data/matter_factory_data.c",
 
     cflags_c = [
       "-Wno-sign-compare",
@@ -1047,7 +1043,6 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/wireless/wifi6/include",
       "${bouffalo_sdk_root}/components/wireless/wifi6/include/export",
       "${bouffalo_sdk_root}/components/wireless/wifi6/bl6_os_adapter/include",
-      "${bouffalo_sdk_root}/components/wireless/wifi6/wifi6_lwip_adapter/include",
     ]
   }
 
@@ -1068,12 +1063,6 @@ template("bouffalo_sdk") {
     sources = [
       "${bouffalo_sdk_root}/components/wireless/wifi6/bl6_os_adapter/src/rtos_al.c",
       "${bouffalo_sdk_root}/components/wireless/wifi6/bl6_os_adapter/src/platform_bouffalo_sdk.c",
-      "${bouffalo_sdk_root}/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c",
-      "${bouffalo_sdk_root}/components/wireless/wifi6/wifi6_lwip_adapter/net_al.c",
-      "${bouffalo_sdk_root}/components/wireless/wifi6/wifi6_lwip_adapter/net_al_ext.c",
-      "${bouffalo_sdk_root}/components/wireless/wifi6/wifi6_lwip_adapter/net_tg_al.c",
-      "${bouffalo_sdk_root}/components/wireless/wifi6/wifi6_lwip_adapter/net_iperf_al.c",
-      "${bouffalo_sdk_root}/components/wireless/wifi6/wifi6_lwip_adapter/wifi_pkt_hooks.c",
     ]
 
     cflags_c = [
@@ -1128,6 +1117,7 @@ template("bouffalo_sdk") {
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src",
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/port/include",
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/common/include/zephyr",
+      "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/common/include/misc",
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/host",
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/common/include",
       "${bouffalo_sdk_root}/components/wireless/bluetooth/blestack/src/include/drivers/bluetooth",
@@ -1265,6 +1255,27 @@ template("bouffalo_sdk") {
     ]
   }
 
+  config("${sdk_target_name}_config_factory_data") {
+    include_dirs = [ "${bouffalo_sdk_root}/components/wireless/matter/mfd/include" ]
+  }
+
+  source_set("${sdk_target_name}_factory_data") {
+
+    defines = [ "BL_MFD_PLAT_H=\"bl_mfd_bl616.h\"" ]
+    sources = [
+      "${bouffalo_sdk_root}/components/wireless/matter/mfd/bl_mfd.c",
+      "${bouffalo_sdk_root}/components/wireless/matter/mfd/bl_mfd_decrypt_bl616.c",
+    ]
+
+    configs += [
+      ":${sdk_target_name}_config",
+      ":${sdk_target_name}_config_std_drv",
+      ":${sdk_target_name}_config_lhal",
+      ":${sdk_target_name}_config_utils",
+    ]
+    public_configs = [ ":${sdk_target_name}_config_factory_data" ]
+  }
+
   group(sdk_target_name) {
     public_deps = [
       ":${sdk_target_name}_startup",
@@ -1297,9 +1308,11 @@ template("bouffalo_sdk") {
     }
 
     if (defined(invoker.chip_config_network_layer_ble) && invoker.chip_config_network_layer_ble) {
-      public_deps += [
-        ":${sdk_target_name}_ble",
-      ]
+      public_deps += [ ":${sdk_target_name}_ble" ]
+    }
+
+    if (defined(invoker.chip_enable_factory_data) && invoker.chip_enable_factory_data) {
+      public_deps += [ ":${sdk_target_name}_factory_data" ]
     }
   }
 }
