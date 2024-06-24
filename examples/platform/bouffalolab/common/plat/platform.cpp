@@ -180,7 +180,7 @@ void UnlockOpenThreadTask(void)
 CHIP_ERROR PlatformManagerImpl::PlatformInit(void)
 {
     chip::RendezvousInformationFlags rendezvousMode(chip::RendezvousInformationFlag::kOnNetwork);
-#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
     CHIP_ERROR retFactoryData = sFactoryDataProvider.Init();
 #endif
 

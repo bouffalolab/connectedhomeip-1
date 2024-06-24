@@ -1072,6 +1072,7 @@ template("bouffalo_sdk") {
     ]
 
     configs += [
+      ":${sdk_target_name}_config",
       ":${sdk_target_name}_config_lhal",
       ":${sdk_target_name}_config_utils",
       ":${sdk_target_name}_config_shell",
@@ -1080,7 +1081,6 @@ template("bouffalo_sdk") {
     ]
     public_configs = [
       ":${sdk_target_name}_config_wifi",
-      ":${sdk_target_name}_config",
     ]
   }
 

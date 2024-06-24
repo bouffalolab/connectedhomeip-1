@@ -23,6 +23,7 @@ import sys
 import subprocess
 import platform
 import toml
+import binascii
 import configparser
 import coloredlogs
 import firmware_utils
@@ -117,11 +118,11 @@ BOUFFALO_OPTIONS = {
                 'type': pathlib.Path
             }
         },
-        'mfd-key': {
+        'key': {
             'help': 'data key in security engine for matter factory data decryption',
             'default': None,
             'argparse': {
-                'metavar': 'MFD_KEY',
+                'metavar': 'key',
             }
         },
         'boot2': {
@@ -150,6 +151,7 @@ class Flasher(firmware_utils.Flasher):
     isErase = False
     uart_port = None
     mfd = None
+    key = None
 
     # parameters to program firmware for bl iot sdk
     dts_path = None
@@ -252,6 +254,37 @@ class Flasher(firmware_utils.Flasher):
 
     def bouffalo_sdk_prog(self):
 
+        def get_iv(mfd):
+            with open(mfd, 'rb') as f:
+                bytes_obj = f.read()
+
+            sec_len = int.from_bytes(bytes_obj[0:4], byteorder='little')
+            crc_val_calc = int.from_bytes(bytes_obj[4 + sec_len:4 + sec_len + 4], byteorder='little')
+            crc_val = int.from_bytes(bytes_obj[4 + sec_len:4 + sec_len + 4])
+            if crc_val_calc != crc_val_calc:
+                raise Exception("MFD partition file has invalid format in secured data.")
+
+            if 0 == sec_len:
+                return None
+
+            raw_start = 4 + sec_len + 4
+            raw_len = int.from_bytes(bytes_obj[raw_start:raw_start + 4], byteorder='little')
+            crc_val_calc = binascii.crc32(bytes_obj[raw_start + 4:raw_start + 4 + raw_len])
+            crc_val = int.from_bytes(bytes_obj[raw_start + 4 + raw_len:raw_start + 4 + raw_len + 4], byteorder='little')
+            if crc_val_calc != crc_val_calc:
+                raise Exception("MFD partition file has invalid format in raw data.")
+
+            offset = 0
+            while offset < raw_len:
+                type_id = int.from_bytes(bytes_obj[raw_start + 4 + offset: raw_start + 4 + offset + 2], byteorder='little')
+                type_len = int.from_bytes(bytes_obj[raw_start + 4 + offset + 2:raw_start + 4 + offset + 4], byteorder='little')
+
+                if 0x8001 == type_id:
+                    return bytes_obj[raw_start + 4 + offset + 4:raw_start + 4 + offset + 4 + type_len]
+
+                offset += (4 + type_len)
+            return None
+
         def prog_config(output, isErase = False):
 
             config = configparser.ConfigParser()
@@ -262,7 +295,7 @@ class Flasher(firmware_utils.Flasher):
             config.set('cfg', 'boot2_isp_mode', '0')
 
             config.add_section('boot2')
-            config.set('boot2', 'filedir', os.path.join(self.work_dir, 'boot2_*.bin'))
+            config.set('boot2', 'filedir', os.path.join(self.work_dir, 'config/boot2_*.bin'))
             config.set('boot2', 'address', '0x000000')
 
             config.add_section('partition')
@@ -319,12 +352,17 @@ class Flasher(firmware_utils.Flasher):
             if line:
                 logging.info(line)
 
+        if self.mfd and self.key:
+            iv = get_iv(self.mfd)
+            if iv:
+                self.arguments.append("--iv")
+                self.arguments.append(iv.hex())
+
+        logging.info("firwmare programming: {}".format(" ".join(self.arguments)))
         if self.uart_port:
             prog_config(os.path.join(self.work_dir, "flash_prog_cfg.ini"), self.option.erase)
 
             self.arguments = [flashtool_exe] + self.arguments
-            self.arguments.append("--config")
-            self.arguments.append(os.path.join(self.work_dir, "flash_prog_cfg.ini"))
 
             logging.info("firwmare programming: {}".format(" ".join(self.arguments)))
             process = subprocess.Popen(self.arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -370,10 +408,11 @@ class Flasher(firmware_utils.Flasher):
                 boot2_image = value
                 continue
             elif key == "mfd":
-                self.mfd = os.path.join(os.getcwd(), str(value))
+                if value:
+                    self.mfd = os.path.join(os.getcwd(), str(value))
                 continue
-            elif key == "mfd_key":
-                self.mfd_key = value
+            elif key == "key":
+                self.key = value
                 continue
             elif key in options_keys:
                 pass

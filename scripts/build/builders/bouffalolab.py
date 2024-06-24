@@ -69,12 +69,6 @@ class BouffalolabBoard(Enum):
             raise Exception('Unknown board #: %r' % self)
 
 
-class BouffalolabMfd(Enum):
-    MFD_DISABLE = auto()
-    MFD_TEST = auto()
-    MFD_RELEASE = auto()
-
-
 class BouffalolabBuilder(GnBuilder):
 
     def __init__(self,
@@ -89,7 +83,7 @@ class BouffalolabBuilder(GnBuilder):
                  enable_cdc: bool = False,
                  enable_resetCnt: bool = False,
                  enable_rotating_device_id: bool = False,
-                 function_mfd: BouffalolabMfd = BouffalolabMfd.MFD_DISABLE,
+                 enable_mfd: bool = False,
                  enable_ethernet: bool = False,
                  enable_wifi: bool = False,
                  enable_thread: bool = False,
@@ -212,11 +206,8 @@ class BouffalolabBuilder(GnBuilder):
             self.argsOpt.append('chip_enable_additional_data_advertising=true')
             self.argsOpt.append('chip_enable_rotating_device_id=true')
 
-        if BouffalolabMfd.MFD_DISABLE != function_mfd:
-            if BouffalolabMfd.MFD_RELEASE == function_mfd:
-                self.argsOpt.append("chip_enable_factory_data=true")
-            elif BouffalolabMfd.MFD_TEST == function_mfd:
-                self.argsOpt.append("chip_enable_factory_data_test=true")
+        if enable_mfd:
+            self.argsOpt.append("chip_enable_factory_data=true")
 
         self.argsOpt.append(f"enable_debug_frame_ptr={str(enable_frame_ptr).lower()}")
         self.argsOpt.append(f"enable_heap_monitoring={str(enable_heap_monitoring).lower()}")
@@ -255,6 +246,10 @@ class BouffalolabBuilder(GnBuilder):
         }
 
         return items
+
+
+    def PreBuildCommand(self):
+        os.system("rm -rf {}/config".format(self.output_dir))
 
     def PostBuildCommand(self):
 

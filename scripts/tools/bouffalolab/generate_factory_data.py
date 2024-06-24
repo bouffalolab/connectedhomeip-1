@@ -228,12 +228,16 @@ def gen_test_certs(chip_cert: str,
             raise Exception("File {} is not existed.".format(pem))
 
         der = Path(pem).with_suffix(".der")
-        cmd = [chip_cert, action, pem, der, "--x509-der", ]
-        subprocess.run(cmd)
+        if not os.path.isfile(der):
+            cmd = [chip_cert, action, pem, der, "--x509-der", ]
+            subprocess.run(cmd)
 
         return der
 
     def gen_cd(chip_cert, dac_vendor_id, dac_product_id, vendor_id, product_id, cd_cert, cd_key, cd):
+
+        if os.path.isfile(cd):
+            return
 
         cmd = [chip_cert, "gen-cd",
                "--key", cd_key,
@@ -296,7 +300,7 @@ def gen_mfd_partition(args, mfd_output):
         return src
 
     def gen_efuse_aes_iv():
-        return bytes(random.sample(range(0, 0xf), 12) + [0] * 4)
+        return bytes(random.sample(range(0, 0xff), 12) + [0] * 4)
 
     def read_file(rfile):
         with open(rfile, 'rb') as _f:
@@ -310,6 +314,7 @@ def gen_mfd_partition(args, mfd_output):
             return private_key
 
     def encrypt_data(data_bytearray, key_bytearray, iv_bytearray):
+        data_bytearray += bytes([0] * (16 - (len(data_bytearray) % 16) ))
         cryptor = AES.new(key_bytearray, AES.MODE_CBC, iv_bytearray)
         ciphertext = cryptor.encrypt(data_bytearray)
         return ciphertext
@@ -322,13 +327,14 @@ def gen_mfd_partition(args, mfd_output):
                 return data
         elif isinstance(data, int):
             byte_len = int((data.bit_length() + 7) / 8)
-            return data.to_bytes(byte_len, byteorder='big')
+            return data.to_bytes(byte_len, byteorder='little')
         elif data is None:
             return bytes([])
         else:
             raise Exception("Data {} is invalid type: {}".format(name, type(data)))
 
     def gen_tlvs(mfdDict, need_sec):
+        MFD_ID_RAW_MASK = 0x8000
 
         sec_tlvs = bytes([])
         raw_tlvs = bytes([])
@@ -347,14 +353,14 @@ def gen_mfd_partition(args, mfd_output):
             if not d["sec"] or not need_sec:
                 if d["len"] and d["len"] < len(d["data"]):
                     raise Exception("Data size of {} is over {}".format(name, d["len"]))
-                raw_tlvs += int_to_2bytearray_l(d["id"])
+                raw_tlvs += int_to_2bytearray_l(d["id"] + MFD_ID_RAW_MASK)
                 raw_tlvs += int_to_2bytearray_l(len(d["data"]))
                 raw_tlvs += d["data"]
 
         return sec_tlvs, raw_tlvs
 
     mfdDict = {
-        "aes_iv": {'sec': False, "id": 1, "len": 16, "data": gen_efuse_aes_iv()},
+        "aes_iv": {'sec': False, "id": 1, "len": 16, "data": gen_efuse_aes_iv() if args.mfd_key else bytes([0])},
         "dac_cert": {'sec': False, "id": 2, "len": None, "data": read_file(args.dac_cert)},
         "dac_key": {'sec': True, "id": 3, "len": None, "data": get_private_key(args.dac_key)},
         "passcode": {'sec': False, "id": 4, "len": 4, "data": convert_to_bytes(args.passcode)},
@@ -387,7 +393,6 @@ def gen_mfd_partition(args, mfd_output):
     output = int_to_4bytearray_l(len(sec_tlvs))
     output += sec_tlvs
     output += int_to_4bytearray_l(binascii.crc32(sec_tlvs))
-    output += sec_tlvs
     output += int_to_4bytearray_l(len(raw_tlvs))
     output += raw_tlvs
     output += int_to_4bytearray_l(binascii.crc32(raw_tlvs))
@@ -396,7 +401,7 @@ def gen_mfd_partition(args, mfd_output):
         fp.write(output)
 
 
-def gen_onboarding_data(args, onboard_txt, onboard_png):
+def gen_onboarding_data(args, onboard_txt, onboard_png, rendez = 6):
 
     try:
         import qrcode
@@ -413,7 +418,7 @@ def gen_onboarding_data(args, onboard_txt, onboard_png):
 
     setup_payload = SetupPayload(discriminator=args.discriminator,
                                  pincode=args.passcode,
-                                 rendezvous=2,  # fixed pairing BLE
+                                 rendezvous=rendez,
                                  flow=CommissioningFlow.Standard,
                                  vid=args.vendor_id,
                                  pid=args.product_id)
@@ -470,6 +475,7 @@ def main():
     parser.add_argument("--manufactoring_date", type=str, help="Product Web URL, optional.")
     parser.add_argument("--hardware_version", type=int, help="Product Web URL, optional.")
     parser.add_argument("--hardware_version_string", type=str, help="Product Web URL, optional.")
+    parser.add_argument("--rendezvous", type=int, default=6, help="Rendezvous Mode for QR code generation")
 
     parser.add_argument("--output", type=str, help="output path.")
     parser.add_argument("--mfd_key", type=base64.b64decode, help="Encrypt private part in mfd.")
@@ -492,13 +498,14 @@ def main():
     unique_id = gen_test_unique_id(args.unique_id)
     spake2p_it, spake2p_salt, spake2p_verifier = gen_test_spake2(passcode, args.spake2p_it, args.spake2p_salt)
 
-    output_name_part = str(discriminator)
+    vp_info = "{}_{}".format(hex(args.vendor_id), hex(args.product_id))
+    vp_disc_info = "{}_{}_{}".format(hex(args.vendor_id), hex(args.product_id), discriminator)
     if args.dac_cert is None:
-        args.dac_cert = args.output + "/out_" + output_name_part + "_dac_cert.pem"
-        args.dac_key = args.output + "/out_" + output_name_part + "_dac_key.pem"
+        args.dac_cert = os.path.join(args.output, "out_{}_dac_cert.pem".format(vp_disc_info))
+        args.dac_key =  os.path.join(args.output, "out_{}_dac_key.pem".format(vp_disc_info))
 
     if args.cd is None:
-        args.cd = args.output + "/out_" + output_name_part + "_cd.der"
+        args.cd =  os.path.join(args.output, "out_{}_cd.der".format(vp_info))
 
     cd, pai_cert_der, dac_cert_der, dac_key_der = gen_test_certs(args.chip_cert, 
                                                                  args.output,
@@ -515,7 +522,7 @@ def main():
                                                                  args.dac_cert,
                                                                  args.dac_key)
 
-    mfd_output = args.output + "/out_" + output_name_part + "_mfd.bin"
+    mfd_output =  os.path.join(args.output, "out_{}_mfd.bin".format(vp_disc_info))
     args.dac_cert = dac_cert_der
     args.dac_key = dac_key_der
     args.passcode = passcode
@@ -529,9 +536,9 @@ def main():
     args.mfd_key = to_bytes(args.mfd_key)
     gen_mfd_partition(args, mfd_output)
 
-    onboard_txt = args.output + "/out_" + output_name_part + "_onboard.txt"
-    onboard_png = args.output + "/out_" + output_name_part + "_onboard.png"
-    manualcode, qrcode = gen_onboarding_data(args, onboard_txt, onboard_png)
+    onboard_txt =  os.path.join(args.output, "out_{}_onboard.txt".format(vp_disc_info))
+    onboard_png =  os.path.join(args.output, "out_{}_onboard.png".format(vp_disc_info))
+    manualcode, qrcode = gen_onboarding_data(args, onboard_txt, onboard_png, args.rendezvous)
 
     log.info("")
     log.info("Output as below: ")
