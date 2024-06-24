@@ -21,7 +21,9 @@ import re
 import shutil
 import sys
 import subprocess
-
+import platform
+import toml
+import configparser
 import coloredlogs
 import firmware_utils
 
@@ -40,7 +42,7 @@ BOUFFALO_OPTIONS = {
             }
         },
         'pt': {
-            'help': 'Partition table for board',
+            'help': 'Partition table for board for bl iot sdk',
             'default': None,
             'argparse': {
                 'metavar': 'PARTITION_TABLE_FILE',
@@ -48,7 +50,7 @@ BOUFFALO_OPTIONS = {
             }
         },
         'dts': {
-            'help': 'Device tree file',
+            'help': 'Device tree file for bl iot sdk',
             'default': None,
             'argparse': {
                 'metavar': 'DEVICE_TREE_FILE',
@@ -56,7 +58,7 @@ BOUFFALO_OPTIONS = {
             }
         },
         'xtal': {
-            'help': 'XTAL for board',
+            'help': 'XTAL configuration for bl iot sdk',
             'default': None,
             'argparse': {
                 'metavar': 'XTAL',
@@ -123,7 +125,14 @@ BOUFFALO_OPTIONS = {
             }
         },
         'boot2': {
-            'help': 'boot2 image.',
+            'help': 'boot2 image for bl iot sdk',
+            'default': None,
+            'argparse': {
+                'metavar': 'path',
+            }
+        },
+        'config': {
+            'help': 'firmware programming configuration for bouffalo sdk',
             'default': None,
             'argparse': {
                 'metavar': 'path',
@@ -135,42 +144,194 @@ BOUFFALO_OPTIONS = {
 
 class Flasher(firmware_utils.Flasher):
 
+    arguments = []
+    chip_name = None
+    work_dir = None
     isErase = False
+    uart_port = None
+    mfd = None
+
+    # parameters to program firmware for bl iot sdk
+    dts_path = None
+    xtal_value = None
+    boot2_image = None
+
+    bouffalo_sdk_chips = ["bl616"]
+    # parameters to process & program firmware for bouffalo sdk
+    firmware = None
 
     def __init__(self, **options):
         super().__init__(platform=None, module=__name__, **options)
         self.define_options(BOUFFALO_OPTIONS)
 
-    def get_boot_image(self, config_path, boot2_image):
+    def iot_sdk_prog(self):
+        def get_boot_image(config_path, boot2_image):
 
-        boot_image_guess = None
+            boot_image_guess = None
 
-        for root, dirs, files in os.walk(config_path, topdown=False):
-            for name in files:
-                if boot2_image:
-                    return os.path.join(root, boot2_image)
-                else:
-                    if name == "boot2_isp_release.bin":
-                        return os.path.join(root, name)
-                    elif not boot_image_guess and name.find("release") >= 0:
-                        boot_image_guess = os.path.join(root, name)
+            for root, dirs, files in os.walk(config_path, topdown=False):
+                for name in files:
+                    if boot2_image:
+                        return os.path.join(root, boot2_image)
+                    else:
+                        if name == "boot2_isp_release.bin":
+                            return os.path.join(root, name)
+                        elif not boot_image_guess and name.find("release") >= 0:
+                            boot_image_guess = os.path.join(root, name)
 
-        return boot_image_guess
+            return boot_image_guess
 
-    def get_dts_file(self, config_path, xtal_value, chip_name):
+        def get_dts_file(config_path, xtal_value, chip_name):
 
-        for root, dirs, files in os.walk(config_path, topdown=False):
-            for name in files:
-                if chip_name == 'bl616':
-                    if name.find("bl_factory_params_IoTKitA_auto.dts") >= 0:
-                        return os.path.join(config_path, name)
-                elif chip_name == 'bl702':
-                    if name.find("bl_factory_params_IoTKitA_32M.dts") >= 0:
-                        return os.path.join(config_path, name)
-                else:
-                    if name.find(xtal_value) >= 0:
-                        return os.path.join(config_path, name)
-        return None
+            for root, dirs, files in os.walk(config_path, topdown=False):
+                for name in files:
+                    if chip_name == 'bl616':
+                        if name.find("bl_factory_params_IoTKitA_auto.dts") >= 0:
+                            return os.path.join(config_path, name)
+                    elif chip_name == 'bl702':
+                        if name.find("bl_factory_params_IoTKitA_32M.dts") >= 0:
+                            return os.path.join(config_path, name)
+                    else:
+                        if name.find(xtal_value) >= 0:
+                            return os.path.join(config_path, name)
+            return None
+
+        flashtool_path = os.environ.get('BOUFFALOLAB_SDK_ROOT') + "/flashtool/BouffaloLabDevCube-v1.8.9"
+        bflb_tools_dict = {
+            "linux": {"flash_tool": "bflb_iot_tool-ubuntu"},
+            "win32": {"flash_tool": "bflb_iot_tool.exe"},
+            "darwin": {"flash_tool": "bflb_iot_tool-macos"},
+        }
+
+        try:
+            flashtool_exe = flashtool_path + "/" + bflb_tools_dict[sys.platform]["flash_tool"]
+        except Exception as e:
+            raise Exception("Do NOT support {} operating system to program firmware.".format(sys.platform))
+
+        if not os.path.exists(flashtool_exe):
+            logging.fatal('*' * 80)
+            logging.error('Flashtool is not installed, or environment variable BOUFFALOLAB_SDK_ROOT is not exported.')
+            logging.fatal('\tPlease make sure Bouffalo Lab SDK installs as below:')
+            logging.fatal('\t\t./third_party/bouffalolab/env-setup.sh')
+
+            logging.fatal('\tPlease make sure BOUFFALOLAB_SDK_ROOT exports before building as below:')
+            logging.fatal('\t\texport BOUFFALOLAB_SDK_ROOT="your install path"')
+            logging.fatal('*' * 80)
+            raise Exception(e)
+
+        if not self.dts_path and self.xtal_value:
+            chip_config_path = os.path.join(flashtool_path, "chips", self.chip_name, "device_tree")
+            dts_path = get_dts_file(chip_config_path, self.xtal_value, self.chip_name)
+            self.arguments.append("--dts")
+            self.arguments.append(self.dts_path)
+
+        if self.boot2_image:
+            chip_config_path = os.path.join(flashtool_path, "chips", self.chip_name, "builtin_imgs")
+            self.boot2_image = get_boot_image(chip_config_path, self.boot2_image)
+            self.arguments.append("--boot2")
+            self.arguments.append(self.boot2_image)
+        else:
+            if self.option.erase:
+                self.arguments.append("--erase")
+
+            if self.chip_name in {"bl602", "bl702", "bl616"}:
+                chip_config_path = os.path.join(flashtool_path, "chips", self.chip_name, "builtin_imgs")
+                self.boot2_image = get_boot_image(chip_config_path, self.boot2_image)
+                self.arguments.append("--boot2")
+                self.arguments.append(self.boot2_image)
+
+        self.arguments = [flashtool_exe] + self.arguments
+            
+        os.chdir(self.work_dir)
+        logging.info("Arguments {}".format(self.arguments))
+        process = subprocess.Popen(self.arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        while process.poll() is None:
+            line = process.stdout.readline().decode('utf-8').rstrip()
+            if line:
+                logging.info(line)
+
+    def bouffalo_sdk_prog(self):
+
+        def prog_config(output, isErase = False):
+
+            config = configparser.ConfigParser()
+
+            config.add_section('cfg')
+            config.set('cfg', 'erase', '2' if isErase else '1')
+            config.set('cfg', 'skip_mode', '0x0, 0x0')
+            config.set('cfg', 'boot2_isp_mode', '0')
+
+            config.add_section('boot2')
+            config.set('boot2', 'filedir', os.path.join(self.work_dir, 'boot2_*.bin'))
+            config.set('boot2', 'address', '0x000000')
+
+            config.add_section('partition')
+            config.set('partition', 'filedir', os.path.join(self.work_dir, "partition*.bin"))
+            config.set('partition', 'address', '0xE000')
+
+            config.add_section('FW')
+            config.set('FW', 'filedir', self.firmware)
+            config.set('FW', 'address', '@partition')
+
+            if self.mfd:
+                config.add_section("MFD")
+                config.set('MFD', 'filedir', self.mfd)
+                config.set('MFD', 'address', '@partition')
+
+            with open(output, 'w') as configfile:
+                config.write(configfile)
+
+        bflb_tools = os.path.join(os.getcwd(), "third_party/bouffalolab/bouffalo_sdk/tools/bflb_tools")
+        bflb_tools_dict = {
+            "linux": {"fw_proc": "bflb_fw_post_proc/bflb_fw_post_proc-ubuntu", "flash_tool": "bouffalo_flash_cube/BLFlashCommand-ubuntu"},
+            "win32": {"fw_proc": "bflb_fw_post_proc/bflb_fw_post_proc.exe", "flash_tool": "bouffalo_flash_cube/BLFlashCommand.exe"},
+            "darwin": {"fw_proc": "bflb_fw_post_proc/bflb_fw_post_proc-macos", "flash_tool": "bouffalo_flash_cube/BLFlashCommand-macos"},
+        }
+
+        try:
+            fw_proc_exe = os.path.join(bflb_tools, bflb_tools_dict[sys.platform]["fw_proc"])
+            flashtool_exe = os.path.join(bflb_tools, bflb_tools_dict[sys.platform]["flash_tool"])
+        except Exception as e:
+            raise Exception("Do NOT support {} operating system to program firmware.".format(sys.platform))
+        
+        if not os.path.exists(flashtool_exe) or not os.path.exists(fw_proc_exe):
+            logging.fatal('*' * 80)
+            logging.error("Expecting tools as below:")
+            logging.error(fw_proc_exe)
+            logging.error(flashtool_exe)
+            raise Exception("Flashtool or fw tool doesn't contain in SDK")
+
+        os.chdir(self.work_dir)
+
+        fw_proc_cmd = [
+            fw_proc_exe,
+            "--chipname",
+            self.chip_name,
+            "--brdcfgdir", 
+            os.path.join(self.work_dir, "config"),
+            "--imgfile",
+            self.firmware
+        ]
+        logging.info("firmware process command: {}".format(" ".join(fw_proc_cmd)))
+        process = subprocess.Popen(fw_proc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        while process.poll() is None:
+            line = process.stdout.readline().decode('utf-8').rstrip()
+            if line:
+                logging.info(line)
+
+        if self.uart_port:
+            prog_config(os.path.join(self.work_dir, "flash_prog_cfg.ini"), self.option.erase)
+
+            self.arguments = [flashtool_exe] + self.arguments
+            self.arguments.append("--config")
+            self.arguments.append(os.path.join(self.work_dir, "flash_prog_cfg.ini"))
+
+            logging.info("firwmare programming: {}".format(" ".join(self.arguments)))
+            process = subprocess.Popen(self.arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            while process.poll() is None:
+                line = process.stdout.readline().decode('utf-8').rstrip()
+                if line:
+                    logging.info(line)
 
     def verify(self):
         """Not supported"""
@@ -184,58 +345,35 @@ class Flasher(firmware_utils.Flasher):
         """Perform actions on the device according to self.option."""
         self.log(3, 'Options:', self.option)
 
-        flashtool_path = os.environ.get('BOUFFALOLAB_SDK_ROOT') + "/flashtool/BouffaloLabDevCube-v1.8.9"
-        flashtool_exe = flashtool_path + "/bflb_iot_tool-ubuntu"
-
-        if not os.path.exists(flashtool_exe):
-            logging.fatal('*' * 80)
-            logging.error('Flashtool is not installed, or environment variable BOUFFALOLAB_SDK_ROOT is not exported.')
-            logging.fatal('\tPlease make sure Bouffalo Lab SDK installs as below:')
-            logging.fatal('\t\t./third_party/bouffalolab/env-setup.sh')
-
-            logging.fatal('\tPlease make sure BOUFFALOLAB_SDK_ROOT exports before building as below:')
-            logging.fatal('\t\texport BOUFFALOLAB_SDK_ROOT="your install path"')
-            logging.fatal('*' * 80)
-            raise Exception(e)
-
+        is_for_ota_image_building = None
+        is_for_programming = False
+        has_private_key = False
+        has_public_key = False
+        ota_output_folder = None
         options_keys = BOUFFALO_OPTIONS["configuration"].keys()
-        arguments = [flashtool_exe]
-        work_dir = None
+
+        if platform.machine() not in ["x86_64"]:
+            raise Exception("Only support x86_64 CPU machine to program firmware.")
 
         if self.option.reset:
             self.reset()
         if self.option.verify_application:
             self.verify()
 
-        chip_name = None
-        chip_config_path = None
-        boot2_image = None
-        dts_path = None
-        xtal_value = None
-
-        is_for_ota_image_building = None
-        is_for_programming = False
-        has_private_key = False
-        has_public_key = False
-        ota_output_folder = None
-
-        boot2_image = None
-
-        command_args = {}
         for (key, value) in dict(vars(self.option)).items():
-
-            if self.option.build and value:
-                if "port" in command_args.keys():
-                    continue
-            else:
-                if "ota" in command_args.keys():
-                    continue
 
             if key == "application":
                 key = "firmware"
-                work_dir = os.path.dirname(os.path.join(os.getcwd(), str(value)))
+                self.firmware = os.path.join(os.getcwd(), str(value))
+                self.work_dir = os.path.dirname(self.firmware)
             elif key == "boot2":
                 boot2_image = value
+                continue
+            elif key == "mfd":
+                self.mfd = os.path.join(os.getcwd(), str(value))
+                continue
+            elif key == "mfd_key":
+                self.mfd_key = value
                 continue
             elif key in options_keys:
                 pass
@@ -250,17 +388,18 @@ class Flasher(firmware_utils.Flasher):
                 else:
                     arg = ("--{}={}".format(key, value)).strip()
 
-                arguments.append(arg)
+                self.arguments.append(arg)
 
             if key == "chipname":
-                chip_name = value
+                self.chip_name = value
             elif key == "xtal":
-                xtal_value = value
+                self.xtal_value = value
             elif key == "dts":
-                dts_path = value
+                self.dts_path = value
             elif "port" == key:
                 if value:
                     is_for_programming = True
+                    self.uart_port = value
             elif "build" == key:
                 if value:
                     is_for_ota_image_building = True
@@ -285,42 +424,15 @@ class Flasher(firmware_utils.Flasher):
             logging.error("Expecting key pair to sign OTA image.")
             raise Exception("Wrong key pair.")
 
-        if not dts_path and xtal_value:
-            chip_config_path = os.path.join(flashtool_path, "chips", chip_name, "device_tree")
-            dts_path = self.get_dts_file(chip_config_path, xtal_value, chip_name)
-            arguments.append("--dts")
-            arguments.append(dts_path)
-
-        if boot2_image:
-            chip_config_path = os.path.join(flashtool_path, "chips", chip_name, "builtin_imgs")
-            boot2_image = self.get_boot_image(chip_config_path, boot2_image)
-            arguments.append("--boot2")
-            arguments.append(boot2_image)
-        else:
-            if self.option.erase:
-                arguments.append("--erase")
-
-            if chip_name in {"bl602", "bl702", "bl616"}:
-                chip_config_path = os.path.join(flashtool_path, "chips", chip_name, "builtin_imgs")
-                boot2_image = self.get_boot_image(chip_config_path, boot2_image)
-                arguments.append("--boot2")
-                arguments.append(boot2_image)
-
-        os.chdir(work_dir)
-        arguments[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', arguments[0])
-        sys.argv = arguments
-
         if ota_output_folder:
             if os.path.exists(ota_output_folder):
                 shutil.rmtree(ota_output_folder)
             os.mkdir(ota_output_folder)
 
-        logging.info("Arguments {}".format(arguments))
-        process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        while process.poll() is None:
-            line = process.stdout.readline().decode('utf-8').rstrip()
-            if line:
-                logging.info(line)
+        if self.chip_name in self.bouffalo_sdk_chips:
+            self.bouffalo_sdk_prog()
+        else:
+            self.iot_sdk_prog()
 
         if ota_output_folder:
             ota_images = os.listdir(ota_output_folder)

@@ -395,6 +395,7 @@ def gen_mfd_partition(args, mfd_output):
     with open(mfd_output, "wb+") as fp:
         fp.write(output)
 
+
 def gen_onboarding_data(args, onboard_txt, onboard_png):
 
     try:

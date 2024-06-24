@@ -270,8 +270,9 @@ bouffalolab_executable("lighting_app") {
       defines += [ "BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED=0" ]
   }
 
+  print ("bouffalo_sdk_root=${bouffalo_sdk_root}")
   cflags_c = [ "-Wno-sign-compare" ]
-  ldscript = "${examples_plat_dir}/bl616/ldscripts/bl616_flash.ld"
+  ldscript = "${bouffalo_sdk_root}/bsp/board/bl616dk/bl616_flash.ld"
 
   ldflags = [ "-T" + rebase_path(ldscript, root_build_dir) ]
 

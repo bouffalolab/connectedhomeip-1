@@ -328,6 +328,7 @@ template("bouffalo_sdk") {
     sources = [
       "${bouffalo_sdk_root}/bsp/board/bl616dk/board.c",
       "${bouffalo_sdk_root}/bsp/board/bl616dk/board_rf.c",
+      "${bouffalo_sdk_root}/bsp/board/bl616dk/fw_header.c",
     ]
 
     cflags_c = [
@@ -1048,12 +1049,8 @@ template("bouffalo_sdk") {
 
   source_set("${sdk_target_name}_wifi") {
 
-    defines = [
-      "CFG_IPV6"
-    ]
-
     libs = [
-      "${bouffalo_sdk_root}/components/wireless/wifi6/lib/libwifi6.a",
+      "${bouffalo_sdk_root}/components/wireless/wifi6/lib/libwifi6_matter.a",
     ]
 
     include_dirs = [
