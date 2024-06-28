@@ -36,8 +36,6 @@ CHIP_ERROR LoadKeypairFromRaw(ByteSpan privateKey, ByteSpan publicKey, Crypto::P
 
 CHIP_ERROR FactoryDataProvider::Init()
 {
-    printf ("FactoryDataProvider\r\n");
-
     if (false == mfd_init())
     {
         return CHIP_ERROR_PERSISTED_STORAGE_FAILED;

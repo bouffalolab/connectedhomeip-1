@@ -21,7 +21,7 @@ import("${build_root}/toolchain/flashable_executable.gni")
 template("bouffalolab_executable") {
   output_base_name = get_path_info(invoker.output_name, "name")
 
-  objcopy_image_name = output_base_name + ".bin"
+  objcopy_image_name = output_base_name + ".raw"
   objcopy_image_format = "binary"
 
   objcopy = "riscv64-unknown-elf-objcopy"
@@ -53,9 +53,8 @@ template("bouffalolab_executable") {
   if (invoker.bl_plat_name == "bl616") {
     flashing_config_inputs = [ 
       "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_4M.toml", 
-      "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/boot2_bl616_isp_release_v8.1.4.bin",
-      "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/mfg_bl616_gu_ef9d197c5_v2.50.bin",
-      "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/bl_factory_params_IoTKitA_auto.dts"
+      "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/bl_factory_params_IoTKitA_auto.dts",
+      "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/boot2_bl616_isp_release_v8.1.4.bin"
     ]
   } 
   else {
@@ -82,9 +81,7 @@ template("bouffalolab_executable") {
   flashing_options += [ "${invoker.bl_plat_name}" ]
 
   if (invoker.bl_plat_name == "bl616") {
-    flashing_options += [ "--config" ]
-      flashing_options +=
-          [ "${root_out_dir}/flash_prog_cfg.ini" ]
+    flashing_options += [ "--config", "${root_out_dir}/flash_prog_cfg.ini" ]
   } else {
     flashing_options += [ "--xtal" ]
     if (invoker.bl_plat_name == "bl602") {

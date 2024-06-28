@@ -360,7 +360,7 @@ def gen_mfd_partition(args, mfd_output):
         return sec_tlvs, raw_tlvs
 
     mfdDict = {
-        "aes_iv": {'sec': False, "id": 1, "len": 16, "data": gen_efuse_aes_iv() if args.mfd_key else bytes([0])},
+        "aes_iv": {'sec': False, "id": 1, "len": 16, "data": gen_efuse_aes_iv() if args.key else bytes([0])},
         "dac_cert": {'sec': False, "id": 2, "len": None, "data": read_file(args.dac_cert)},
         "dac_key": {'sec': True, "id": 3, "len": None, "data": get_private_key(args.dac_key)},
         "passcode": {'sec': False, "id": 4, "len": 4, "data": convert_to_bytes(args.passcode)},
@@ -384,11 +384,11 @@ def gen_mfd_partition(args, mfd_output):
         "hardware_ver_str": {'sec': False, "id": 22, "len": 64, "data": convert_to_bytes(args.hardware_version_string)},
     }
 
-    sec_tlvs, raw_tlvs = gen_tlvs(mfdDict, args.mfd_key)
+    sec_tlvs, raw_tlvs = gen_tlvs(mfdDict, args.key)
 
     output = bytes([])
 
-    sec_tlvs = sec_tlvs and encrypt_data(sec_tlvs, args.mfd_key, mfdDict["aes_iv"]["data"])
+    sec_tlvs = sec_tlvs and encrypt_data(sec_tlvs, args.key, mfdDict["aes_iv"]["data"])
 
     output = int_to_4bytearray_l(len(sec_tlvs))
     output += sec_tlvs
@@ -478,7 +478,7 @@ def main():
     parser.add_argument("--rendezvous", type=int, default=6, help="Rendezvous Mode for QR code generation")
 
     parser.add_argument("--output", type=str, help="output path.")
-    parser.add_argument("--mfd_key", type=base64.b64decode, help="Encrypt private part in mfd.")
+    parser.add_argument("--key", type=str, help="Encrypt private part in mfd.")
 
     parser.add_argument("--cd_cert", type=str, default=TEST_CD_CERT, help="for test, to sign certificate declaration.")
     parser.add_argument("--cd_key", type=str, default=TEST_CD_KEY, help="for test, to sign certificate declaration.")
@@ -533,7 +533,7 @@ def main():
     args.spake2p_it = spake2p_it
     args.spake2p_salt = spake2p_salt
     args.spake2p_verifier = spake2p_verifier
-    args.mfd_key = to_bytes(args.mfd_key)
+    args.key = to_bytes(args.key)
     gen_mfd_partition(args, mfd_output)
 
     onboard_txt =  os.path.join(args.output, "out_{}_onboard.txt".format(vp_disc_info))
