@@ -48,7 +48,7 @@ extern "C" int START_ENTRY(void)
     platform_port_init();
 
     Internal::BLConfig::Init();
-
+    
     ChipLogProgress(NotSpecified, "==================================================");
     ChipLogProgress(NotSpecified, "bouffalolab chip-lighting-example, built at " __DATE__ " " __TIME__);
     ChipLogProgress(NotSpecified, "==================================================");

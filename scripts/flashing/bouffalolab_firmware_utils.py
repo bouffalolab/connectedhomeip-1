@@ -33,6 +33,8 @@ coloredlogs.install(level='DEBUG')
 
 # Additional options that can be use to configure an `Flasher`
 # object (as dictionary keys) and/or passed as command line options.
+def any_base_int(s): return int(s, 0)
+
 BOUFFALO_OPTIONS = {
     # Configuration options define properties used in flashing operations.
     'configuration': {
@@ -80,21 +82,6 @@ BOUFFALO_OPTIONS = {
                 'metavar': 'BAUDRATE',
             },
         },
-        'build': {
-            'help': 'Build OTA image',
-            'default': None,
-            'argparse': {
-                'action': 'store_true'
-            }
-        },
-        'ota': {
-            'help': 'output directory of ota image build',
-            'default': None,
-            'argparse': {
-                'metavar': 'DIR',
-                'type': pathlib.Path
-            }
-        },
         'sk': {
             'help': 'private key to sign firmware to flash or sign ota image.',
             'default': None,
@@ -131,10 +118,96 @@ BOUFFALO_OPTIONS = {
             'argparse': {
                 'metavar': 'path',
             }
+        },
+        'build-ota': {
+            'help': 'build ota image',
+            'default': None,
+            'argparse': {
+                'action': 'store_true'
+            },
+        },
+        'vendor-id': {
+            'help': 'vendor id passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'vendor_id',
+                "type": any_base_int
+            }
+        },
+        'product-id': {
+            'help': 'product id passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'product_id',
+                "type": any_base_int
+            }
+        },
+        'version': {
+            'help': 'software version (numeric) passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'version',
+                "type": any_base_int
+            }
+        },
+        'version-str': {
+            'help': 'software version string passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'version_str',
+            }
+        },
+        'digest-algorithm': {
+            'help': 'digest algorithm passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'digest_algorithm',
+            }
+        },
+        "min-version": {
+            'help': 'minimum software version passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'min_version',
+                "type": any_base_int
+            }
+        },
+        "max-version": {
+            'help': 'maximum software version passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'max_version',
+                "type": any_base_int
+            }
+        },
+        "release-notes": {
+            'help': 'release note passes to ota_image_tool.py ota image if --build_ota present',
+            'default': None,
+            'argparse': {
+                'metavar': 'release_notes',
+            }
         }
     },
 }
 
+MATTER_ROOT = os.getcwd()
+
+class DictObject:
+    def __init__(self, data_dict):
+        for key, value in data_dict.items():
+            if isinstance(value, dict):
+                self.__dict__[key] = DictObject(value)
+            else:
+                self.__dict__[key] = value
+
+    def __getattr__(self, name):
+        return self.__dict__.get(name, None)
+
+    def __setattr__(self, name, value):
+        self.__dict__[name] = value
+
+    def __repr__(self):
+        return str(self.__dict__)
 
 class Flasher(firmware_utils.Flasher):
 
@@ -161,6 +234,27 @@ class Flasher(firmware_utils.Flasher):
         super().__init__(platform=None, module=__name__, **options)
         self.define_options(BOUFFALO_OPTIONS)
 
+    def parse_argv(self, argv):
+        """Handle command line options."""
+        self.argv0 = argv[0]
+        self.parser.parse_args(argv[1:], namespace=self.option)
+
+
+        print ("parse_argv", self.parser)
+
+        self._postprocess_argv()
+        return self
+
+    def find_file(self, path_dir, name_partten):
+
+        ret_files = []
+
+        for root, dirs, files in os.walk(path_dir, topdown=False):
+            for name in files:
+                if re.match(name_partten, name):
+                    ret_files.append(os.path.join(path_dir, name))
+
+        return ret_files
 
     def get_iv(self):
 
@@ -309,7 +403,7 @@ class Flasher(firmware_utils.Flasher):
             return "%08x" % l
 
         def get_tools():
-            bflb_tools = os.path.join(os.getcwd(), "third_party/bouffalolab/bouffalo_sdk/tools/bflb_tools")
+            bflb_tools = os.path.join(MATTER_ROOT, "third_party/bouffalolab/bouffalo_sdk/tools/bflb_tools")
             bflb_tools_dict = {
                 "linux": {"fw_proc": "bflb_fw_post_proc/bflb_fw_post_proc-ubuntu", "flash_tool": "bouffalo_flash_cube/BLFlashCommand-ubuntu"},
                 "win32": {"fw_proc": "bflb_fw_post_proc/bflb_fw_post_proc.exe", "flash_tool": "bouffalo_flash_cube/BLFlashCommand.exe"},
@@ -331,7 +425,18 @@ class Flasher(firmware_utils.Flasher):
 
             return fw_proc_exe, flashtool_exe
 
-        def prog_config(output, isErase = False):
+        def prog_config(configDir, output, isErase = False):
+
+            partition_file = self.find_file(configDir, r'^partition.+\.toml$')
+            if len(partition_file) != 1:
+                raise Exception("No partition file or one more partition file found.")
+
+            partition_file = partition_file[0]
+            with open(partition_file, 'r') as file:
+                partition_config = toml.load(file)
+
+            part_addr0 = partition_config["pt_table"]["address0"]
+            part_addr1 = partition_config["pt_table"]["address1"]
 
             config = configparser.ConfigParser()
 
@@ -346,7 +451,11 @@ class Flasher(firmware_utils.Flasher):
 
             config.add_section('partition')
             config.set('partition', 'filedir', os.path.join(self.work_dir, "partition*.bin"))
-            config.set('partition', 'address', '0xE000')
+            config.set('partition', 'address', hex(part_addr0))
+
+            config.add_section('partition1')
+            config.set('partition1', 'filedir', os.path.join(self.work_dir, "partition*.bin"))
+            config.set('partition1', 'address', hex(part_addr1))
 
             config.add_section('FW')
             config.set('FW', 'filedir', self.args["firmware"])
@@ -361,6 +470,8 @@ class Flasher(firmware_utils.Flasher):
                 config.write(configfile)
 
         def exe_proc_cmd(fw_proc_exe):
+
+            os.system("rm -rf {}/ota_images".format(self.work_dir))
 
             boot2_proc_cmd = None
             fw_proc_cmd = [
@@ -389,6 +500,9 @@ class Flasher(firmware_utils.Flasher):
                 if line:
                     logging.info(line)
 
+            os.system("mkdir -p {}/ota_images".format(self.work_dir))
+            os.system("mv {}/*.ota {}/ota_images/".format(self.work_dir, self.work_dir))
+
         def exe_prog_cmd(flashtool_exe):
             prog_cmd = [
                 flashtool_exe,
@@ -403,7 +517,7 @@ class Flasher(firmware_utils.Flasher):
                 ]
 
             if self.args["port"]:
-                prog_config(os.path.join(self.work_dir, "flash_prog_cfg.ini"), self.option.erase)
+                prog_config(os.path.join(self.work_dir, "config"), os.path.join(self.work_dir, "flash_prog_cfg.ini"), self.option.erase)
 
                 prog_cmd += [
                     "--port", self.args["port"],
@@ -424,6 +538,37 @@ class Flasher(firmware_utils.Flasher):
         exe_proc_cmd(fw_proc_exe)
         exe_prog_cmd(flashtool_exe)
 
+    def gen_ota_image(self):
+        sys.path.insert(0, os.path.join(MATTER_ROOT, 'src', 'app'))
+        import ota_image_tool
+
+        bflb_ota_images = self.find_file(os.path.join(self.work_dir, "ota_images"), r".+\.ota$")
+        if len(bflb_ota_images) == 0:
+            raise Exception("No bouffalo lab OTA image found.")
+
+        ota_image_cfg_list = [
+            "vendor_id",
+            "product_id",
+            "version",
+            "version_str",
+            "digest_algorithm",
+            "min_version",
+            "max_version",
+            "release_notes",
+        ]
+        ota_image_cfg = {}
+        for k in ota_image_cfg_list:
+            if self.args[k] is not None:
+                ota_image_cfg[k] = self.args[k]
+        ota_image_cfg = DictObject(ota_image_cfg)
+
+        for img in bflb_ota_images:
+            ota_image_cfg.input_files = [img]
+            ota_image_cfg.output_file = img + ".matter"
+            ota_image_tool.validate_header_attributes(ota_image_cfg)
+            ota_image_tool.generate_image(ota_image_cfg)
+
+            self.log(0, 'Matter OTA image generated:', ota_image_cfg.output_file)
 
     def verify(self):
         """Not supported"""
@@ -507,8 +652,6 @@ class Flasher(firmware_utils.Flasher):
             elif "sk" == key:
                 if value:
                     has_private_key = True
-            elif "ota" == key and value:
-                ota_output_folder = os.path.join(os.getcwd(), value)
 
         if is_for_ota_image_building and is_for_programming:
             logging.error("ota imge build can't work with image programming")
@@ -523,10 +666,17 @@ class Flasher(firmware_utils.Flasher):
                 shutil.rmtree(ota_output_folder)
             os.mkdir(ota_output_folder)
 
+        if self.args["build_ota"]:
+            if self.args["port"]:
+                raise Exception("Do not generate OTA image with firmware programming.")
+
         if self.chip_name in self.bouffalo_sdk_chips:
             self.bouffalo_sdk_prog()
         else:
             self.iot_sdk_prog()
+
+        if self.args["build_ota"]:
+            self.gen_ota_image()
 
         if ota_output_folder:
             ota_images = os.listdir(ota_output_folder)

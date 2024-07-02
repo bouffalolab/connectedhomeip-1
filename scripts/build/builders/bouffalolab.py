@@ -250,6 +250,7 @@ class BouffalolabBuilder(GnBuilder):
 
     def PreBuildCommand(self):
         os.system("rm -rf {}/config".format(self.output_dir))
+        os.system("rm -rf {}/ota_images".format(self.output_dir))
         os.system("rm -rf {}".format(os.path.join(self.output_dir, 'boot2*.bin')))
         os.system("rm -rf {}".format(os.path.join(self.output_dir, '%s*' % self.app.AppNamePrefix(self.chip_name))))
 

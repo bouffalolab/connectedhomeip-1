@@ -31,7 +31,7 @@
 #endif
 
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
-#include "wifi_mgmr_portable.h"
+#include <wifi_mgmr_portable.h>
 #endif
 
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
@@ -40,8 +40,10 @@
 #endif
 
 #include <bflb_sec_trng.h>
+#include <bflb_flash.h>
 extern "C" {
 #include <rfparam_adapter.h>
+#include <partition.h>
 }
 
 namespace chip {
@@ -59,6 +61,8 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
     CHIP_ERROR err                 = CHIP_NO_ERROR;
     TaskHandle_t backup_eventLoopTask;
     int iret_rfInit = -1;
+
+    pt_table_set_flash_operation(bflb_flash_erase, bflb_flash_write, bflb_flash_read);
 
     VerifyOrDieWithMsg(0 == (iret_rfInit = rfparam_init(0, NULL, 0)), DeviceLayer, "rfparam_init failed with %d", iret_rfInit);
 
