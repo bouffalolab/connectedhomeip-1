@@ -56,6 +56,11 @@ template("bouffalolab_executable") {
       "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/bl_factory_params_IoTKitA_auto.dts",
       "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/boot2_bl616_isp_release_v8.1.4.bin"
     ]
+
+    copy(flashing_config_target) {
+      sources = flashing_config_inputs
+      outputs = [ "${root_out_dir}/config/{{source_file_part}}" ]
+    }
   } 
   else {
     if (invoker.bl_plat_name == "bl602") {
@@ -67,10 +72,11 @@ template("bouffalolab_executable") {
         "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_2M.toml" 
       ]
     }
-  }
-  copy(flashing_config_target) {
-    sources = flashing_config_inputs
-    outputs = [ "${root_out_dir}/config/{{source_file_part}}" ]
+
+    copy(flashing_config_target) {
+      sources = flashing_config_inputs
+      outputs = [ "${root_out_dir}/{{source_file_part}}" ]
+    }
   }
 
   flashing_script_generator =
@@ -90,8 +96,6 @@ template("bouffalolab_executable") {
       flashing_options += [ "32M" ]
     } else if (invoker.bl_plat_name == "bl702l") {
       flashing_options += [ "32M" ]
-    } else if (invoker.bl_plat_name == "bl616") {
-      flashing_options += [ "40M" ]
     }
 
     flashing_options += [ "--pt" ]
@@ -107,9 +111,6 @@ template("bouffalolab_executable") {
       flashing_options +=
           [ rebase_path("partition_cfg_2M.toml", root_out_dir, root_out_dir) ]
     }
-
-    flashing_options += [ "--ota" ]
-    flashing_options += [ "ota_images/" ]
   }  
 
   # set 2000000 baudrate for image download by default
