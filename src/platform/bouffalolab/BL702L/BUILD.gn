@@ -34,7 +34,6 @@ static_library("BL702L") {
   sources += [
     "../../FreeRTOS/SystemTimeSupport.cpp",
     "../../SingletonConfigurationManager.cpp",
-    "../common/BLConfig.cpp",
     "../common/ConfigurationManagerImpl.cpp",
     "../common/ConnectivityManagerImpl.cpp",
     "../common/DiagnosticDataProviderImpl.cpp",
@@ -64,6 +63,13 @@ static_library("BL702L") {
       "../common/FactoryDataProvider.cpp",
       "../common/FactoryDataProvider.h",
     ]
+  }
+  
+  if (bouffalo_sdk_component_easyflash_enabled) {
+    sources += [ "../common/BLConfig.cpp"]
+  }
+  else {
+    sources += [ "../common/BLConfig_littlefs.cpp"]
   }
 
   if (chip_enable_openthread) {

@@ -668,16 +668,18 @@ def BuildBouffalolabTarget():
     target.AppendModifier('ethernet', enable_ethernet=True)
     target.AppendModifier('wifi', enable_wifi=True)
     target.AppendModifier('thread', enable_thread=True)
+    target.AppendModifier('easyflash', enable_easyflash=True)
+    target.AppendModifier('littlefs', enable_littlefs=True)
     target.AppendModifier('shell', enable_shell=True)
-    target.AppendModifier('cdc', enable_cdc=True)
     target.AppendModifier('mfd', enable_mfd=True)
     target.AppendModifier('rotating_device_id', enable_rotating_device_id=True)
     target.AppendModifier('rpc', enable_rpcs=True)
-    target.AppendModifier('resetCnt', enable_resetCnt=True)
-    target.AppendModifier('fp', enable_frame_ptr=True)
-    target.AppendModifier('memmonitor', enable_heap_monitoring=True)
+    target.AppendModifier('cdc', enable_cdc=True)
     target.AppendModifier('mot', use_matter_openthread=True)
+    target.AppendModifier('resetCnt', enable_resetCnt=True)
+    target.AppendModifier('memmonitor', enable_heap_monitoring=True)
     target.AppendModifier('115200', baudrate=115200)
+    target.AppendModifier('fp', enable_frame_ptr=True)
 
     return target
 
