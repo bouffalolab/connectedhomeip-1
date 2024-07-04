@@ -184,14 +184,16 @@ def gen_test_certs(chip_cert: str,
         except Exception as e:
             raise Exception("Failed to verify DAC signature with PAI certificate.")
 
-        if os.path.isfile(paa_cert):
-            cmd = [chip_cert, "validate-att-cert", 
-                   "--dac", dac_cert,
-                   "--pai", pai_cert,
-                   "--paa", paa_cert,
-                  ]
-            log.info("Verify Certificate Chain: {}".format(" ".join(cmd)))
-            subprocess.run(cmd)
+
+        if (pai_cert != TEST_PAI_CERT and paa_cert != TEST_PAA_CERT) or (pai_cert == TEST_PAI_CERT and paa_cert == TEST_PAA_CERT):
+            if os.path.isfile(paa_cert):
+                cmd = [chip_cert, "validate-att-cert", 
+                       "--dac", dac_cert,
+                       "--pai", pai_cert,
+                       "--paa", paa_cert,
+                      ]
+                log.info("Verify Certificate Chain: {}".format(" ".join(cmd)))
+                subprocess.run(cmd)
 
     def gen_dac_certificate(chip_cert, device_name, vendor_id, product_id, pai_cert, pai_key, dac_cert, dac_key, pai_issue_date, pai_expire_date):
         def gen_valid_times(issue_date, expire_date):
@@ -266,7 +268,7 @@ def gen_test_certs(chip_cert: str,
     pai_vendor_id, pai_product_id, pai_issue_date, pai_expire_date = parse_cert_file(pai_cert)
 
     dac_vendor_id = pai_vendor_id if pai_vendor_id else vendor_id
-    dac_product_id = pai_product_id if pai_vendor_id else product_id
+    dac_product_id = pai_product_id if pai_product_id else product_id
     gen_dac_certificate(chip_cert, device_name, dac_vendor_id, dac_product_id, pai_cert, pai_key, dac_cert, dac_key, pai_issue_date, pai_expire_date)
     
     dac_cert_der = convert_pem_to_der(chip_cert, "convert-cert", dac_cert)
@@ -360,7 +362,7 @@ def gen_mfd_partition(args, mfd_output):
         return sec_tlvs, raw_tlvs
 
     mfdDict = {
-        "aes_iv": {'sec': False, "id": 1, "len": 16, "data": gen_efuse_aes_iv() if args.key else bytes([0])},
+        "aes_iv": {'sec': False, "id": 1, "len": 16, "data": gen_efuse_aes_iv() if args.key else bytes([0] * 16)},
         "dac_cert": {'sec': False, "id": 2, "len": None, "data": read_file(args.dac_cert)},
         "dac_key": {'sec': True, "id": 3, "len": None, "data": get_private_key(args.dac_key)},
         "passcode": {'sec': False, "id": 4, "len": 4, "data": convert_to_bytes(args.passcode)},

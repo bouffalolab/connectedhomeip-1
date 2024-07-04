@@ -135,16 +135,10 @@ class BouffalolabBuilder(GnBuilder):
             elif bouffalo_chip == "bl702l":
                 enable_wifi, enable_thread, enable_ethernet = False, True, False
             elif bouffalo_chip == "bl616":
-                ## Current support wifi for bl616
-                enable_wifi, enable_thread, enable_ethernet = True, False, False
+                raise Exception("Must select one of wifi and thread to build.")
 
-        if (enable_ethernet or enable_wifi) and enable_thread:
-            raise Exception('Currently, Thread can NOT be enabled with Wi-Fi or Ethernet')
-
-        if enable_thread:
-            chip_mdns = "platform"
-        elif enable_ethernet or enable_wifi:
-            chip_mdns = "minimal"
+        if [enable_wifi, enable_thread, enable_ethernet].count(True) > 1:
+            raise Exception('Currently, only one of wifi, thread and ethernet supports.')
 
         # hardware connectivity support check
         if bouffalo_chip == "bl602":
@@ -160,7 +154,12 @@ class BouffalolabBuilder(GnBuilder):
                 raise Exception(f"SoC {bouffalo_chip} does NOT support connectivity Ethernet/Wi-Fi currently.")
         elif bouffalo_chip == "bl616":
             if enable_ethernet:
-                raise Exception(f"SoC {bouffalo_chip} does NOT support connectivity Ethernet/Thread currently.")
+                raise Exception(f"SoC {bouffalo_chip} does NOT support connectivity Ethernet currently.")
+
+        if enable_thread:
+            chip_mdns = "platform"
+        elif enable_ethernet or enable_wifi:
+            chip_mdns = "minimal"
 
         self.argsOpt.append(f'chip_enable_ethernet={str(enable_ethernet).lower()}')
         self.argsOpt.append(f'chip_enable_wifi={str(enable_wifi).lower()}')
@@ -176,7 +175,7 @@ class BouffalolabBuilder(GnBuilder):
             raise Exception("Only one of easyflash and littlefs can be enabled.")
         if bouffalo_chip == "bl616":
             if not enable_easyflash:
-                enable_littlefs = true
+                enable_littlefs = True
         else:
             if not enable_easyflash and not enable_littlefs:
                 logging.fatal('*' * 80)
@@ -275,7 +274,6 @@ class BouffalolabBuilder(GnBuilder):
 
         if self.chip_name not in bouffalo_sdk_chips:
             abs_path_fw_raw = os.path.join(self.output_dir, self.app.AppNamePrefix(self.chip_name) + ".raw")
-            os.system("mv {} {}".format(abs_path_fw_raw, abs_path_fw))
 
         if os.path.isfile(abs_path_fw):
             target_dir = self.output_dir.replace(self.chip_dir, "").strip("/")

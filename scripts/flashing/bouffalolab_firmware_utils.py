@@ -137,7 +137,7 @@ BOUFFALO_OPTIONS = {
             },
         },
         'vendor-id': {
-            'help': 'vendor id passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'vendor id passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'vendor_id',
@@ -145,7 +145,7 @@ BOUFFALO_OPTIONS = {
             }
         },
         'product-id': {
-            'help': 'product id passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'product id passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'product_id',
@@ -153,7 +153,7 @@ BOUFFALO_OPTIONS = {
             }
         },
         'version': {
-            'help': 'software version (numeric) passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'software version (numeric) passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'version',
@@ -161,21 +161,21 @@ BOUFFALO_OPTIONS = {
             }
         },
         'version-str': {
-            'help': 'software version string passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'software version string passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'version_str',
             }
         },
         'digest-algorithm': {
-            'help': 'digest algorithm passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'digest algorithm passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'digest_algorithm',
             }
         },
         "min-version": {
-            'help': 'minimum software version passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'minimum software version passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'min_version',
@@ -183,7 +183,7 @@ BOUFFALO_OPTIONS = {
             }
         },
         "max-version": {
-            'help': 'maximum software version passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'maximum software version passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'max_version',
@@ -191,7 +191,7 @@ BOUFFALO_OPTIONS = {
             }
         },
         "release-notes": {
-            'help': 'release note passes to ota_image_tool.py ota image if --build_ota present',
+            'help': 'release note passes to ota_image_tool.py ota image if --build-ota present',
             'default': None,
             'argparse': {
                 'metavar': 'release_notes',
@@ -249,6 +249,10 @@ class Flasher(firmware_utils.Flasher):
             return plaintext
 
         self.args["iv"] = None
+
+        if not self.args["mfd"] and not self.args["mfd_str"]:
+            return None
+
         if self.args['mfd_str']:
             try:
                 iv = self.args['mfd_str'].split(":")[1].split(',')[0]
@@ -714,7 +718,8 @@ class Flasher(firmware_utils.Flasher):
 
         self.args["application"] = os.path.join(os.getcwd(), str(self.args["application"]))
         self.args["firmware"] = str(pathlib.Path(self.args["application"]).with_suffix(".bin"))
-        shutil.copy2(self.args["application"], self.args["firmware"])
+        if self.args["application"] != self.args["firmware"]:
+            shutil.copy2(self.args["application"], self.args["firmware"])
 
         if self.args["build_ota"]:
             if self.args["port"]:
