@@ -56,7 +56,6 @@ extern "C" {
 #include <hal_gpio.h>
 #include <hosal_gpio.h>
 }
-#include <easyflash.h>
 #endif
 
 #include "AppTask.h"

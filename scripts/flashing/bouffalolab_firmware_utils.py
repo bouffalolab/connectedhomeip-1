@@ -344,7 +344,7 @@ class Flasher(firmware_utils.Flasher):
     def iot_sdk_prog(self):
 
         def get_tools():
-            flashtool_path = os.environ.get('BOUFFALOLAB_SDK_ROOT') + "/flashtool/BouffaloLabDevCube-v1.8.9"
+            flashtool_path = os.environ.get('BOUFFALOLAB_SDK_ROOT') + "/flashtool/BouffaloLabDevCube-v1.9.0"
             bflb_tools_dict = {
                 "linux": {"flash_tool": "bflb_iot_tool-ubuntu"},
                 "win32": {"flash_tool": "bflb_iot_tool.exe"},

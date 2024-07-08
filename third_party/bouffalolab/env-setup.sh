@@ -18,7 +18,7 @@ fi
 echo "Toolchain will install under ${TOOLCHAIN_SETUP_ROOT}"
 flash_tool_postfix=
 
-flash_tool=BouffaloLabDevCube-v1.8.9
+flash_tool=BouffaloLabDevCube-v1.9.0
 flash_tool_url=https://dev.bouffalolab.com/media/upload/download/${flash_tool}.zip
 thead_toolchain=gcc_t-head_v2.6.1
 thead_toolchain_url=https://codeload.github.com/bouffalolab/toolchain_gcc_t-head_linux/zip/c4afe91cbd01bf7dce525e0d23b4219c8691e8f0

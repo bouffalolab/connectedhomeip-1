@@ -264,7 +264,6 @@ CHIP_ERROR BLConfig::ClearConfigValue(const char * key)
 CHIP_ERROR BLConfig::FactoryResetConfig(void)
 {
     int          ret = LFS_ERR_OK;
-    CHIP_ERROR   err = CHIP_NO_ERROR;
     lfs_file_t   file;
     std::string  reset_key = blcfg_convert_key(std::string(kBLKey_factoryResetFlag));
     const char   reset_key_value[] = "pending";

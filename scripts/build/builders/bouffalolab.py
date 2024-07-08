@@ -113,15 +113,13 @@ class BouffalolabBuilder(GnBuilder):
 
         self.argsOpt = []
         self.chip_name = bouffalo_chip
-        self.enable_frame_ptr = enable_frame_ptr
-
+        self.app = app
+        self.board = board
+        
         toolchain = os.path.join(root, os.path.split(os.path.realpath(__file__))[0], '../../../config/bouffalolab/toolchain')
         toolchain = f'custom_toolchain="{toolchain}:riscv_gcc"'
         if toolchain:
             self.argsOpt.append(toolchain)
-
-        self.app = app
-        self.board = board
 
         self.argsOpt.append(f'board="{self.board.GnArgName()}"')
         self.argsOpt.append(f'baudrate="{baudrate}"')
@@ -160,6 +158,9 @@ class BouffalolabBuilder(GnBuilder):
             chip_mdns = "platform"
         elif enable_ethernet or enable_wifi:
             chip_mdns = "minimal"
+
+        if enable_frame_ptr and bouffalo_chip == "bl616":
+            raise Exception("BL616 does NOT support frame pointer for debug purpose.")
 
         self.argsOpt.append(f'chip_enable_ethernet={str(enable_ethernet).lower()}')
         self.argsOpt.append(f'chip_enable_wifi={str(enable_wifi).lower()}')
@@ -222,6 +223,7 @@ class BouffalolabBuilder(GnBuilder):
         if enable_mfd:
             self.argsOpt.append("chip_enable_factory_data=true")
 
+        self.enable_frame_ptr = enable_frame_ptr
         self.argsOpt.append(f"enable_debug_frame_ptr={str(enable_frame_ptr).lower()}")
         self.argsOpt.append(f"enable_heap_monitoring={str(enable_heap_monitoring).lower()}")
 
@@ -260,7 +262,6 @@ class BouffalolabBuilder(GnBuilder):
 
         return items
 
-
     def PreBuildCommand(self):
         os.system("rm -rf {}/config".format(self.output_dir))
         os.system("rm -rf {}/ota_images".format(self.output_dir))
@@ -272,8 +273,8 @@ class BouffalolabBuilder(GnBuilder):
         bouffalo_sdk_chips = [ "bl616" ]
         abs_path_fw = os.path.join(self.output_dir, self.app.AppNamePrefix(self.chip_name) + ".bin")
 
-        if self.chip_name not in bouffalo_sdk_chips:
-            abs_path_fw_raw = os.path.join(self.output_dir, self.app.AppNamePrefix(self.chip_name) + ".raw")
+        if self.chip_name in bouffalo_sdk_chips:
+            abs_path_fw = os.path.join(self.output_dir, self.app.AppNamePrefix(self.chip_name) + ".raw")
 
         if os.path.isfile(abs_path_fw):
             target_dir = self.output_dir.replace(self.chip_dir, "").strip("/")

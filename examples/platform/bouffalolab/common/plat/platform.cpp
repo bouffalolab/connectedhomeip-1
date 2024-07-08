@@ -42,7 +42,7 @@
 #include <uart.h>
 #endif
 
-#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
 #include <platform/bouffalolab/common/FactoryDataProvider.h>
 #endif
 
@@ -87,7 +87,7 @@ chip::app::Clusters::NetworkCommissioning::Instance
 }
 #endif
 
-#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
 namespace {
 FactoryDataProvider sFactoryDataProvider;
 }
@@ -220,7 +220,7 @@ CHIP_ERROR PlatformManagerImpl::PlatformInit(void)
 #endif
 
     // Initialize device attestation config
-#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE || CONFIG_BOUFFALOLAB_FACTORY_DATA_TEST
+#if CONFIG_BOUFFALOLAB_FACTORY_DATA_ENABLE
     if (CHIP_NO_ERROR == retFactoryData)
     {
         SetDeviceInstanceInfoProvider(&sFactoryDataProvider);
