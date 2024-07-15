@@ -154,6 +154,7 @@ extern "C" void vApplicationTickHook(void)
     usb_cdc_monitor();
 #endif
 }
+#endif
 
 extern "C" void vApplicationSleep(TickType_t xExpectedIdleTime) {}
 
@@ -161,9 +162,7 @@ extern "C" void vAssertCalled(void)
 {
     void * ra = (void *) __builtin_return_address(0);
 
-#if CONF_ENABLE_FRAME_PTR == 0
     taskDISABLE_INTERRUPTS();
-#endif
 
     if (xPortIsInsideInterrupt())
     {
@@ -174,14 +173,10 @@ extern "C" void vAssertCalled(void)
         printf("vAssertCalled, ra = %p in task %s\r\n", (void *) ra, pcTaskGetName(NULL));
     }
 
-#if CONF_ENABLE_FRAME_PTR
     portABORT();
-#endif
 
-    while (true)
-        ;
+    while (true) ;
 }
-#endif
 
 extern "C" void user_vAssertCalled(void) __attribute__((weak, alias("vAssertCalled")));
 extern "C" void bflb_assert(void) __attribute__((weak, alias("vAssertCalled")));

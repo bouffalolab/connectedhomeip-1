@@ -17,9 +17,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <string>
-#include <regex>
 
 #include <lfs.h>
 extern "C" {
@@ -34,7 +31,7 @@ extern "C" {
 #endif
 
 #ifndef BLCONFIG_SLASH
-#define BLCONFIG_SLASH "-"
+#define BLCONFIG_SLASH '-'
 #endif
 
 namespace chip {
@@ -43,9 +40,34 @@ namespace Internal {
 
 static lfs_t      * blconfig_lfs = nullptr;
 
-static inline std::string  blcfg_convert_key(std::string key, std::string lfs_ns = std::string("")) 
+static inline char *  blcfg_convert_key(const char *pKey, const char *pNameSpace = NULL) 
 {
-    return lfs_ns + std::string("/") + regex_replace(key, std::regex("/"), std::string(BLCONFIG_SLASH));
+    int len_key = 0, len_namespace = 0;
+    
+    if (pNameSpace) {
+        len_namespace = strlen(pNameSpace);
+    }
+    len_key = strlen(pKey);
+
+    char * pName = (char *)malloc(len_namespace + 1 + len_key + 1);
+    if (nullptr == pName) {
+        return nullptr;
+    }
+
+    if (pNameSpace) {
+        memcpy(pName, pNameSpace, len_namespace);
+    }
+    pName[len_namespace] = '/';
+    memcpy(pName + len_namespace + 1, pKey, len_key);
+    pName[len_namespace + 1 + len_key] = '\0';
+
+    for (int i = len_namespace + 1; i < len_namespace + 1 + len_key; i ++) {
+        if (pName[i] == '/') {
+            pName[i] = '_';
+        }
+    }
+
+    return pName;
 }
 
 static CHIP_ERROR blcfg_do_factory_reset(void) 
@@ -55,17 +77,19 @@ static CHIP_ERROR blcfg_do_factory_reset(void)
     struct lfs_info stat;
     lfs_file_t      file;
     lfs_dir_t       dir = {};
-    std::string     factory_reset_key = blcfg_convert_key(std::string(BLConfig::kBLKey_factoryResetFlag));
+    char            * factory_reset_key = blcfg_convert_key(BLConfig::kBLKey_factoryResetFlag);
+
+    VerifyOrExit(factory_reset_key != nullptr, err = CHIP_ERROR_NO_MEMORY);
 
     blconfig_lfs->cfg->lock(blconfig_lfs->cfg);
 
-    ret = lfs_stat(blconfig_lfs, const_cast<char*>(factory_reset_key.c_str()), &stat);
+    ret = lfs_stat(blconfig_lfs, factory_reset_key, &stat);
 
     if (LFS_ERR_OK == ret) {
         err = CHIP_ERROR_PERSISTED_STORAGE_FAILED;
 
         do {
-            ret = lfs_file_open(blconfig_lfs, &file, const_cast<char*>(factory_reset_key.c_str()), LFS_O_RDONLY);
+            ret = lfs_file_open(blconfig_lfs, &file, factory_reset_key, LFS_O_RDONLY);
             VerifyOrExit(ret == LFS_ERR_OK, err = CHIP_ERROR_PERSISTED_STORAGE_FAILED);
             lfs_file_close(blconfig_lfs, &file);
 
@@ -81,9 +105,12 @@ static CHIP_ERROR blcfg_do_factory_reset(void)
                 if (stat.type != LFS_TYPE_REG) {
                     continue;
                 }
-                std::string delete_key = blcfg_convert_key(std::string(stat.name), std::string(BLCONFIG_LFS_NAMESPACE));
+                char * delete_key = blcfg_convert_key(stat.name, BLCONFIG_LFS_NAMESPACE);
+                VerifyOrExit(delete_key != nullptr, err = CHIP_ERROR_NO_MEMORY);
 
-                ret = lfs_remove(blconfig_lfs, const_cast<char*>(delete_key.c_str())); 
+                ret = lfs_remove(blconfig_lfs, delete_key); 
+                free(delete_key);
+
                 if (ret != LFS_ERR_OK) {
                     break;
                 }
@@ -91,7 +118,7 @@ static CHIP_ERROR blcfg_do_factory_reset(void)
 
             lfs_dir_close(blconfig_lfs, &dir);
 
-            ret = lfs_remove(blconfig_lfs, const_cast<char*>(factory_reset_key.c_str()));
+            ret = lfs_remove(blconfig_lfs, factory_reset_key);
             if (ret != LFS_ERR_OK) {
                 break;
             }
@@ -102,6 +129,9 @@ static CHIP_ERROR blcfg_do_factory_reset(void)
 
 exit: 
     blconfig_lfs->cfg->unlock(blconfig_lfs->cfg);
+    if (factory_reset_key) {
+        free(factory_reset_key);
+    }
 
     return err;
 }
@@ -135,11 +165,13 @@ CHIP_ERROR BLConfig::ReadConfigValue(const char * key, uint8_t * val, size_t siz
     CHIP_ERROR   err = CHIP_NO_ERROR;
     int          ret = LFS_ERR_OK;
     lfs_file_t   file;
-    std::string  read_key = blcfg_convert_key(std::string(key), std::string(BLCONFIG_LFS_NAMESPACE));
+    char         * read_key = blcfg_convert_key(key, BLCONFIG_LFS_NAMESPACE);
+
+    VerifyOrExit(read_key != nullptr, err = CHIP_ERROR_NO_MEMORY);
 
     blconfig_lfs->cfg->lock(blconfig_lfs->cfg);
 
-    ret = lfs_file_open(blconfig_lfs, &file, const_cast<char*>(read_key.c_str()), LFS_O_RDONLY);
+    ret = lfs_file_open(blconfig_lfs, &file, read_key, LFS_O_RDONLY);
     VerifyOrExit(ret == LFS_ERR_OK, err = CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND);
 
     if (val && size) {
@@ -150,6 +182,9 @@ CHIP_ERROR BLConfig::ReadConfigValue(const char * key, uint8_t * val, size_t siz
 
 exit:
     blconfig_lfs->cfg->unlock(blconfig_lfs->cfg);
+    if (read_key) {
+        free(read_key);
+    }
 
     return err;
 }
@@ -206,11 +241,13 @@ CHIP_ERROR BLConfig::WriteConfigValue(const char * key, uint8_t * val, size_t si
     int          ret = LFS_ERR_OK;
     CHIP_ERROR   err = CHIP_NO_ERROR;
     lfs_file_t   file;
-    std::string  write_key = blcfg_convert_key(std::string(key), std::string(BLCONFIG_LFS_NAMESPACE));
+    char         * write_key = blcfg_convert_key(key, BLCONFIG_LFS_NAMESPACE);
+
+    VerifyOrExit(write_key != nullptr, err = CHIP_ERROR_NO_MEMORY);
 
     blconfig_lfs->cfg->lock(blconfig_lfs->cfg);
 
-    ret = lfs_file_open(blconfig_lfs, &file, const_cast<char*>(write_key.c_str()), LFS_O_CREAT | LFS_O_RDWR);
+    ret = lfs_file_open(blconfig_lfs, &file, write_key, LFS_O_CREAT | LFS_O_RDWR);
     VerifyOrExit(ret == LFS_ERR_OK, err = CHIP_ERROR_PERSISTED_STORAGE_FAILED);
 
     lfs_file_write(blconfig_lfs, &file, val, size);
@@ -218,6 +255,9 @@ CHIP_ERROR BLConfig::WriteConfigValue(const char * key, uint8_t * val, size_t si
 
 exit: 
     blconfig_lfs->cfg->unlock(blconfig_lfs->cfg);
+    if (write_key) {
+        free(write_key);
+    }
 
     return err;
 }
@@ -254,9 +294,14 @@ CHIP_ERROR BLConfig::WriteConfigValueBin(const char * key, const uint8_t * data,
 
 CHIP_ERROR BLConfig::ClearConfigValue(const char * key)
 {
-    std::string  delete_key = blcfg_convert_key(std::string(key), std::string(BLCONFIG_LFS_NAMESPACE));
+    char * delete_key = blcfg_convert_key(key, BLCONFIG_LFS_NAMESPACE);
 
-    int ret = lfs_remove(blconfig_lfs, const_cast<char*>(delete_key.c_str()));
+    if (delete_key == nullptr) {
+        return CHIP_ERROR_NO_MEMORY;
+    }
+
+    int ret = lfs_remove(blconfig_lfs, delete_key);
+    free(delete_key);
 
     return (ret >= LFS_ERR_OK || ret == LFS_ERR_NOENT) ? CHIP_NO_ERROR: CHIP_ERROR_PERSISTED_STORAGE_FAILED;
 }
@@ -265,12 +310,16 @@ CHIP_ERROR BLConfig::FactoryResetConfig(void)
 {
     int          ret = LFS_ERR_OK;
     lfs_file_t   file;
-    std::string  reset_key = blcfg_convert_key(std::string(kBLKey_factoryResetFlag));
+    char         * reset_key = blcfg_convert_key(kBLKey_factoryResetFlag);
     const char   reset_key_value[] = "pending";
+
+    if (nullptr == reset_key) {
+        return CHIP_ERROR_NO_MEMORY;
+    }
 
     blconfig_lfs->cfg->lock(blconfig_lfs->cfg);
 
-    ret = lfs_file_open(blconfig_lfs, &file, const_cast<char*>(reset_key.c_str()), LFS_O_CREAT | LFS_O_RDWR);
+    ret = lfs_file_open(blconfig_lfs, &file, reset_key, LFS_O_CREAT | LFS_O_RDWR);
     if (ret != LFS_ERR_OK) {
         blconfig_lfs->cfg->unlock(blconfig_lfs->cfg);
         return CHIP_ERROR_PERSISTED_STORAGE_FAILED;
@@ -280,6 +329,7 @@ CHIP_ERROR BLConfig::FactoryResetConfig(void)
     lfs_file_close(blconfig_lfs, &file);
 
     blconfig_lfs->cfg->unlock(blconfig_lfs->cfg);
+    free(reset_key);
 
     return blcfg_do_factory_reset();
 }
@@ -288,10 +338,14 @@ void BLConfig::RunConfigUnitTest() {}
 
 bool BLConfig::ConfigValueExists(const char * key)
 {
-    std::string     exist_key = blcfg_convert_key(std::string(key), std::string(BLCONFIG_LFS_NAMESPACE));
+    char            * exist_key = blcfg_convert_key(key, BLCONFIG_LFS_NAMESPACE);
     struct lfs_info stat;
+    bool            bret;
 
-    return lfs_stat(blconfig_lfs, const_cast<char*>(exist_key.c_str()), &stat) == LFS_ERR_OK;
+    bret = (lfs_stat(blconfig_lfs, exist_key, &stat) == LFS_ERR_OK);
+    free(exist_key);
+
+    return bret;
 }
 
 CHIP_ERROR BLConfig::ReadKVS(const char * key, void * value, size_t value_size, size_t * read_bytes_size, size_t offset_bytes)
@@ -299,7 +353,9 @@ CHIP_ERROR BLConfig::ReadKVS(const char * key, void * value, size_t value_size, 
     CHIP_ERROR   err = CHIP_NO_ERROR;
     int          ret = LFS_ERR_OK;
     lfs_file_t   file;
-    std::string  read_key = blcfg_convert_key(std::string(key), std::string(BLCONFIG_LFS_NAMESPACE));
+    char         * read_key = blcfg_convert_key(key, BLCONFIG_LFS_NAMESPACE);
+
+    VerifyOrExit(read_key != nullptr, err = CHIP_ERROR_NO_MEMORY);
 
     if (read_bytes_size) {
         * read_bytes_size = 0;
@@ -307,7 +363,7 @@ CHIP_ERROR BLConfig::ReadKVS(const char * key, void * value, size_t value_size, 
 
     blconfig_lfs->cfg->lock(blconfig_lfs->cfg);
 
-    ret = lfs_file_open(blconfig_lfs, &file, const_cast<char*>(read_key.c_str()), LFS_O_RDONLY);
+    ret = lfs_file_open(blconfig_lfs, &file, read_key, LFS_O_RDONLY);
     VerifyOrExit(ret == LFS_ERR_OK, err = CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND);
 
     if (value && value_size) {
@@ -327,6 +383,9 @@ CHIP_ERROR BLConfig::ReadKVS(const char * key, void * value, size_t value_size, 
     lfs_file_close(blconfig_lfs, &file);
 exit:
     blconfig_lfs->cfg->unlock(blconfig_lfs->cfg);
+    if (read_key) {
+        free(read_key);
+    }
 
     return err;
 }

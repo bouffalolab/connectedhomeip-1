@@ -327,6 +327,7 @@ template("bl_iot_sdk") {
       "-Wno-format-truncation",
       "-Wno-shadow",
       "-Wno-incompatible-pointer-types",
+      "-Wno-array-bounds"
     ]
 
     configs += [
@@ -463,7 +464,6 @@ template("bl_iot_sdk") {
     }
     else {
       defines += [
-        "CONFIG_LITTLEFS",
         "CONFIG_FREERTOS",
       ]
 
