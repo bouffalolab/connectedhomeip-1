@@ -370,6 +370,7 @@ template("bouffalo_sdk") {
   source_set("${sdk_target_name}_rf") {
     defines = [
       "RFPARAM_BL616",
+      "BL_PSM_RFPARAM",
     ]
 
     include_dirs = [
@@ -395,6 +396,7 @@ template("bouffalo_sdk") {
       ":${sdk_target_name}_config_std_drv",
       ":${sdk_target_name}_config_lhal",
       ":${sdk_target_name}_config_utils",
+      ":${sdk_target_name}_config_littlefs",
     ]
     public_configs = [
       ":${sdk_target_name}_config_rf",
@@ -648,6 +650,7 @@ template("bouffalo_sdk") {
 
     sources = [
       "${bouffalo_sdk_root}/components/fs/littlefs/easyflash_port/lfs_easyflash.c",
+      "${bouffalo_sdk_root}/components/fs/littlefs/easyflash_port/easyflash_cli.c",
       "${bouffalo_sdk_root}/components/fs/littlefs/littlefs/lfs_util.c",
       "${bouffalo_sdk_root}/components/fs/littlefs/littlefs/lfs.c",
       "${bouffalo_sdk_root}/components/fs/littlefs/port/lfs_xip_flash.c",
@@ -665,6 +668,7 @@ template("bouffalo_sdk") {
       ":${sdk_target_name}_config_freertos",
       ":${sdk_target_name}_config_utils",
       ":${sdk_target_name}_config_lhal",
+      ":${sdk_target_name}_config_shell",
     ]
 
     public_configs = [
