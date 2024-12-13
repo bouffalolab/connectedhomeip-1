@@ -19,8 +19,8 @@
 
 #include <platform/CHIPDeviceConfig.h>
 
-#include "FactoryDataProvider.h"
 #include <bl_mfd.h>
+#include "FactoryDataProvider.h"
 
 namespace chip {
 namespace DeviceLayer {

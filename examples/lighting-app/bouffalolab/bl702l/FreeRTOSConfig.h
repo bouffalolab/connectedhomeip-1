@@ -1,35 +1,5 @@
 /*
- *
- *    Copyright (c) 2021 Project CHIP Authors
- *    All rights reserved.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
-
-/***************************************************************************
- * # License
- *
- * The licensor of this software is Silicon Laboratories Inc. Your use of this
- * software is governed by the terms of Silicon Labs Master Software License
- * Agreement (MSLA) available at
- * www.silabs.com/about-us/legal/master-software-license-agreement. This
- * software is Third Party Software licensed by Silicon Labs from a third party
- * and is governed by the sections of the MSLA applicable to Third Party
- * Software and the additional terms set forth below.
- *
- ******************************************************************************/
-/*
-    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
+    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -101,7 +71,6 @@
 #define FREERTOS_CONFIG_H
 
 #include "platform.h"
-#include <stdio.h>
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -121,12 +90,9 @@
 #define configCLIC_TIMER_ENABLE_ADDRESS (0x02800407)
 #define configUSE_PREEMPTION 1
 #define configUSE_IDLE_HOOK 1
-#define configUSE_TICK_HOOK 0
-#ifndef configUSE_TICKLESS_IDLE
-// Maybe Compile flags is passed by command line
+#define configUSE_TICK_HOOK 1
 #define configUSE_TICKLESS_IDLE 1
-#endif
-#define configCPU_CLOCK_HZ (10 * 1000 * 1000) /*QEMU*/
+#define configCPU_CLOCK_HZ (2000000) /*QEMU*/
 #define configTICK_RATE_HZ ((TickType_t) 1000)
 #define configMAX_PRIORITIES (32)
 /* Creating idle task */
@@ -143,7 +109,7 @@
 /* Checking for stack overflow */
 /*  4  -> taskCHECK_FOR_STACK_OVERFLOW: if( ( pulStack[ 0 ] != ulCheckValue ) || ( pulStack[ 1 ] != ulCheckValue ) || ( pulStack[ 2
  * ] != ulCheckValue ) || ( pulStack[ 3 ] != ulCheckValue ) ) */
-#define configMINIMAL_STACK_SIZE ((unsigned short) 114) /* SIZE-1-1-12-16-30-34>=4 */
+#define configMINIMAL_STACK_SIZE ((unsigned short) 256) /* SIZE-1-1-12-16-30-34>=4 */
 #define configTOTAL_HEAP_SIZE ((size_t) 14100)
 #define configMAX_TASK_NAME_LEN (16)
 #define configUSE_TRACE_FACILITY 1
@@ -166,16 +132,17 @@
 
 /* Software timer definitions. */
 #define configUSE_TIMERS 1
-#define configTIMER_TASK_PRIORITY (configMAX_PRIORITIES - 2)
-#define configTIMER_QUEUE_LENGTH 10
-#define configTIMER_TASK_STACK_DEPTH (configMINIMAL_STACK_SIZE * 4)
+#define configTIMER_TASK_PRIORITY (configMAX_PRIORITIES - 1)
+#define configTIMER_QUEUE_LENGTH 4
+#define configTIMER_TASK_STACK_DEPTH (400)
 
 /* Task priorities.  Allow these to be overridden. */
 #ifndef uartPRIMARY_PRIORITY
 #define uartPRIMARY_PRIORITY (configMAX_PRIORITIES - 3)
 #endif
 
-/* Optional functions - most linkers will remove unused functions anyway. */
+/* Set the following definitions to 1 to include the API function, or zero
+to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet 1
 #define INCLUDE_uxTaskPriorityGet 1
 #define INCLUDE_vTaskDelete 1
@@ -185,8 +152,18 @@
 #define INCLUDE_vTaskDelay 1
 #define INCLUDE_eTaskGetState 1
 #define INCLUDE_xTimerPendFunctionCall 1
-#define INCLUDE_xTimerPendFunctionCall 1
 #define INCLUDE_uxTaskGetStackHighWaterMark 1
+#define INCLUDE_xTaskGetIdleTaskHandle 1
+#define INCLUDE_xTaskGetHandle 1
+
+/* Normal assert() semantics without relying on the provision of an assert.h
+header file. */
+#ifdef __cplusplus
+extern "C" void vAssertCalled(void);
+#else
+extern void vAssertCalled(void);
+#endif
+#define configASSERT( x ) if( ( x ) == 0 ) vAssertCalled()
 
 /* Overwrite some of the stack sizes allocated to various test and demo tasks.
 Like all task stack sizes, the value is the number of words, not bytes. */
@@ -200,24 +177,4 @@ Like all task stack sizes, the value is the number of words, not bytes. */
 #define genqGENERIC_QUEUE_TEST_TASK_STACK_SIZE 100
 #define recmuRECURSIVE_MUTEX_TEST_TASK_STACK_SIZE 90
 
-#ifdef __cplusplus
-extern "C" void vAssertCalled(void);
-#else
-extern void vAssertCalled(void);
-#endif
-/* Stop if an assertion fails. */
-#define configASSERT(x)                                                                                                            \
-    if ((x) == 0)                                                                                                                  \
-    vAssertCalled()
-
-#if (configUSE_TICKLESS_IDLE != 0)
-#include "portmacro.h"
-#ifdef __cplusplus
-extern "C" void vApplicationSleep(TickType_t xExpectedIdleTime);
-#else
-extern void vApplicationSleep(TickType_t xExpectedIdleTime);
-#endif
-#define portSUPPRESS_TICKS_AND_SLEEP(xExpectedIdleTime) vApplicationSleep(xExpectedIdleTime)
-#endif
-
-#endif
+#endif /* FREERTOS_CONFIG_H */
