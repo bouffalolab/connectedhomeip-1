@@ -82,7 +82,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiRssi(int8_t & rssi)
     if (ConnectivityMgrImpl()._IsWiFiStationConnected())
     {
         wifi_mgmr_sta_rssi_get(&tmp_rssi);
-        rssi = (int8_t)tmp_rssi;
+        rssi = (int8_t) tmp_rssi;
         return CHIP_NO_ERROR;
     }
 

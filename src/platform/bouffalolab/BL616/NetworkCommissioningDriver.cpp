@@ -17,8 +17,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <lwip/tcpip.h>
 #include <lwip/netif.h>
+#include <lwip/tcpip.h>
 #include <platform/CHIPDeviceLayer.h>
 #include <platform/bouffalolab/BL616/NetworkCommissioningDriver.h>
 extern "C" {
@@ -134,23 +134,24 @@ Status BLWiFiDriver::ReorderNetwork(ByteSpan networkId, uint8_t index, MutableCh
 
 CHIP_ERROR BLWiFiDriver::ConnectWiFiNetwork(const char * ssid, uint8_t ssidLen, const char * key, uint8_t keyLen)
 {
-    wifi_mgmr_sta_connect_params_t conn_param = {0};
+    wifi_mgmr_sta_connect_params_t conn_param = { 0 };
 
     ConnectivityMgrImpl().ChangeWiFiStationState(ConnectivityManager::kWiFiStationState_Connecting);
 
-    strncpy((char *)conn_param.ssid, ssid, ssidLen);
+    strncpy((char *) conn_param.ssid, ssid, ssidLen);
     conn_param.ssid_len = ssidLen;
 
-    if (keyLen) {
-        strncpy((char *)conn_param.key, key, keyLen);
+    if (keyLen)
+    {
+        strncpy((char *) conn_param.key, key, keyLen);
         conn_param.key_len = keyLen;
     }
-    conn_param.freq1 = 0;
-    conn_param.freq2 = 0;
-    conn_param.use_dhcp = 1;
-    conn_param.pmf_cfg = 1;
+    conn_param.freq1         = 0;
+    conn_param.freq2         = 0;
+    conn_param.use_dhcp      = 1;
+    conn_param.pmf_cfg       = 1;
     conn_param.quick_connect = 1;
-    conn_param.timeout_ms = -1;
+    conn_param.timeout_ms    = -1;
 
     wifi_mgmr_sta_connect(&conn_param);
 
@@ -184,7 +185,7 @@ void BLWiFiDriver::ConnectNetwork(ByteSpan networkId, ConnectCallback * callback
                     networkId.data());
 
     err               = ConnectWiFiNetwork(reinterpret_cast<const char *>(mStagingNetwork.ssid), mStagingNetwork.ssidLen,
-                             reinterpret_cast<const char *>(mStagingNetwork.credentials), mStagingNetwork.credentialsLen);
+                                           reinterpret_cast<const char *>(mStagingNetwork.credentials), mStagingNetwork.credentialsLen);
     mpConnectCallback = callback;
 
 exit:
@@ -209,7 +210,8 @@ void BLWiFiDriver::ScanNetworks(ByteSpan ssid, WiFiDriver::ScanCallback * callba
         {
             mpScanCallback = callback;
         }
-        else {
+        else
+        {
             callback->OnFinished(Status::kUnknownError, CharSpan(), nullptr);
         }
     }
@@ -218,14 +220,17 @@ void BLWiFiDriver::ScanNetworks(ByteSpan ssid, WiFiDriver::ScanCallback * callba
 void BLWiFiDriver::OnScanWiFiNetworkDone()
 {
     uint32_t nums = wifi_mgmr_sta_scanlist_nums_get();
-    if (nums) {
-        wifi_mgmr_scan_item_t * pScanList = (wifi_mgmr_scan_item_t*)MemoryAlloc(nums * sizeof(wifi_mgmr_scan_item_t));
+    if (nums)
+    {
+        wifi_mgmr_scan_item_t * pScanList = (wifi_mgmr_scan_item_t *) MemoryAlloc(nums * sizeof(wifi_mgmr_scan_item_t));
 
-        if (NULL == pScanList || 0 == wifi_mgmr_sta_scanlist_dump(pScanList, nums)) {
+        if (NULL == pScanList || 0 == wifi_mgmr_sta_scanlist_dump(pScanList, nums))
+        {
             mpScanCallback->OnFinished(Status::kUnknownError, CharSpan(), nullptr);
             mpScanCallback = nullptr;
         }
-        else {
+        else
+        {
 
             if (CHIP_NO_ERROR == DeviceLayer::SystemLayer().ScheduleLambda([nums, pScanList]() {
                     BLScanResponseIterator iter(nums, pScanList);
@@ -244,7 +249,8 @@ void BLWiFiDriver::OnScanWiFiNetworkDone()
             }
         }
     }
-    else {
+    else
+    {
         ChipLogProgress(DeviceLayer, "No AP found");
         if (mpScanCallback != nullptr)
         {
@@ -259,7 +265,8 @@ CHIP_ERROR GetConfiguredNetwork(Network & network)
     wifi_mgmr_connect_ind_stat_info_t statInfo;
 
     memset(&statInfo, 0, sizeof(wifi_mgmr_connect_ind_stat_info_t));
-    if (0 == wifi_mgmr_sta_connect_ind_stat_get(&statInfo)) {
+    if (0 == wifi_mgmr_sta_connect_ind_stat_get(&statInfo))
+    {
         memcpy(network.networkID, statInfo.ssid, strlen(statInfo.ssid));
         network.networkIDLen = strlen(statInfo.ssid);
         return CHIP_NO_ERROR;
@@ -283,7 +290,8 @@ void BLWiFiDriver::OnNetworkStatusChange()
         mpStatusChangeCallback->OnNetworkingStatusChange(
             Status::kSuccess, MakeOptional(ByteSpan(configuredNetwork.networkID, configuredNetwork.networkIDLen)), NullOptional);
     }
-    else {
+    else
+    {
         mpStatusChangeCallback->OnNetworkingStatusChange(
             Status::kUnknownError, MakeOptional(ByteSpan(configuredNetwork.networkID, configuredNetwork.networkIDLen)),
             MakeOptional(GetLastDisconnectReason()));
@@ -333,11 +341,13 @@ bool BLWiFiDriver::WiFiNetworkIterator::Next(Network & item)
 
 void NetworkEventHandler(const ChipDeviceEvent * event, intptr_t arg)
 {
-    if (!(DeviceEventType::IsPlatformSpecific(event->Type) && DeviceEventType::IsPublic(event->Type))) {
+    if (!(DeviceEventType::IsPlatformSpecific(event->Type) && DeviceEventType::IsPublic(event->Type)))
+    {
         return;
     }
 
-    switch (event->Type) {
+    switch (event->Type)
+    {
     case kWiFiOnInitDone:
         break;
     case kWiFiOnScanDone:
@@ -380,62 +390,68 @@ extern "C" void wifi_event_handler(uint32_t code)
 
     memset(&event, 0, sizeof(ChipDeviceEvent));
 
-    switch (code) {
-        case CODE_WIFI_ON_INIT_DONE:
-            wifi_mgmr_init(&conf);
-            break;
-        case CODE_WIFI_ON_MGMR_DONE:
-            wifi_mgmr_sta_autoconnect_enable();
-            break;
-        case CODE_WIFI_ON_SCAN_DONE:
-            event.Type                                 = kWiFiOnScanDone;
-            PlatformMgr().PostEventOrDie(&event);
-            break;
-        case CODE_WIFI_ON_CONNECTING:
-            event.Type                                 = kWiFiOnConnecting;
-            PlatformMgr().PostEventOrDie(&event);
-            break;
-        case CODE_WIFI_ON_CONNECTED:
-            event.Type                                 = kWiFiOnConnected;
-            PlatformMgr().PostEventOrDie(&event);
-            break;
-        case CODE_WIFI_ON_GOT_IP: 
-            event.Type                                 = kGotIpAddress;
-            PlatformMgr().PostEventOrDie(&event);
-            break;
-        case CODE_WIFI_ON_DISCONNECT: 
-            event.Type                                 = kWiFiOnDisconnected;
-            PlatformMgr().PostEventOrDie(&event);
-            break;
-        default: {
-            ChipLogProgress(DeviceLayer, "[APP] [EVT] Unknown code %lu \r\n", code);
-        }
+    switch (code)
+    {
+    case CODE_WIFI_ON_INIT_DONE:
+        wifi_mgmr_init(&conf);
+        break;
+    case CODE_WIFI_ON_MGMR_DONE:
+        wifi_mgmr_sta_autoconnect_enable();
+        break;
+    case CODE_WIFI_ON_SCAN_DONE:
+        event.Type = kWiFiOnScanDone;
+        PlatformMgr().PostEventOrDie(&event);
+        break;
+    case CODE_WIFI_ON_CONNECTING:
+        event.Type = kWiFiOnConnecting;
+        PlatformMgr().PostEventOrDie(&event);
+        break;
+    case CODE_WIFI_ON_CONNECTED:
+        event.Type = kWiFiOnConnected;
+        PlatformMgr().PostEventOrDie(&event);
+        break;
+    case CODE_WIFI_ON_GOT_IP:
+        event.Type = kGotIpAddress;
+        PlatformMgr().PostEventOrDie(&event);
+        break;
+    case CODE_WIFI_ON_DISCONNECT:
+        event.Type = kWiFiOnDisconnected;
+        PlatformMgr().PostEventOrDie(&event);
+        break;
+    default: {
+        ChipLogProgress(DeviceLayer, "[APP] [EVT] Unknown code %lu \r\n", code);
+    }
     }
 }
 
-extern "C" void network_netif_ext_callback(struct netif* nif, netif_nsc_reason_t reason, const netif_ext_callback_args_t* args) 
+extern "C" void network_netif_ext_callback(struct netif * nif, netif_nsc_reason_t reason, const netif_ext_callback_args_t * args)
 {
     ChipDeviceEvent event;
 
     memset(&event, 0, sizeof(ChipDeviceEvent));
 
-    if (((LWIP_NSC_IPV6_ADDR_STATE_CHANGED | LWIP_NSC_IPV6_SET) & reason) && args) {
+    if (((LWIP_NSC_IPV6_ADDR_STATE_CHANGED | LWIP_NSC_IPV6_SET) & reason) && args)
+    {
 
-        if (args->ipv6_addr_state_changed.addr_index >= LWIP_IPV6_NUM_ADDRESSES || 
-            ip6_addr_islinklocal(netif_ip6_addr(nif, args->ipv6_addr_state_changed.addr_index))) {
+        if (args->ipv6_addr_state_changed.addr_index >= LWIP_IPV6_NUM_ADDRESSES ||
+            ip6_addr_islinklocal(netif_ip6_addr(nif, args->ipv6_addr_state_changed.addr_index)))
+        {
             return;
         }
 
         if (netif_ip6_addr_state(nif, args->ipv6_addr_state_changed.addr_index) != args->ipv6_addr_state_changed.old_state &&
-            ip6_addr_ispreferred(netif_ip6_addr_state(nif, args->ipv6_addr_state_changed.addr_index))) {
-            event.Type                                 = kGotIpv6Address;
+            ip6_addr_ispreferred(netif_ip6_addr_state(nif, args->ipv6_addr_state_changed.addr_index)))
+        {
+            event.Type = kGotIpv6Address;
             PlatformMgr().PostEventOrDie(&event);
         }
     }
 
-    if ((LWIP_NSC_IPV4_SETTINGS_CHANGED & reason) && args) {
-        if (!ip4_addr_isany(netif_ip4_addr(nif)) && !ip4_addr_isany(netif_ip4_gw(nif))) {
-            event.Type                                 = kGotIpAddress;
+    if ((LWIP_NSC_IPV4_SETTINGS_CHANGED & reason) && args)
+    {
+        if (!ip4_addr_isany(netif_ip4_addr(nif)) && !ip4_addr_isany(netif_ip4_gw(nif)))
+        {
+            event.Type = kGotIpAddress;
             PlatformMgr().PostEventOrDie(&event);
         }
     }
@@ -444,4 +460,4 @@ extern "C" void network_netif_ext_callback(struct netif* nif, netif_nsc_reason_t
 } // namespace NetworkCommissioning
 } // namespace DeviceLayer
 } // namespace chip
-//#endif // CHIP_DEVICE_CONFIG_ENABLE_WIFI
+// #endif // CHIP_DEVICE_CONFIG_ENABLE_WIFI

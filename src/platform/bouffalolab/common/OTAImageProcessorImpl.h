@@ -25,11 +25,12 @@
 namespace chip {
 
 #if CHIP_DEVICE_LAYER_TARGET_BL616
-typedef struct _ota_header_s {
+typedef struct _ota_header_s
+{
     uint8_t header[16];
 
-    uint8_t type[4]; //RAW XZ
-    uint32_t image_len;    //body len
+    uint8_t type[4];    // RAW XZ
+    uint32_t image_len; // body len
     uint8_t pad0[8];
 
     uint8_t ver_hardware[16];
@@ -38,8 +39,10 @@ typedef struct _ota_header_s {
     uint8_t sha256[32];
 } ota_header_s_t;
 
-typedef struct _ota_header {
-    union {
+typedef struct _ota_header
+{
+    union
+    {
         ota_header_s_t s;
         uint8_t _pad[512];
     } u;

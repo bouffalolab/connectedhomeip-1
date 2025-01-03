@@ -51,7 +51,7 @@ ssize_t streamer_bouffalo_sdk_write(streamer_t * streamer, const char * buffer, 
 {
     (void) (streamer);
 
-    printf ("%s", buffer);
+    printf("%s", buffer);
     return 0;
 }
 

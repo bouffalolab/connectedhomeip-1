@@ -101,12 +101,12 @@ extern "C" otInstance * otrGetInstance()
     return ThreadStackMgrImpl().OTInstance();
 }
 
-extern "C" void otrLock(void) 
+extern "C" void otrLock(void)
 {
     ThreadStackMgrImpl().LockThreadStack();
 }
 
-extern "C" void otrUnlock(void) 
+extern "C" void otrUnlock(void)
 {
     ThreadStackMgrImpl().UnlockThreadStack();
 }

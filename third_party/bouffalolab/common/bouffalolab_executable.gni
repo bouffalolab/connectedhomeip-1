@@ -51,27 +51,22 @@ template("bouffalolab_executable") {
   flashing_config_target = target_name + ".config"
   if (invoker.bl_plat_name == "bl616") {
     objcopy_image_name = output_base_name + ".raw"
-    flashing_config_inputs = [ 
-      "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_4M.toml", 
+    flashing_config_inputs = [
+      "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_4M.toml",
       "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/bl_factory_params_IoTKitA_auto.dts",
-      "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/boot2_bl616_isp_release_v8.1.6.bin"
+      "${chip_root}/third_party/bouffalolab/bouffalo_sdk/bsp/board/bl616dk/config/boot2_bl616_isp_release_v8.1.6.bin",
     ]
 
     copy(flashing_config_target) {
       sources = flashing_config_inputs
       outputs = [ "${root_out_dir}/config/{{source_file_part}}" ]
     }
-  } 
-  else {
+  } else {
     objcopy_image_name = output_base_name + ".bin"
     if (invoker.bl_plat_name == "bl602") {
-      flashing_config_inputs = [ 
-        "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_4M.toml" 
-      ]
+      flashing_config_inputs = [ "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_4M.toml" ]
     } else {
-      flashing_config_inputs = [ 
-        "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_2M.toml" 
-      ]
+      flashing_config_inputs = [ "${chip_root}/examples/platform/bouffalolab/${invoker.bl_plat_name}/flash_config/partition_cfg_2M.toml" ]
     }
 
     copy(flashing_config_target) {
@@ -88,7 +83,10 @@ template("bouffalolab_executable") {
   flashing_options += [ "${invoker.bl_plat_name}" ]
 
   if (invoker.bl_plat_name == "bl616") {
-    flashing_options += [ "--config", "${root_out_dir}/flash_prog_cfg.ini" ]
+    flashing_options += [
+      "--config",
+      "${root_out_dir}/flash_prog_cfg.ini",
+    ]
   } else {
     flashing_options += [ "--xtal" ]
     if (invoker.bl_plat_name == "bl602") {
@@ -112,7 +110,7 @@ template("bouffalolab_executable") {
       flashing_options +=
           [ rebase_path("partition_cfg_2M.toml", root_out_dir, root_out_dir) ]
     }
-  }  
+  }
 
   # set 2000000 baudrate for image download by default
   flashing_options += [ "--baudrate" ]

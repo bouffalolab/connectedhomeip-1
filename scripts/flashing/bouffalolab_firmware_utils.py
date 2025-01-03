@@ -505,9 +505,9 @@ class Flasher(firmware_utils.Flasher):
     def bouffalo_sdk_prog(self):
 
         def int_to_lhex(intvalue):
-            lhex = ((intvalue & 0xff000000) >> 24) | ((intvalue & 0xff0000) >> 8) 
+            lhex = ((intvalue & 0xff000000) >> 24) | ((intvalue & 0xff0000) >> 8)
             lhex |= ((intvalue & 0xff00) << 8) | ((intvalue & 0xff) << 24)
-            
+
             return "%08x" % lhex
 
         def get_tools():
@@ -523,7 +523,7 @@ class Flasher(firmware_utils.Flasher):
                 flashtool_exe = os.path.join(bflb_tools, bflb_tools_dict[sys.platform]["flash_tool"])
             except Exception:
                 raise Exception("Do NOT support {} operating system to program firmware.".format(sys.platform))
-            
+
             if not os.path.exists(flashtool_exe) or not os.path.exists(fw_proc_exe):
                 logging.fatal('*' * 80)
                 logging.error("Expecting tools as below:")
@@ -533,7 +533,7 @@ class Flasher(firmware_utils.Flasher):
 
             return fw_proc_exe, flashtool_exe
 
-        def prog_config(configDir, output, isErase = False):
+        def prog_config(configDir, output, isErase=False):
 
             partition_file = self.find_file(configDir, r'^partition.+\.toml$')
             if len(partition_file) != 1:
@@ -615,16 +615,17 @@ class Flasher(firmware_utils.Flasher):
                 flashtool_exe,
                 "--chipname", self.args["chipname"],
                 "--baudrate", str(self.args["baudrate"]),
-                "--config",self.args["config"]
+                "--config", self.args["config"]
             ]
 
             if self.args["sk"] or (self.args["key"] and self.args["iv"]):
-                prog_cmd += [ 
-                    "--efuse", os.path.join(self.work_dir, "efusedata.bin") 
+                prog_cmd += [
+                    "--efuse", os.path.join(self.work_dir, "efusedata.bin")
                 ]
 
             if self.args["port"]:
-                prog_config(os.path.join(self.work_dir, "config"), os.path.join(self.work_dir, "flash_prog_cfg.ini"), self.option.erase)
+                prog_config(os.path.join(self.work_dir, "config"), os.path.join(
+                    self.work_dir, "flash_prog_cfg.ini"), self.option.erase)
 
                 prog_cmd += [
                     "--port", self.args["port"],
@@ -637,7 +638,7 @@ class Flasher(firmware_utils.Flasher):
                     if line:
                         logging.info(line)
 
-        fw_proc_exe, flashtool_exe = get_tools()        
+        fw_proc_exe, flashtool_exe = get_tools()
         os.chdir(self.work_dir)
 
         self.parse_mfd()

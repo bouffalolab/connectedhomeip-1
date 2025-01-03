@@ -54,9 +54,7 @@ CHIP_ERROR MemoryAllocatorInit(void * buf, size_t bufSize)
     return CHIP_NO_ERROR;
 }
 
-void MemoryAllocatorShutdown()
-{
-}
+void MemoryAllocatorShutdown() {}
 
 void * MemoryAlloc(size_t size)
 {

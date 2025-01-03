@@ -57,7 +57,6 @@ declare_args() {
 }
 
 bouffalo_sdk("sdk") {
-
   include_dirs = [
     "${example_dir}/bl616",
     "${examples_plat_dir}/bl616",
@@ -261,13 +260,12 @@ bouffalolab_executable("lighting_app") {
   }
 
   if (bouffalo_sdk_component_easyflash_enabled) {
-      defines += [ "BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED=1" ]
-  }
-  else {
-      defines += [ "BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED=0" ]
+    defines += [ "BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED=1" ]
+  } else {
+    defines += [ "BOUFFALO_SDK_COMPONENTS_EASYFLASH_ENABLED=0" ]
   }
 
-  print ("bouffalo_sdk_root=${bouffalo_sdk_root}")
+  print("bouffalo_sdk_root=${bouffalo_sdk_root}")
   cflags_c = [ "-Wno-sign-compare" ]
   ldscript = "${bouffalo_sdk_root}/bsp/board/bl616dk/bl616_flash.ld"
 

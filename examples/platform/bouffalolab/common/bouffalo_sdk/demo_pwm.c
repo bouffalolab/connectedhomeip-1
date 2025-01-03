@@ -4,43 +4,41 @@
  * Contact information:
  * web site:    https://www.bouffalolab.com/
  */
-#include <stdio.h>
 #include <bflb_clock.h>
 #include <bflb_gpio.h>
 #include <bflb_pwm_v2.h>
+#include <stdio.h>
 
-#include "mboard.h"
 #include "demo_pwm.h"
-
+#include "mboard.h"
 
 #if MAX_PWM_CHANNEL == 3
 static const uint32_t rgb_pwm[MAX_PWM_CHANNEL][2] = {
-    {LED_B_PIN, LED_B_PWM_CH},
-    {LED_R_PIN, LED_R_PWM_CH},
-    {LED_G_PIN, LED_G_PWM_CH},
+    { LED_B_PIN, LED_B_PWM_CH },
+    { LED_R_PIN, LED_R_PWM_CH },
+    { LED_G_PIN, LED_G_PWM_CH },
 };
 #else
 static const uint32_t rgb_pwm[][2] = {
-    {
-        LED_PIN, LED_PIN_PWM_CH
-    },
+    { LED_PIN, LED_PIN_PWM_CH },
 };
 #endif
 
-struct bflb_device_s *bflb_device_pwm = NULL;
+struct bflb_device_s * bflb_device_pwm = NULL;
 
 void demo_pwm_init(void)
 {
     struct bflb_pwm_v2_config_s cfg = {
         .clk_source = BFLB_SYSTEM_PBCLK,
-        .clk_div = 40,
-        .period = 1000,
+        .clk_div    = 40,
+        .period     = 1000,
     };
     struct bflb_device_s * gpio = bflb_device_get_by_name("gpio");
 
     bflb_device_pwm = bflb_device_get_by_name("pwm_v2_0");
 
-    for (int i = 0; i < sizeof(rgb_pwm)/sizeof(rgb_pwm[0]); i ++) {
+    for (int i = 0; i < sizeof(rgb_pwm) / sizeof(rgb_pwm[0]); i++)
+    {
         bflb_gpio_init(gpio, rgb_pwm[i][0], GPIO_FUNC_PWM0 | GPIO_ALTERNATE | GPIO_PULLDOWN | GPIO_SMT_EN | GPIO_DRV_1);
     }
 
@@ -49,7 +47,8 @@ void demo_pwm_init(void)
 
 void demo_pwm_start(void)
 {
-    for (int i = 0; i < sizeof(rgb_pwm)/sizeof(rgb_pwm[0]); i ++) {
+    for (int i = 0; i < sizeof(rgb_pwm) / sizeof(rgb_pwm[0]); i++)
+    {
         bflb_pwm_v2_channel_positive_start(bflb_device_pwm, rgb_pwm[i][1]);
     }
 
@@ -69,9 +68,10 @@ void set_level(uint8_t currLevel)
     {
         currLevel = 5; // avoid demo off
     }
-    period = (int)currLevel * 1000 / 254;
+    period = (int) currLevel * 1000 / 254;
 
-    for (int i = 0; i < sizeof(rgb_pwm)/sizeof(rgb_pwm[0]); i ++) {
+    for (int i = 0; i < sizeof(rgb_pwm) / sizeof(rgb_pwm[0]); i++)
+    {
         bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[i][1], 0, period);
     }
 }
@@ -149,7 +149,7 @@ void set_color(uint8_t currLevel, uint8_t currHue, uint8_t currSat)
     }
 
     bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[0][1], 0, blue * 1000 / 254);
-    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[1][1], 0, red * 1000 / 254); 
+    bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[1][1], 0, red * 1000 / 254);
     bflb_pwm_v2_channel_set_threshold(bflb_device_pwm, rgb_pwm[2][1], 0, green * 1000 / 254);
 #else
     set_level(currLevel);

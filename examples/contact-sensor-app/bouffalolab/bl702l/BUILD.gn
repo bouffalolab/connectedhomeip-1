@@ -139,8 +139,8 @@ bouffalolab_executable("contact_sensor_app") {
   ]
 
   deps = [
-    ":sdk",
     ":bouffalolab_contact_sensor",
+    ":sdk",
     "${chip_root}/examples/providers:device_info_provider",
     "${chip_root}/src/lib",
     "${chip_root}/src/platform/logging:default",
@@ -153,7 +153,8 @@ bouffalolab_executable("contact_sensor_app") {
       "${chip_root}/third_party/openthread/platforms:libopenthread-platform-utils",
     ]
 
-    assert(chip_openthread_ftd == false, "Only Thread MTD support on contact sensor application.")
+    assert(chip_openthread_ftd == false,
+           "Only Thread MTD support on contact sensor application.")
     defines += [ "CHIP_DEVICE_CONFIG_THREAD_FTD=0" ]
     deps += [ "${openthread_root}:libopenthread-mtd" ]
     if (chip_build_libshell) {

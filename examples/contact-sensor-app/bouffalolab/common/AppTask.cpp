@@ -45,8 +45,8 @@
 #include <plat.h>
 
 extern "C" {
-#include <bl_pds.h>
 #include <bl_gpio.h>
+#include <bl_pds.h>
 #include <hal_gpio.h>
 #include <hosal_gpio.h>
 }
@@ -62,7 +62,6 @@ using namespace ::chip::DeviceLayer;
 AppTask AppTask::sAppTask;
 StackType_t AppTask::appStack[APP_TASK_STACK_SIZE / sizeof(StackType_t)];
 StaticTask_t AppTask::appTaskStruct;
-
 
 #if CONFIG_ENABLE_CHIP_SHELL
 void AppTask::AppShellTask(void * args)
@@ -110,23 +109,30 @@ void AppTask::PostEvent(app_event_t event)
 
 void AppTask::ButtonEventHandler(void * arg)
 {
-    hosal_gpio_dev_t *p_gpio = (hosal_gpio_dev_t *)arg;
-    uint8_t val = 1;
+    hosal_gpio_dev_t * p_gpio = (hosal_gpio_dev_t *) arg;
+    uint8_t val               = 1;
 
     hosal_gpio_input_get(p_gpio, &val);
 
-    if (CHIP_RESET_PIN == p_gpio->port) {
-        if (val) {
+    if (CHIP_RESET_PIN == p_gpio->port)
+    {
+        if (val)
+        {
             GetAppTask().mButtonPressedTime = System::SystemClock().GetMonotonicMilliseconds64().count();
         }
-        else {
-            if (GetAppTask().mButtonPressedTime) {
-                uint64_t pressed_time = System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime;
+        else
+        {
+            if (GetAppTask().mButtonPressedTime)
+            {
+                uint64_t pressed_time =
+                    System::SystemClock().GetMonotonicMilliseconds64().count() - GetAppTask().mButtonPressedTime;
 
-                if (pressed_time > APP_BUTTON_PRESS_LONG) {
+                if (pressed_time > APP_BUTTON_PRESS_LONG)
+                {
                     GetAppTask().PostEvent(APP_EVENT_FACTORY_RESET);
                 }
-                else if (APP_BUTTON_PRESS_JITTER < pressed_time && pressed_time < APP_BUTTON_PRESS_SHORT) {
+                else if (APP_BUTTON_PRESS_JITTER < pressed_time && pressed_time < APP_BUTTON_PRESS_SHORT)
+                {
                     GetAppTask().PostEvent(APP_EVENT_BUTTON_PRESSED);
                 }
 
@@ -134,11 +140,14 @@ void AppTask::ButtonEventHandler(void * arg)
             }
         }
     }
-    else if (CHIP_CONTACT_PIN == p_gpio->port) {
-        if (val) {
+    else if (CHIP_CONTACT_PIN == p_gpio->port)
+    {
+        if (val)
+        {
             GetAppTask().PostEvent(APP_EVENT_CONTACT_SENSOR_TRUE);
         }
-        else {
+        else
+        {
             GetAppTask().PostEvent(APP_EVENT_CONTACT_SENSOR_FALSE);
         }
     }
@@ -147,8 +156,8 @@ void AppTask::ButtonEventHandler(void * arg)
 void AppTask::AppTaskMain(void * pvParameter)
 {
     app_event_t appEvent;
-    bool stateValueAttrValue    = false;
-    uint64_t currentHeapFree    = 0;
+    bool stateValueAttrValue = false;
+    uint64_t currentHeapFree = 0;
 
     app_pds_init(GetAppTask().ButtonEventHandler);
 
@@ -187,12 +196,14 @@ void AppTask::AppTaskMain(void * pvParameter)
                 DeviceLayer::ConfigurationMgr().InitiateFactoryReset();
             }
 
-            if (APP_EVENT_CONTACT_SENSOR_TRUE & appEvent) {
+            if (APP_EVENT_CONTACT_SENSOR_TRUE & appEvent)
+            {
                 stateValueAttrValue = 1;
                 app::Clusters::BooleanState::Attributes::StateValue::Set(1, stateValueAttrValue);
             }
 
-            if (APP_EVENT_CONTACT_SENSOR_FALSE & appEvent) {
+            if (APP_EVENT_CONTACT_SENSOR_FALSE & appEvent)
+            {
                 stateValueAttrValue = 0;
                 app::Clusters::BooleanState::Attributes::StateValue::Set(1, stateValueAttrValue);
             }
@@ -203,7 +214,7 @@ void AppTask::AppTaskMain(void * pvParameter)
 }
 
 #if CHIP_DETAIL_LOGGING
-void AppTask::OnEnterActiveMode() 
+void AppTask::OnEnterActiveMode()
 {
     ChipLogProgress(NotSpecified, "App ICD enter active mode.");
 }

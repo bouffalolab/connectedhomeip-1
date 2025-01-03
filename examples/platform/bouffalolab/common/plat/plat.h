@@ -23,7 +23,7 @@
 
 #define EXT_DISCOVERY_TIMEOUT_SECS 20
 
-typedef void (*app_pds_gpio_irq_handler_t)(void *arg);
+typedef void (*app_pds_gpio_irq_handler_t)(void * arg);
 
 #ifdef __cplusplus
 

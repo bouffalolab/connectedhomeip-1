@@ -37,19 +37,19 @@ namespace DeviceLayer {
 namespace Internal {
 
 #if CHIP_DEVICE_LAYER_TARGET_BL616
-    static struct lfs_context lfs_ctx = { .partition_name = (char *)"PSM" };
-    static struct lfs_config lfs_cfg = { .read_size = 256,
-                                      .prog_size = 256,
-                                      .block_size = 4096,
-                                      .block_cycles = 500,
-                                      .cache_size = 512,
-                                      .lookahead_size = 256,
-                                    };
-    static lfs_t * blconfig_lfs = NULL;
+static struct lfs_context lfs_ctx = { .partition_name = (char *) "PSM" };
+static struct lfs_config lfs_cfg  = {
+     .read_size      = 256,
+     .prog_size      = 256,
+     .block_size     = 4096,
+     .block_cycles   = 500,
+     .cache_size     = 512,
+     .lookahead_size = 256,
+};
+static lfs_t * blconfig_lfs = NULL;
 #else
-    static lfs_t * blconfig_lfs = nullptr;
+static lfs_t * blconfig_lfs = nullptr;
 #endif
-
 
 static inline char * blcfg_convert_key(const char * pKey, const char * pNameSpace = NULL)
 {

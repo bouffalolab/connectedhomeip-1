@@ -15,37 +15,40 @@
  *    limitations under the License.
  */
 
+#include "OTAImageProcessorImpl.h"
 #include <app/clusters/ota-requestor/OTADownloader.h>
 #include <app/clusters/ota-requestor/OTARequestorInterface.h>
-#include "OTAImageProcessorImpl.h"
 
 extern "C" {
-#include <bl_sys.h>
 #include <bflb_ota.h>
+#include <bl_sys.h>
 }
 
 using namespace chip::System;
 
 namespace chip {
 
-#define OTA_IMAGE_TYPE_XZ             "XZ"
-#define OTA_IMAGE_TYPE_RAW            "RAW"
+#define OTA_IMAGE_TYPE_XZ "XZ"
+#define OTA_IMAGE_TYPE_RAW "RAW"
 
-static bool check_ota_header(ota_header_s_t *ota_header_s)
+static bool check_ota_header(ota_header_s_t * ota_header_s)
 {
-    char str[sizeof(ota_header_s->header) + 1]; 
+    char str[sizeof(ota_header_s->header) + 1];
 
     memcpy(str, ota_header_s->header, sizeof(ota_header_s->header));
     str[sizeof(ota_header_s->header)] = '\0';
     ChipLogProgress(SoftwareUpdate, "Bouffalo Lab OTA header: %s", str);
 
-    if (0 == memcmp(OTA_IMAGE_TYPE_XZ, ota_header_s->type, strlen(OTA_IMAGE_TYPE_XZ))) {
+    if (0 == memcmp(OTA_IMAGE_TYPE_XZ, ota_header_s->type, strlen(OTA_IMAGE_TYPE_XZ)))
+    {
         ChipLogProgress(SoftwareUpdate, "Bouffalo Lab OTA image type: %s", OTA_IMAGE_TYPE_XZ);
     }
-    else if (0 == memcmp(OTA_IMAGE_TYPE_RAW, ota_header_s->type, strlen(OTA_IMAGE_TYPE_RAW))) {
+    else if (0 == memcmp(OTA_IMAGE_TYPE_RAW, ota_header_s->type, strlen(OTA_IMAGE_TYPE_RAW)))
+    {
         ChipLogProgress(SoftwareUpdate, "Bouffalo Lab OTA image type: %s", OTA_IMAGE_TYPE_RAW);
     }
-    else {
+    else
+    {
         return false;
     }
 
@@ -140,7 +143,6 @@ void OTAImageProcessorImpl::HandlePrepareDownload(intptr_t context)
 {
     auto * imageProcessor = reinterpret_cast<OTAImageProcessorImpl *>(context);
 
-
     if (imageProcessor == nullptr)
     {
         ChipLogError(SoftwareUpdate, "ImageProcessor context is null");
@@ -171,11 +173,11 @@ void OTAImageProcessorImpl::HandleFinalize(intptr_t context)
         return;
     }
 
-
     ByteSpan block = imageProcessor->mBlock;
 
     if (bflb_ota_update(imageProcessor->mImageTotalSize, imageProcessor->mParams.downloadedBytes - sizeof(ota_header_t),
-                        imageProcessor->mOtaHdr.sha256, sizeof(imageProcessor->mOtaHdr.sha256)) < 0) {
+                        imageProcessor->mOtaHdr.sha256, sizeof(imageProcessor->mOtaHdr.sha256)) < 0)
+    {
         imageProcessor->mDownloader->EndDownload(CHIP_ERROR_WRITE_FAILED);
         return;
     }
@@ -269,23 +271,28 @@ void OTAImageProcessorImpl::HandleProcessBlock(intptr_t context)
 
     if (imageProcessor->mParams.totalFileBytes)
     {
-        if (0 == imageProcessor->mImageTotalSize) {
+        if (0 == imageProcessor->mImageTotalSize)
+        {
 
             iSize = sizeof(ota_header_s_t) - imageProcessor->mParams.downloadedBytes;
-            if (block.size() < iSize) {
+            if (block.size() < iSize)
+            {
                 iSize = block.size();
             }
 
-            memcpy(reinterpret_cast<uint8_t*>(&imageProcessor->mOtaHdr) + imageProcessor->mParams.downloadedBytes, 
-                   block.data(), iSize);
+            memcpy(reinterpret_cast<uint8_t *>(&imageProcessor->mOtaHdr) + imageProcessor->mParams.downloadedBytes, block.data(),
+                   iSize);
 
-            if (imageProcessor->mParams.downloadedBytes + iSize >= sizeof(ota_header_s_t)) {
-                if (!check_ota_header(&imageProcessor->mOtaHdr)) {
+            if (imageProcessor->mParams.downloadedBytes + iSize >= sizeof(ota_header_s_t))
+            {
+                if (!check_ota_header(&imageProcessor->mOtaHdr))
+                {
                     imageProcessor->mDownloader->EndDownload(CHIP_ERROR_DECODE_FAILED);
                     return;
                 }
 
-                if (bflb_ota_start(imageProcessor->mOtaHdr.image_len + sizeof(imageProcessor->mOtaHdr.sha256)) < 0) {
+                if (bflb_ota_start(imageProcessor->mOtaHdr.image_len + sizeof(imageProcessor->mOtaHdr.sha256)) < 0)
+                {
                     imageProcessor->mDownloader->EndDownload(CHIP_ERROR_OPEN_FAILED);
                     return;
                 }
@@ -294,20 +301,23 @@ void OTAImageProcessorImpl::HandleProcessBlock(intptr_t context)
             }
         }
 
-        if (imageProcessor->mImageTotalSize && 
-            imageProcessor->mParams.downloadedBytes + block.size() > sizeof(ota_header_t)) {
+        if (imageProcessor->mImageTotalSize && imageProcessor->mParams.downloadedBytes + block.size() > sizeof(ota_header_t))
+        {
 
-            if (imageProcessor->mParams.downloadedBytes >= sizeof(ota_header_t)) {
+            if (imageProcessor->mParams.downloadedBytes >= sizeof(ota_header_t))
+            {
                 iOffset = imageProcessor->mParams.downloadedBytes - sizeof(ota_header_t);
-                iSize = 0;
+                iSize   = 0;
             }
-            else {
+            else
+            {
                 iOffset = 0;
-                iSize = sizeof(ota_header_t) - imageProcessor->mParams.downloadedBytes;
+                iSize   = sizeof(ota_header_t) - imageProcessor->mParams.downloadedBytes;
             }
 
-            if (bflb_ota_update(imageProcessor->mImageTotalSize, iOffset,
-                                const_cast<uint8_t *>(block.data() + iSize), block.size() - iSize) < 0) {
+            if (bflb_ota_update(imageProcessor->mImageTotalSize, iOffset, const_cast<uint8_t *>(block.data() + iSize),
+                                block.size() - iSize) < 0)
+            {
                 imageProcessor->mDownloader->EndDownload(CHIP_ERROR_WRITE_FAILED);
                 return;
             }

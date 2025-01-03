@@ -16,12 +16,12 @@
  *    limitations under the License.
  */
 
-#include <stdlib.h>
 #include <crypto/CHIPCryptoPAL.h>
 #include <platform/internal/CHIPDeviceLayerInternal.h>
+#include <stdlib.h>
 
-#include <platform/PlatformManager.h>
 #include <platform/FreeRTOS/SystemTimeSupport.h>
+#include <platform/PlatformManager.h>
 #include <platform/bouffalolab/BL616/NetworkCommissioningDriver.h>
 #include <platform/bouffalolab/common/DiagnosticDataProviderImpl.h>
 #include <platform/internal/GenericPlatformManagerImpl_FreeRTOS.ipp>
@@ -39,11 +39,11 @@
 #include <utils_list.h>
 #endif
 
-#include <bflb_sec_trng.h>
 #include <bflb_flash.h>
+#include <bflb_sec_trng.h>
 extern "C" {
-#include <rfparam_adapter.h>
 #include <partition.h>
+#include <rfparam_adapter.h>
 }
 
 namespace chip {
@@ -58,7 +58,7 @@ static int app_entropy_source(void * data, unsigned char * output, size_t len, s
 
 CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
 {
-    CHIP_ERROR err                 = CHIP_NO_ERROR;
+    CHIP_ERROR err = CHIP_NO_ERROR;
     TaskHandle_t backup_eventLoopTask;
     int iret_rfInit = -1;
 
@@ -73,13 +73,13 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
     wifi_start_firmware_task();
 #endif
-    
+
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
     otRadio_opt_t opt;
 #if CHIP_DEVICE_CONFIG_THREAD_FTD
-    opt.bf.isFtd        = true;
+    opt.bf.isFtd = true;
 #else
-    opt.bf.isFtd        = false;
+    opt.bf.isFtd = false;
 #endif
     opt.bf.isCoexEnable = true;
 

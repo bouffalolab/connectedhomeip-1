@@ -841,7 +841,8 @@ ssize_t BLEManagerImpl::HandleC3Read(struct bt_conn * conId, const struct bt_gat
 }
 #endif
 
-extern "C" int ble_connection_number(void) {
+extern "C" int ble_connection_number(void)
+{
     return BLEMgr().NumConnections();
 }
 } // namespace Internal

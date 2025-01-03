@@ -139,8 +139,8 @@ bouffalolab_executable("lighting_app") {
   ]
 
   deps = [
-    ":sdk",
     ":bouffalolab-lighting",
+    ":sdk",
     "${chip_root}/examples/providers:device_info_provider",
     "${chip_root}/src/lib",
     "${chip_root}/src/platform/logging:default",

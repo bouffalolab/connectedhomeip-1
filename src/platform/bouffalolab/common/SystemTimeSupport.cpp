@@ -35,7 +35,6 @@ namespace Internal {
 ClockImpl gClockImpl;
 } // namespace Internal
 
-
 static Microseconds64 gBootRealTime = Seconds64::zero();
 
 Microseconds64 ClockImpl::GetMonotonicMicroseconds64(void)

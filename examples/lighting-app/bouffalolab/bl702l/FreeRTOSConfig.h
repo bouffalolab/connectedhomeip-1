@@ -163,7 +163,9 @@ extern "C" void vAssertCalled(void);
 #else
 extern void vAssertCalled(void);
 #endif
-#define configASSERT( x ) if( ( x ) == 0 ) vAssertCalled()
+#define configASSERT(x)                                                                                                            \
+    if ((x) == 0)                                                                                                                  \
+    vAssertCalled()
 
 /* Overwrite some of the stack sizes allocated to various test and demo tasks.
 Like all task stack sizes, the value is the number of words, not bytes. */

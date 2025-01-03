@@ -19,8 +19,6 @@
 
 namespace chip {
 namespace System {
-namespace Clock {
-
-} // namespace Clock
+namespace Clock {} // namespace Clock
 } // namespace System
 } // namespace chip

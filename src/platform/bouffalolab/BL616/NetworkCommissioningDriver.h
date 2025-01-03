@@ -38,7 +38,8 @@ constexpr uint8_t kWiFiConnectNetworkTimeoutSeconds = 20;
 class BLScanResponseIterator : public Iterator<WiFiScanResponse>
 {
 public:
-    BLScanResponseIterator(const size_t size, const wifi_mgmr_scan_item_t * scanResults) : mSize(size), mpScanResults(scanResults) {}
+    BLScanResponseIterator(const size_t size, const wifi_mgmr_scan_item_t * scanResults) : mSize(size), mpScanResults(scanResults)
+    {}
     size_t Count() override { return mSize; }
     bool Next(WiFiScanResponse & item) override
     {
@@ -48,9 +49,9 @@ public:
         }
 
         item.security.SetRaw(mpScanResults[mIternum].auth);
-        item.ssidLen = (uint32_t)(mpScanResults[mIternum].ssid_len) < chip::DeviceLayer::Internal::kMaxWiFiSSIDLength
-            ? mpScanResults[mIternum].ssid_len
-            : chip::DeviceLayer::Internal::kMaxWiFiSSIDLength;
+        item.ssidLen  = (uint32_t) (mpScanResults[mIternum].ssid_len) < chip::DeviceLayer::Internal::kMaxWiFiSSIDLength
+             ? mpScanResults[mIternum].ssid_len
+             : chip::DeviceLayer::Internal::kMaxWiFiSSIDLength;
         item.channel  = mpScanResults[mIternum].channel;
         item.wiFiBand = chip::DeviceLayer::NetworkCommissioning::WiFiBand::k2g4;
         item.rssi     = mpScanResults[mIternum].rssi;
@@ -141,7 +142,6 @@ private:
     NetworkStatusChangeCallback * mpStatusChangeCallback = nullptr;
     int32_t mLastDisconnectedReason;
 };
-
 
 } // namespace NetworkCommissioning
 } // namespace DeviceLayer

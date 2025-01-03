@@ -20,8 +20,8 @@
 #include <task.h>
 
 extern "C" {
-#include <bl616dk/board.h>
 #include <bflb_mtd.h>
+#include <bl616dk/board.h>
 }
 #include <plat.h>
 
@@ -56,7 +56,8 @@ extern "C" void vAssertCalled(void)
         printf("vAssertCalled, ra = %p in task %s\r\n", (void *) ra, pcTaskGetName(NULL));
     }
 
-    while (true);
+    while (true)
+        ;
 }
 
 extern "C" void bflb_assert(void) __attribute__((weak, alias("vAssertCalled")));

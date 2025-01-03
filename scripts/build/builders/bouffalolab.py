@@ -73,6 +73,7 @@ class BouffalolabBoard(Enum):
         else:
             raise Exception('Unknown board #: %r' % self)
 
+
 class BouffalolabThreadType(Enum):
     NONE = auto()
     THREAD_FTD = auto()
@@ -181,7 +182,7 @@ class BouffalolabBuilder(GnBuilder):
 
         self.argsOpt.append(f'chip_mdns="{chip_mdns}"')
         self.argsOpt.append(f'chip_inet_config_enable_ipv4={str(enable_ethernet or enable_wifi).lower()}')
-        
+
         if enable_easyflash and enable_littlefs:
             raise Exception("Only one of easyflash and littlefs can be enabled.")
         if bouffalo_chip == "bl616":
@@ -215,7 +216,7 @@ class BouffalolabBuilder(GnBuilder):
                 else:
                     self.argsOpt.append(
                         'openthread_root="//third_party/connectedhomeip/third_party/bouffalolab/bouffalo_sdk/components/wireless/thread/openthread"')
-                    
+
         if enable_cdc:
             if bouffalo_chip != "bl702":
                 raise Exception(f'SoC {bouffalo_chip} does NOT support USB CDC')
@@ -284,7 +285,7 @@ class BouffalolabBuilder(GnBuilder):
 
     def PostBuildCommand(self):
 
-        bouffalo_sdk_chips = [ "bl616" ]
+        bouffalo_sdk_chips = ["bl616"]
         abs_path_fw = os.path.join(self.output_dir, self.app.AppNamePrefix(self.chip_name) + ".bin")
 
         if self.chip_name not in bouffalo_sdk_chips:

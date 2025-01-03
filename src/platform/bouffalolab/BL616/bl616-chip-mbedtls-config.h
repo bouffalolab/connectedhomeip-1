@@ -38,7 +38,7 @@
  * Enable FreeRTOS threading support
  */
 #define MBEDTLS_FREERTOS
-//#define MBEDTLS_THREADING_C
+// #define MBEDTLS_THREADING_C
 
 /**
  * Enable H Crypto and Entropy modules
@@ -60,7 +60,6 @@ typedef void mbedtls_ecp_restart_ctx;
 #endif
 
 #define MBEDTLS_PLATFORM_MEMORY
-
 
 #define MBEDTLS_CIPHER_PADDING_PKCS7
 #define MBEDTLS_CIPHER_PADDING_ZEROS
@@ -89,7 +88,7 @@ typedef void mbedtls_ecp_restart_ctx;
 
 #define MBEDTLS_ERROR_C
 #define MBEDTLS_GCM_C
-#define MBEDTLS_ERROR_STRERROR_DUMMY 
+#define MBEDTLS_ERROR_STRERROR_DUMMY
 #define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HKDF_C
 #define MBEDTLS_HMAC_DRBG_C

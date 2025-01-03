@@ -51,7 +51,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapFree(uint64_t & currentHeap
 #ifdef CFG_USE_PSRAM
     currentHeapFree = xPortGetFreeHeapSize() + xPortGetFreeHeapSizePsram();
 #else
-    currentHeapFree = xPortGetFreeHeapSize();
+    currentHeapFree          = xPortGetFreeHeapSize();
 #endif
 #endif
 
@@ -68,7 +68,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetCurrentHeapUsed(uint64_t & currentHeap
 #ifdef CFG_USE_PSRAM
     currentHeapUsed = (get_heap_size() + get_heap3_size() - xPortGetFreeHeapSize() - xPortGetFreeHeapSizePsram());
 #else
-    currentHeapUsed = (get_heap_size() - xPortGetFreeHeapSize());
+    currentHeapUsed          = (get_heap_size() - xPortGetFreeHeapSize());
 #endif
 #endif
 
@@ -249,7 +249,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetNetworkInterfaces(NetworkInterface ** 
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
     ifp->type          = app::Clusters::GeneralDiagnostics::InterfaceTypeEnum::kWiFi;
 #else
-    ifp->type = app::Clusters::GeneralDiagnostics::InterfaceTypeEnum::kEthernet;
+    ifp->type                = app::Clusters::GeneralDiagnostics::InterfaceTypeEnum::kEthernet;
 #endif
     ifp->offPremiseServicesReachableIPv4.SetNull();
     ifp->offPremiseServicesReachableIPv6.SetNull();

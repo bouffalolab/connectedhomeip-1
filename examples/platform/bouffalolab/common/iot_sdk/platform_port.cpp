@@ -79,7 +79,6 @@ extern "C" unsigned int sleep(unsigned int seconds)
     return 0;
 }
 
-
 extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, char * pcTaskName)
 {
     printf("Stack Overflow checked. Stack name %s", pcTaskName);
@@ -179,7 +178,8 @@ extern "C" void vAssertCalled(void)
 
     portABORT();
 
-    while (true) ;
+    while (true)
+        ;
 }
 
 extern "C" void user_vAssertCalled(void) __attribute__((weak, alias("vAssertCalled")));
@@ -303,10 +303,12 @@ static void bl_show_component_version(void)
 {
     extern uint8_t _version_info_section_start;
     extern uint8_t _version_info_section_end;
-    char **version_str_p = NULL;
+    char ** version_str_p = NULL;
 
     puts("Version of used components:\r\n");
-    for (version_str_p = (char **)&_version_info_section_start; version_str_p < (char **)&_version_info_section_end; version_str_p++) {
+    for (version_str_p = (char **) &_version_info_section_start; version_str_p < (char **) &_version_info_section_end;
+         version_str_p++)
+    {
         puts("\tVersion: ");
         puts(*version_str_p);
         puts("\r\n");

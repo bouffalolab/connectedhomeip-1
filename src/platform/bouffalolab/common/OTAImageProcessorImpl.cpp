@@ -20,8 +20,8 @@
 
 extern "C" {
 #if CHIP_DEVICE_LAYER_TARGET_BL616
-#include <bl_sys.h>
 #include <bflb_ota.h>
+#include <bl_sys.h>
 #else
 #include <hal_sys.h>
 #include <hosal_ota.h>
@@ -259,7 +259,7 @@ void OTAImageProcessorImpl::HandleProcessBlock(intptr_t context)
                             (uint8_t *) block.data(), block.size()) < 0)
 #else
         if (hosal_ota_update(imageProcessor->mParams.totalFileBytes, imageProcessor->mParams.downloadedBytes,
-                            (uint8_t *) block.data(), block.size()) < 0)
+                             (uint8_t *) block.data(), block.size()) < 0)
 #endif
         {
             imageProcessor->mDownloader->EndDownload(CHIP_ERROR_WRITE_FAILED);

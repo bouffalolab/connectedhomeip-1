@@ -29,7 +29,8 @@ using namespace ::chip::app::Clusters::BooleanState;
 
 void MatterPostAttributeChangeCallback(const chip::app::ConcreteAttributePath & path, uint8_t type, uint16_t size, uint8_t * value)
 {
-    ChipLogProgress(Zcl, "Cluster callback: " ChipLogFormatMEI " " ChipLogFormatMEI, ChipLogValueMEI(path.mClusterId), ChipLogValueMEI(path.mAttributeId));
+    ChipLogProgress(Zcl, "Cluster callback: " ChipLogFormatMEI " " ChipLogFormatMEI, ChipLogValueMEI(path.mClusterId),
+                    ChipLogValueMEI(path.mAttributeId));
 
     if (path.mClusterId == BooleanState::Id && path.mAttributeId == BooleanState::Attributes::StateValue::Id)
     {
